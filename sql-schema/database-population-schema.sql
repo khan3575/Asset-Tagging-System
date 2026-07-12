@@ -72,7 +72,7 @@ INSERT INTO approvals (
  '2026-07-09 08:15:00', '2026-07-09 10:45:00', NULL),
 
 -- Flow #5: Return request. Sakib (1) is returning the ThinkPad to inventory -- self-service,
--- requires only ONE admin (chk_return_single_approval), still PENDING (nobody has verified yet).
+-- requires only ONE admin approval, still PENDING (nobody has verified yet).
 (3, 1, 1, NULL, 'RETURN_REQUEST', 1, NULL, NULL, 'PENDING',
  'Switching to the MacBook full-time, returning the ThinkPad to inventory.', NULL, NULL,
  '2026-07-09 09:00:00', NULL, NULL);
