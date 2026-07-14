@@ -8,95 +8,214 @@ import org.springframework.data.domain.Pageable;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.repository.query.Param;
 
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
+
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository
+        extends JpaRepository<User, Long> {
 
     @EntityGraph(
             attributePaths = {
-                    "roles",
-                    "department"
+                    "department",
+                    "roles"
             }
     )
+    Optional<User> findByEmailIgnoreCase(
+            String email
+    );
 
-    Optional<User> findByEmail(String email);
+    boolean existsByEmailIgnoreCase(
+            String email
+    );
+
+    boolean existsByEmailIgnoreCaseAndIdNot(
+            String email,
+            Long id
+    );
+
 
     @EntityGraph(
             attributePaths = {
-                    "roles",
-                    "department"
+                    "department",
+                    "roles"
             }
     )
-
-    Optional<User> findByEmailIgnoreCase(String email);
-
-    boolean existsByEmailIgnoreCase(String email);
-
-    Page<User> findByEnabled(
-            Boolean enabled,
-            Pageable pageable
-    );
-
-    Page<User> findByDepartmentId(
-            Long departmentId,
-            Pageable pageable
-    );
-
     @Query("""
             SELECT DISTINCT user
             FROM User user
             JOIN user.roles role
-            WHERE role.name = :roleName
+            WHERE user.id = :userId
+              AND role.name = :roleName
             """)
+    Optional<User> findByIdAndRoleName(
 
-    Page<User> findByRoleName(
+            @Param("userId")
+            Long userId,
+
+            @Param("roleName")
+            RoleName roleName
+    );
+
+
+    @Query(
+            value = """
+                    SELECT DISTINCT user
+                    FROM User user
+                    JOIN user.roles role
+                    JOIN user.department department
+                    WHERE role.name = :roleName
+                    
+                      AND (
+                            :search IS NULL
+                    
+                            OR LOWER(user.firstName)
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                    
+                            OR LOWER(user.lastName)
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                    
+                            OR LOWER(
+                                    CONCAT(
+                                        user.firstName,
+                                        ' ',
+                                        user.lastName
+                                    )
+                               )
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                    
+                            OR LOWER(user.email)
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                      )
+                    
+                      AND (
+                            :departmentId IS NULL
+                    
+                            OR department.id =
+                               :departmentId
+                      )
+                    
+                      AND (
+                            :enabled IS NULL
+                    
+                            OR user.enabled =
+                               :enabled
+                      )
+                    """,
+
+            countQuery = """
+                    SELECT COUNT(
+                            DISTINCT user.id
+                    )
+                    FROM User user
+                    JOIN user.roles role
+                    JOIN user.department department
+                    WHERE role.name = :roleName
+                    
+                      AND (
+                            :search IS NULL
+                    
+                            OR LOWER(user.firstName)
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                    
+                            OR LOWER(user.lastName)
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                    
+                            OR LOWER(
+                                    CONCAT(
+                                        user.firstName,
+                                        ' ',
+                                        user.lastName
+                                    )
+                               )
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                    
+                            OR LOWER(user.email)
+                               LIKE LOWER(
+                                    CONCAT(
+                                        '%',
+                                        :search,
+                                        '%'
+                                    )
+                               )
+                      )
+                    
+                      AND (
+                            :departmentId IS NULL
+                    
+                            OR department.id =
+                               :departmentId
+                      )
+                    
+                      AND (
+                            :enabled IS NULL
+                    
+                            OR user.enabled =
+                               :enabled
+                      )
+                    """
+    )
+    Page<User> findEmployees(
+
             @Param("roleName")
             RoleName roleName,
 
-            Pageable pageable
-    );
+            @Param("search")
+            String search,
 
-    @Query("""
-            SELECT DISTINCT user
-            FROM User user
-            JOIN user.roles role
-            WHERE role.name =
-                  com.sil.asset_tagging_system.model.enums.RoleName.ROLE_EMPLOYEE
-            AND user.enabled = true
-            ORDER BY user.firstName, user.lastName
-            """)
+            @Param("departmentId")
+            Long departmentId,
 
-    List<User> findAllEnabledEmployees();
-    @Query("""
-            SELECT DISTINCT user
-            FROM User user
-            WHERE
-                LOWER(user.firstName)
-                    LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                OR
-
-                LOWER(user.lastName)
-                    LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                OR
-
-                LOWER(user.email)
-                    LIKE LOWER(CONCAT('%', :keyword, '%'))
-            """)
-
-    Page<User> searchUsers(
-            @Param("keyword")
-            String keyword,
+            @Param("enabled")
+            Boolean enabled,
 
             Pageable pageable
     );
