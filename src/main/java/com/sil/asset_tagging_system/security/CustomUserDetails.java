@@ -1,0 +1,48 @@
+package com.sil.asset_tagging_system.security;
+
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
+import com.sil.asset_tagging_system.model.User;
+
+public class CustomUserDetails implements UserDetails {
+
+    private final User user;
+
+
+    public CustomUserDetails(User user)
+    {
+        this.user = user;
+    }
+
+    public Long getUserId() { return user.getId(); }
+    public String getFirstName() { return user.getFirstName(); }
+    public String getLastName() { return user.getLastName(); }
+    public User getUser() { return user; }
+
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public @Nullable String getPassword() {
+        return "";
+    }
+
+    @Override
+    public String getUsername() {
+        return "";
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
+    }
+}
