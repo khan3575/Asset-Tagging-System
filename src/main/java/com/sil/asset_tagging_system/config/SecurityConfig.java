@@ -31,7 +31,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         // add more path inside when needed
-                        auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                        auth -> auth.requestMatchers("/api/auth/**","/api/employee/**").permitAll()
+                                .requestMatchers("api/employee/**").hasAuthority("ROLE_EMPLOYEE")
+                                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                                 .requestMatchers("/", "/*.html").permitAll()
                                 .anyRequest().authenticated()
