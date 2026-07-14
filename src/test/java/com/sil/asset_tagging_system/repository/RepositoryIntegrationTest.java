@@ -2,126 +2,77 @@ package com.sil.asset_tagging_system.repository;
 
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.User;
-
 import com.sil.asset_tagging_system.model.enums.AssetStatus;
 import com.sil.asset_tagging_system.model.enums.RoleName;
-
-import com.sil.asset_tagging_system.model.view.AssetSummaryView;
-import com.sil.asset_tagging_system.model.view.AssignedAssetView;
-import com.sil.asset_tagging_system.model.view.AvailableAssetView;
-import com.sil.asset_tagging_system.model.view.PendingApprovalView;
-
-import com.sil.asset_tagging_system.repository.view.AssetSummaryViewRepository;
-import com.sil.asset_tagging_system.repository.view.AssignedAssetViewRepository;
-import com.sil.asset_tagging_system.repository.view.AvailableAssetViewRepository;
-import com.sil.asset_tagging_system.repository.view.PendingApprovalViewRepository;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.boot.test.context.SpringBootTest;
-
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
- * Integration tests for the Phase 1
- * database and repository configuration.
+ * Integration tests for the application's
+ * database entities and repositories.
  *
- * These tests use the existing local MySQL database.
+ * These tests use the local MySQL database
+ * and verify the existing development seed data.
  */
 @SpringBootTest
-
 @ActiveProfiles("local")
-
+@Transactional
 class RepositoryIntegrationTest {
 
 
     // ========================================================
-    // MAIN TABLE REPOSITORIES
+    // REPOSITORIES
     // ========================================================
 
     @Autowired
     private DepartmentRepository departmentRepository;
 
-
     @Autowired
     private RoleRepository roleRepository;
-
 
     @Autowired
     private UserRepository userRepository;
 
-
     @Autowired
     private AssetCategoryRepository assetCategoryRepository;
-
 
     @Autowired
     private AssetRepository assetRepository;
 
-
     @Autowired
     private AssetDocumentRepository assetDocumentRepository;
-
 
     @Autowired
     private ApprovalRepository approvalRepository;
 
-
     @Autowired
     private AssetCustodyRepository assetCustodyRepository;
-
 
     @Autowired
     private AssetHistoryRepository assetHistoryRepository;
 
 
     // ========================================================
-    // DATABASE VIEW REPOSITORIES
-    // ========================================================
-
-    @Autowired
-    private AssetSummaryViewRepository
-            assetSummaryViewRepository;
-
-
-    @Autowired
-    private AssignedAssetViewRepository
-            assignedAssetViewRepository;
-
-
-    @Autowired
-    private AvailableAssetViewRepository
-            availableAssetViewRepository;
-
-
-    @Autowired
-    private PendingApprovalViewRepository
-            pendingApprovalViewRepository;
-
-
-    // ========================================================
-    // DATABASE TABLE TEST
+    // MAIN DATABASE TABLE TEST
     // ========================================================
 
     @Test
-
     @DisplayName(
-            "All main database tables should contain seed data"
+            "All main entity repositories should read the seed data"
     )
-
     void shouldReadSeedDataFromMainTables() {
 
-
         // ----------------------------------------------------
-        // VERIFY DEPARTMENTS
+        // DEPARTMENTS
         // ----------------------------------------------------
 
         assertThat(
@@ -131,7 +82,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY ROLES
+        // ROLES
         // ----------------------------------------------------
 
         assertThat(
@@ -141,7 +92,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY USERS
+        // USERS
         // ----------------------------------------------------
 
         assertThat(
@@ -151,7 +102,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY ASSET CATEGORIES
+        // ASSET CATEGORIES
         // ----------------------------------------------------
 
         assertThat(
@@ -161,7 +112,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY ASSETS
+        // ASSETS
         // ----------------------------------------------------
 
         assertThat(
@@ -171,7 +122,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY ASSET DOCUMENTS
+        // ASSET DOCUMENTS
         // ----------------------------------------------------
 
         assertThat(
@@ -181,7 +132,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY APPROVALS
+        // APPROVALS
         // ----------------------------------------------------
 
         assertThat(
@@ -191,7 +142,7 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY CUSTODY RECORDS
+        // ASSET CUSTODY RECORDS
         // ----------------------------------------------------
 
         assertThat(
@@ -201,29 +152,25 @@ class RepositoryIntegrationTest {
 
 
         // ----------------------------------------------------
-        // VERIFY ASSET HISTORY
+        // ASSET HISTORY RECORDS
         // ----------------------------------------------------
 
         assertThat(
                 assetHistoryRepository.count()
         )
                 .isEqualTo(5);
-
     }
 
 
     // ========================================================
-    // USER AND ROLE TEST
+    // USER AND ROLE RELATIONSHIP TEST
     // ========================================================
 
     @Test
-
     @DisplayName(
             "Sakib should exist as an enabled employee"
     )
-
     void shouldFindEmployeeWithRole() {
-
 
         User employee = userRepository
                 .findByEmailIgnoreCase(
@@ -245,9 +192,29 @@ class RepositoryIntegrationTest {
 
 
         assertThat(
+                employee.getEmail()
+        )
+                .isEqualTo(
+                        "sakib.khan@enterprise.com"
+                );
+
+
+        assertThat(
                 employee.getEnabled()
         )
                 .isTrue();
+
+
+        assertThat(
+                employee.getDepartment()
+        )
+                .isNotNull();
+
+
+        assertThat(
+                employee.getDepartment().getName()
+        )
+                .isEqualTo("Engineering");
 
 
         assertThat(
@@ -256,25 +223,56 @@ class RepositoryIntegrationTest {
                 .extracting(
                         role -> role.getName()
                 )
-                .contains(
+                .containsExactly(
                         RoleName.ROLE_EMPLOYEE
                 );
-
     }
 
 
     // ========================================================
-    // ASSET TEST
+    // ADMIN ROLE TEST
     // ========================================================
 
     @Test
-
     @DisplayName(
-            "Asset AST-1002 should be available"
+            "Mehedi should exist as an enabled administrator"
     )
+    void shouldFindAdminWithRole() {
 
+        User admin = userRepository
+                .findByEmailIgnoreCase(
+                        "mehedi.hasan@enterprise.com"
+                )
+                .orElseThrow();
+
+
+        assertThat(
+                admin.getEnabled()
+        )
+                .isTrue();
+
+
+        assertThat(
+                admin.getRoles()
+        )
+                .extracting(
+                        role -> role.getName()
+                )
+                .containsExactly(
+                        RoleName.ROLE_ADMIN
+                );
+    }
+
+
+    // ========================================================
+    // AVAILABLE ASSET TEST
+    // ========================================================
+
+    @Test
+    @DisplayName(
+            "Asset AST-1002 should exist and be available"
+    )
     void shouldFindAvailableAsset() {
-
 
         Asset asset = assetRepository
                 .findByAssetTagIgnoreCase(
@@ -298,175 +296,100 @@ class RepositoryIntegrationTest {
                         AssetStatus.AVAILABLE
                 );
 
+
+        assertThat(
+                asset.getCategory()
+        )
+                .isNotNull();
+
+
+        assertThat(
+                asset.getCategory().getName()
+        )
+                .isEqualTo("Monitors");
     }
 
 
     // ========================================================
-    // ASSET SUMMARY VIEW TEST
+    // ASSIGNED ASSET TEST
     // ========================================================
 
     @Test
-
     @DisplayName(
-            "Asset summary view should return dashboard data"
+            "Asset AST-1001 should exist and be assigned"
     )
+    void shouldFindAssignedAsset() {
 
-    void shouldReadAssetSummaryView() {
-
-
-        List<AssetSummaryView> summaries =
-                assetSummaryViewRepository.findAll();
-
-
-        assertThat(
-                summaries
-        )
-                .hasSize(1);
-
-
-        AssetSummaryView summary =
-                summaries.getFirst();
-
-
-        assertThat(
-                summary.getTotalAssets()
-        )
-                .isEqualTo(4L);
-
-
-        assertThat(
-                summary.getAssignedAssets()
-        )
-                .isNotNull();
-
-
-        assertThat(
-                summary.getAvailableAssets()
-        )
-                .isNotNull();
-
-
-        assertThat(
-                summary.getDamagedAssets()
-        )
-                .isNotNull();
-
-
-        assertThat(
-                summary.getTotalPurchaseValue()
-        )
-                .isNotNull();
-
-    }
-
-
-    // ========================================================
-    // ASSIGNED ASSET VIEW TEST
-    // ========================================================
-
-    @Test
-
-    @DisplayName(
-            "Assigned asset view should return active custody"
-    )
-
-    void shouldReadAssignedAssetView() {
-
-
-        List<AssignedAssetView> assignedAssets =
-                assignedAssetViewRepository.findAll();
-
-
-        assertThat(
-                assignedAssets
-        )
-                .isNotEmpty();
-
-
-        assertThat(
-                assignedAssets
-        )
-                .extracting(
-                        AssignedAssetView::getAssetTag
+        Asset asset = assetRepository
+                .findByAssetTagIgnoreCase(
+                        "AST-1001"
                 )
-                .contains(
-                        "AST-1001",
-                        "AST-1003"
+                .orElseThrow();
+
+
+        assertThat(
+                asset.getStatus()
+        )
+                .isEqualTo(
+                        AssetStatus.ASSIGNED
                 );
 
+
+        assertThat(
+                asset.getCreatedBy()
+        )
+                .isNotNull();
+
+
+        assertThat(
+                asset.getCreatedBy().getEmail()
+        )
+                .isEqualTo(
+                        "mehedi.hasan@enterprise.com"
+                );
     }
 
 
     // ========================================================
-    // AVAILABLE ASSET VIEW TEST
+    // REPOSITORY QUERY TEST
     // ========================================================
 
     @Test
-
     @DisplayName(
-            "Available asset view should return available assets"
+            "User email and asset tag existence checks should work"
     )
-
-    void shouldReadAvailableAssetView() {
-
-
-        List<AvailableAssetView> availableAssets =
-                availableAssetViewRepository.findAll();
-
+    void shouldCheckUniqueDatabaseValues() {
 
         assertThat(
-                availableAssets
-        )
-                .isNotEmpty();
-
-
-        assertThat(
-                availableAssets
-        )
-                .extracting(
-                        AvailableAssetView::getAssetTag
+                userRepository.existsByEmailIgnoreCase(
+                        "sakib.khan@enterprise.com"
                 )
-                .contains(
+        )
+                .isTrue();
+
+
+        assertThat(
+                userRepository.existsByEmailIgnoreCase(
+                        "unknown@enterprise.com"
+                )
+        )
+                .isFalse();
+
+
+        assertThat(
+                assetRepository.existsByAssetTagIgnoreCase(
                         "AST-1002"
-                );
-
-    }
-
-
-    // ========================================================
-    // PENDING APPROVAL VIEW TEST
-    // ========================================================
-
-    @Test
-
-    @DisplayName(
-            "Pending approval view should return open requests"
-    )
-
-    void shouldReadPendingApprovalView() {
-
-
-        List<PendingApprovalView> pendingApprovals =
-                pendingApprovalViewRepository.findAll();
-
-
-        assertThat(
-                pendingApprovals
-        )
-                .isNotEmpty();
-
-
-        assertThat(
-                pendingApprovals
-        )
-                .extracting(
-                        PendingApprovalView::getAssetTag
                 )
-                .contains(
-                        "AST-1002",
-                        "AST-1003"
-                );
+        )
+                .isTrue();
 
+
+        assertThat(
+                assetRepository.existsByAssetTagIgnoreCase(
+                        "AST-9999"
+                )
+        )
+                .isFalse();
     }
 
 }
