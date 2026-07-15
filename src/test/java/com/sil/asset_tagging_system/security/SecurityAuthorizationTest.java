@@ -28,6 +28,23 @@ public class SecurityAuthorizationTest {
     @Test
     @WithMockUser(roles="ADMIN")
     public void adminCanAccessAdminEndPoints() throws Exception{
-        mockMvc.perform(post("api/admin/asset")).andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/asset")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles="ADMIN")
+    public void adminCanAccessEmployeeEndPoints() throws Exception{
+        mockMvc.perform(post("/api/employee/profile")).andExpect(status().isForbidden());
+    }
+    @Test
+    @WithMockUser(roles="EMPLOYEE")
+    public void employeeCanAccessEmployeeEndPoints() throws Exception{
+        mockMvc.perform(post("/api/employee/profile")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void unauthenticatedRequestIsNotRedirectedToLoginPage() throws Exception{
+        mockMvc.perform(post("/api/admin/profile")).andExpect(status().isForbidden());
     }
 }
+
