@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -75,9 +77,10 @@ public class User {
     private Boolean enabled = true;
 
 
+    @CreationTimestamp
     @Column(
             name = "created_at",
-            insertable = false,
+            nullable = false,
             updatable = false
     )
     private LocalDateTime createdAt;

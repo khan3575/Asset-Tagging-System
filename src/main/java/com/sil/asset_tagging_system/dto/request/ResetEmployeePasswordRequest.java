@@ -16,8 +16,8 @@ public record ResetEmployeePasswordRequest(
         )
         @Size(
                 min = 8,
-                max = 72,
-                message = "New password must contain between 8 and 72 characters."
+                max = 12,
+                message = "New password must contain between 8 and 12 characters."
         )
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9\\s])\\S+$",
