@@ -1,5 +1,6 @@
 package com.sil.asset_tagging_system.security;
 
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.sil.asset_tagging_system.model.User;
+
 
 public class CustomUserDetails implements UserDetails {
 
@@ -25,8 +27,6 @@ public class CustomUserDetails implements UserDetails {
     public Long getUserId() { return user.getId(); }
     public String getFirstName() { return user.getFirstName(); }
     public String getLastName() { return user.getLastName(); }
-    public User getUser() { return user; }
-
 
 
     @Override

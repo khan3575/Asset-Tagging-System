@@ -34,6 +34,10 @@ public class SecurityConfig {
                         auth -> auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                                 .requestMatchers("/", "/*.html").permitAll()
+                                .requestMatchers("/api/admin/**")
+                                .permitAll()
+                                .requestMatchers("/api/employee/**")
+                                .permitAll()
                                 .anyRequest().authenticated()
                 ).sessionManagement(
                         session -> session.sessionCreationPolicy(
