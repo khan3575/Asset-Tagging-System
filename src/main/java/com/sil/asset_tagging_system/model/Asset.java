@@ -59,7 +59,7 @@ public class Asset {
 
 
     @Column(
-            name = "value",
+            name = "`value`",
             nullable = false,
             precision = 10,
             scale = 2
