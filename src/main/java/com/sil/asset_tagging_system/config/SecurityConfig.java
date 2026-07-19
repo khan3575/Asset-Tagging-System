@@ -3,6 +3,7 @@ package com.sil.asset_tagging_system.config;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -14,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -24,7 +26,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http)
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception
     {
         //normal csrf
         // http.csrf(csrf -> csrf.disable())
@@ -35,7 +37,7 @@ public class SecurityConfig {
         * here is added formLogin and httpBasic to ensure other developers find that we wanted
         * the unauthorized request return 403.
         * */
-        return http.csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         // add more path inside when needed
@@ -56,8 +58,26 @@ public class SecurityConfig {
                                 .sessionFixation().migrateSession()
                                 .maximumSessions(1)
                                 .maxSessionsPreventsLogin(false)
-                        )
-                .build();
+                        );
+
+        CustomAuthenticationProcessingFilter customLoginFilter = new CustomAuthenticationProcessingFilter("/api/auth/login",authManager);
+
+        customLoginFilter.setSecurityContextRepository(securityContextRepository());
+        customLoginFilter.setAuthenticationSuccessHandler((request, response, authentication)->{
+            response.setStatus(HttpStatus.OK.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"success\":true,\"message\":\"Login successful\"}");
+
+        });
+
+        customLoginFilter.setAuthenticationFailureHandler((request, response, exception) -> {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"success\":false,\"message\":\"Authentication failed: " + exception.getMessage() + "\"}");
+        });
+        http.addFilterAt(customLoginFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
 
 
 

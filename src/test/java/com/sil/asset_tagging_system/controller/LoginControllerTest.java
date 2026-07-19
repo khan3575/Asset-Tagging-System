@@ -2,6 +2,7 @@ package com.sil.asset_tagging_system.controller;
 
 import com.sil.asset_tagging_system.dto.request.LoginRequest;
 import com.sil.asset_tagging_system.service.AuthService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
+@Disabled("LoginController is commented out; CustomAuthenticationProcessingFilter now handles /api/auth/login. Kept for reference.")
 public class LoginControllerTest {
 
     @Autowired

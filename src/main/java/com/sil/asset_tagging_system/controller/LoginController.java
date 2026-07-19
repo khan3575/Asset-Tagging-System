@@ -1,5 +1,10 @@
 package com.sil.asset_tagging_system.controller;
 
+/*
+ * Manual-trigger login, kept for reference/comparison against
+ * CustomAuthenticationProcessingFilter (the active implementation).
+ * Not a registered Spring bean while commented out.
+ *
 import com.sil.asset_tagging_system.dto.request.LoginRequest;
 import com.sil.asset_tagging_system.dto.response.ApiResponse;
 import com.sil.asset_tagging_system.service.AuthService;
@@ -43,5 +48,14 @@ public class LoginController {
         return new ApiResponse<String>(true, "hi succes", "hello world",LocalDateTime.now());
     }
 
+        *
+        *
+        * This was the manuall implmementation of login feature. now that th CustomAuthenticationProcessingFilter
+        * chain is setted up we commented out this whole class. dont need manually write login controller
+        * filter handle it.
+        *
+        *
+        *
 
 }
+*/
