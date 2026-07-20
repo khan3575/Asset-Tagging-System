@@ -28,6 +28,10 @@ public record ApiResponse<T>(
     {
         return new ApiResponse<>(false, message, null, LocalDateTime.now());
     }
+    public static <T> ApiResponse<T> failure(String message, T data)
+    {
+        return new ApiResponse<>(false, message, data, LocalDateTime.now());
+    }
     // Inside your ApiResponse.java class
     public ResponseEntity<ApiResponse<T>> toResponseEntity(HttpStatus status) {
         return new ResponseEntity<>(this, status);
