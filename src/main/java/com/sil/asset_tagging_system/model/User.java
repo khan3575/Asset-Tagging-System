@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -119,4 +120,8 @@ public class User {
 
     }
 
+    public Boolean verifyPassword(String password)
+    {
+        return this.password.equals(password);
+    }
 }
