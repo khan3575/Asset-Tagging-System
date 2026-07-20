@@ -1,4 +1,4 @@
-package com.sil.asset_tagging_system.dto.mapper;
+package com.sil.asset_tagging_system.mapper;
 
 import com.sil.asset_tagging_system.dto.AuthResponseDTO;
 import com.sil.asset_tagging_system.security.CustomUserDetails;
