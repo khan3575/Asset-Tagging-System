@@ -1,7 +1,7 @@
 package com.sil.asset_tagging_system.config;
 
 import com.sil.asset_tagging_system.dto.AuthResponseDTO;
-import com.sil.asset_tagging_system.dto.mapper.AuthResponseMapper;
+import com.sil.asset_tagging_system.mapper.AuthResponseMapper;
 import com.sil.asset_tagging_system.dto.response.ApiResponse;
 import com.sil.asset_tagging_system.security.CustomUserDetails;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
@@ -25,9 +25,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import tools.jackson.databind.ObjectMapper;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity

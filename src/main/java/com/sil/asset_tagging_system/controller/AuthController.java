@@ -1,7 +1,7 @@
 package com.sil.asset_tagging_system.controller;
 
 import com.sil.asset_tagging_system.dto.AuthResponseDTO;
-import com.sil.asset_tagging_system.dto.mapper.AuthResponseMapper;
+import com.sil.asset_tagging_system.mapper.AuthResponseMapper;
 import com.sil.asset_tagging_system.dto.response.ApiResponse;
 import com.sil.asset_tagging_system.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
