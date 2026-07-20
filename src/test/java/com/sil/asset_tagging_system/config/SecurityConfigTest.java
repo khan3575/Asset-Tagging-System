@@ -1,11 +1,12 @@
 package com.sil.asset_tagging_system.config;
 
+import com.sil.asset_tagging_system.dto.AuthResponseDTO;
 import com.sil.asset_tagging_system.dto.request.LoginRequest;
 import com.sil.asset_tagging_system.model.Department;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.repository.DepartmentRepository;
 import com.sil.asset_tagging_system.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -58,11 +61,17 @@ public class SecurityConfigTest {
         LoginRequest loginRequest = new LoginRequest("sakib@gmail.com", "A1b2@aaa");
 
         String jsonResponse = mapper.writeValueAsString(loginRequest);
+
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonResponse)
-                ).andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true));
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.firstName").value("sakib"))
+                .andExpect(jsonPath("$.data.lastName").value("khan"))
+                .andExpect(jsonPath("$.data.email").value("sakib@gmail.com"))
+                .andExpect(jsonPath("$.data.roles").isEmpty());
 
     }
 

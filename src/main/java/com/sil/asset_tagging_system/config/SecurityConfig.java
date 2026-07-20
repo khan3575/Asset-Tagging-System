@@ -1,5 +1,9 @@
 package com.sil.asset_tagging_system.config;
 
+import com.sil.asset_tagging_system.dto.AuthResponseDTO;
+import com.sil.asset_tagging_system.dto.mapper.AuthResponseMapper;
+import com.sil.asset_tagging_system.dto.response.ApiResponse;
+import com.sil.asset_tagging_system.security.CustomUserDetails;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +23,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import tools.jackson.databind.ObjectMapper;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,7 +35,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager, AuthResponseMapper authResponseMapper, ObjectMapper objectMapper) throws Exception
     {
         //normal csrf
         // http.csrf(csrf -> csrf.disable())
@@ -51,6 +60,16 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.IF_REQUIRED)
                 )
+                .logout(
+                        logout ->
+                                logout.logoutUrl("/api/auth/logout")
+                                .logoutSuccessHandler((request, response, authentication)->{
+                                    response.setStatus(HttpStatus.OK.value());
+                                    response.setContentType("application/json");
+//                                    ApiResponse<Void> apiResponse = ApiResponse.success("Logout Success",null);
+                                    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.<Void>success("Logout Success", null)));
+                                })
+                )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
@@ -66,8 +85,12 @@ public class SecurityConfig {
         customLoginFilter.setAuthenticationSuccessHandler((request, response, authentication)->{
             response.setStatus(HttpStatus.OK.value());
             response.setContentType("application/json");
-            response.getWriter().write("{\"success\":true,\"message\":\"Login successful\"}");
-
+//            response.getWriter().write("{\"success\":true,\"message\":\"Login successful\"}");
+            // removed the hard coded auth added ApiResponse to
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            AuthResponseDTO authDTO = authResponseMapper.toAuthResponseDTO(userDetails);
+            ApiResponse<AuthResponseDTO> apiResponse = new ApiResponse<>(true, "Authentication successful", authDTO, LocalDateTime.now());
+            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
         });
 
         customLoginFilter.setAuthenticationFailureHandler((request, response, exception) -> {
