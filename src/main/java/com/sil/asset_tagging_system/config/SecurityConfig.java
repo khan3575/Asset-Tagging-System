@@ -27,6 +27,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -58,6 +59,16 @@ public class SecurityConfig {
                 ).sessionManagement(
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.IF_REQUIRED)
+                )
+                .logout(
+                        logout ->
+                                logout.logoutUrl("/api/auth/logout")
+                                .logoutSuccessHandler((request, response, authentication)->{
+                                    response.setStatus(HttpStatus.OK.value());
+                                    response.setContentType("application/json");
+//                                    ApiResponse<Void> apiResponse = ApiResponse.success("Logout Success",null);
+                                    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.<Void>success("Logout Success", null)));
+                                })
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
