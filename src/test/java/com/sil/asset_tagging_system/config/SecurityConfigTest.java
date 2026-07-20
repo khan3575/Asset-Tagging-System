@@ -69,7 +69,9 @@ public class SecurityConfigTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.firstName").value("sakib"))
-                .andExpect(jsonPath("$.data.lastName").value("khan"));
+                .andExpect(jsonPath("$.data.lastName").value("khan"))
+                .andExpect(jsonPath("$.data.email").value("sakib@gmail.com"))
+                .andExpect(jsonPath("$.data.roles").isEmpty());
 
     }
 
