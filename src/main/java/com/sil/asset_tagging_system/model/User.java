@@ -123,8 +123,4 @@ public class User {
 
     }
 
-    public Boolean verifyPassword(String password)
-    {
-        return this.password.equals(password);
-    }
 }

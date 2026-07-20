@@ -44,302 +44,120 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<EmployeeResponse>>
-    createEmployee(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(
 
-            @Valid
-            @RequestBody
-            CreateEmployeeRequest request
-    ) {
+            @Valid @RequestBody CreateEmployeeRequest request) {
 
-        EmployeeResponse employee =
-                employeeService.createEmployee(
-                        request
-                );
+        EmployeeResponse employee = employeeService.createEmployee(request);
 
-        return ResponseEntity
-                .status(
-                        HttpStatus.CREATED
-                )
-                .body(
-                        ApiResponse.success(
-                                "Employee created successfully.",
-                                employee
-                        )
-                );
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Employee created successfully.", employee));
 
 
     }
 
-
-    // ========================================================
-    // GET ALL EMPLOYEES
-    // ========================================================
-
-    /**
-     * Retrieves employees with optional:
-     * <p>
-     * - search
-     * - department filtering
-     * - enabled-status filtering
-     * - pagination
-     * - sorting
-     */
     @GetMapping
-    public ResponseEntity<
-            ApiResponse<
-                    PageResponse<EmployeeSummaryResponse>
-                    >
-            >
-    getAllEmployees(
+    public ResponseEntity<ApiResponse<PageResponse<EmployeeSummaryResponse>>> getAllEmployees(
 
-            @RequestParam(
-                    defaultValue = "0"
-            )
-            @Min(
-                    value = 0,
-                    message = "Page number cannot be negative."
-            )
-            int page,
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "Page number cannot be negative.") int page,
 
 
-            @RequestParam(
-                    defaultValue = "10"
-            )
-            @Min(
-                    value = 1,
-                    message = "Page size must be at least 1."
-            )
-            @Max(
-                    value = 100,
-                    message = "Page size cannot exceed 100."
-            )
-            int size,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "Page size must be at least 1.") @Max(value = 100, message = "Page size cannot exceed 100.") int size,
 
 
-            @RequestParam(
-                    required = false
-            )
-            String search,
+            @RequestParam(required = false) String search,
 
 
-            @RequestParam(
-                    required = false
-            )
-            @Positive(
-                    message = "Department ID must be greater than zero."
-            )
-            Long departmentId,
+            @RequestParam(required = false) @Positive(message = "Department ID must be greater than zero.") Long departmentId,
 
 
-            @RequestParam(
-                    required = false
-            )
-            Boolean enabled,
+            @RequestParam(required = false) Boolean enabled,
 
 
-            @RequestParam(
-                    defaultValue = "createdAt"
-            )
-            String sortBy,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
 
 
-            @RequestParam(
-                    defaultValue = "desc"
-            )
-            String direction
-    ) {
+            @RequestParam(defaultValue = "desc") String direction) {
 
-        PageResponse<EmployeeSummaryResponse>
-                employees =
-                employeeService.getAllEmployees(
+        PageResponse<EmployeeSummaryResponse> employees = employeeService.getAllEmployees(
 
-                        page,
+                page,
 
-                        size,
+                size,
 
-                        search,
+                search,
 
-                        departmentId,
+                departmentId,
 
-                        enabled,
+                enabled,
 
-                        sortBy,
+                sortBy,
 
-                        direction
-                );
+                direction);
 
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "Employees retrieved successfully.",
-                        employees
-                )
-        );
+        return ResponseEntity.ok(ApiResponse.success("Employees retrieved successfully.", employees));
     }
 
-
-    // ========================================================
-    // GET EMPLOYEE BY ID
-    // ========================================================
-
-    /**
-     * Retrieves one employee using the
-     * employee's database ID.
-     */
     @GetMapping("/{employeeId}")
-    public ResponseEntity<ApiResponse<EmployeeResponse>>
-    getEmployeeById(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeById(
 
-            @PathVariable
-            @Positive(
-                    message = "Employee ID must be greater than zero."
-            )
-            Long employeeId
-    ) {
+            @PathVariable @Positive(message = "Employee ID must be greater than zero.") Long employeeId) {
 
-        EmployeeResponse employee =
-                employeeService.getEmployeeById(
-                        employeeId
-                );
+        EmployeeResponse employee = employeeService.getEmployeeById(employeeId);
 
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "Employee retrieved successfully.",
-                        employee
-                )
-        );
+        return ResponseEntity.ok(ApiResponse.success("Employee retrieved successfully.", employee));
     }
 
-
-    // ========================================================
-    // UPDATE EMPLOYEE
-    // ========================================================
-
-    /**
-     * Updates employee profile information.
-     * <p>
-     * Editable information:
-     * <p>
-     * - first name
-     * - last name
-     * - email
-     * - department
-     */
     @PutMapping("/{employeeId}")
-    public ResponseEntity<ApiResponse<EmployeeResponse>>
-    updateEmployee(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(
 
-            @PathVariable
-            @Positive(
-                    message = "Employee ID must be greater than zero."
-            )
-            Long employeeId,
+            @PathVariable @Positive(message = "Employee ID must be greater than zero.") Long employeeId,
 
 
-            @Valid
-            @RequestBody
-            UpdateEmployeeRequest request
-    ) {
+            @Valid @RequestBody UpdateEmployeeRequest request) {
 
-        EmployeeResponse employee =
-                employeeService.updateEmployee(
+        EmployeeResponse employee = employeeService.updateEmployee(
 
-                        employeeId,
+                employeeId,
 
-                        request
-                );
+                request);
 
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "Employee updated successfully.",
-                        employee
-                )
-        );
+        return ResponseEntity.ok(ApiResponse.success("Employee updated successfully.", employee));
     }
 
-
-    // ========================================================
-    // UPDATE EMPLOYEE STATUS
-    // ========================================================
-
-    /**
-     * Enables or disables an employee account.
-     */
     @PatchMapping("/{employeeId}/status")
-    public ResponseEntity<ApiResponse<EmployeeResponse>>
-    updateEmployeeStatus(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployeeStatus(
 
-            @PathVariable
-            @Positive(
-                    message = "Employee ID must be greater than zero."
-            )
-            Long employeeId,
+            @PathVariable @Positive(message = "Employee ID must be greater than zero.") Long employeeId,
 
 
-            @Valid
-            @RequestBody
-            UpdateEmployeeStatusRequest request
-    ) {
+            @Valid @RequestBody UpdateEmployeeStatusRequest request) {
 
-        EmployeeResponse employee =
-                employeeService.updateEmployeeStatus(
+        EmployeeResponse employee = employeeService.updateEmployeeStatus(
 
-                        employeeId,
+                employeeId,
 
-                        request
-                );
+                request);
 
-        String message = request.enabled()
-                ? "Employee account enabled successfully."
-                : "Employee account disabled successfully.";
+        String message = request.enabled() ? "Employee account enabled successfully." : "Employee account disabled successfully.";
 
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        message,
-                        employee
-                )
-        );
+        return ResponseEntity.ok(ApiResponse.success(message, employee));
     }
 
-
-    // ========================================================
-    // RESET EMPLOYEE PASSWORD
-    // ========================================================
-
-    /**
-     * Resets an employee's password.
-     * <p>
-     * The service encodes the new password
-     * before saving it.
-     */
     @PatchMapping("/{employeeId}/password")
-    public ResponseEntity<ApiResponse<Void>>
-    resetEmployeePassword(
+    public ResponseEntity<ApiResponse<Void>> resetEmployeePassword(
 
-            @PathVariable
-            @Positive(
-                    message = "Employee ID must be greater than zero."
-            )
-            Long employeeId,
+            @PathVariable @Positive(message = "Employee ID must be greater than zero.") Long employeeId,
 
 
-            @Valid
-            @RequestBody
-            ResetEmployeePasswordRequest request
-    ) {
+            @Valid @RequestBody ResetEmployeePasswordRequest request) {
 
         employeeService.resetEmployeePassword(
 
                 employeeId,
 
-                request
-        );
+                request);
 
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "Employee password reset successfully."
-                )
-        );
+        return ResponseEntity.ok(ApiResponse.success("Employee password reset successfully."));
     }
 
 }

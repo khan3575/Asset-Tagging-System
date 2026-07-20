@@ -63,160 +63,63 @@ public interface UserRepository
             RoleName roleName
     );
 
-
     @Query(
             value = """
-                    SELECT DISTINCT user
-                    FROM User user
-                    JOIN user.roles role
-                    JOIN user.department department
-                    WHERE role.name = :roleName
-                    
-                      AND (
-                            :search IS NULL
-                    
-                            OR LOWER(user.firstName)
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                    
-                            OR LOWER(user.lastName)
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                    
-                            OR LOWER(
-                                    CONCAT(
-                                        user.firstName,
-                                        ' ',
-                                        user.lastName
-                                    )
-                               )
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                    
-                            OR LOWER(user.email)
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                      )
-                    
-                      AND (
-                            :departmentId IS NULL
-                    
-                            OR department.id =
-                               :departmentId
-                      )
-                    
-                      AND (
-                            :enabled IS NULL
-                    
-                            OR user.enabled =
-                               :enabled
-                      )
-                    """,
-
+        SELECT DISTINCT user
+        FROM User user
+        JOIN user.roles role
+        JOIN FETCH user.department department
+        WHERE role.name = :roleName
+        
+          AND (
+                :search IS NULL
+                OR LOWER(user.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(user.lastName)  LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(CONCAT(user.firstName, ' ', user.lastName)) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(user.email)     LIKE LOWER(CONCAT('%', :search, '%'))
+          )
+        
+          AND (
+                :departmentId IS NULL
+                OR department.id = :departmentId
+          )
+        
+          AND (
+                :enabled IS NULL
+                OR user.enabled = :enabled
+          )
+    """,
             countQuery = """
-                    SELECT COUNT(
-                            DISTINCT user.id
-                    )
-                    FROM User user
-                    JOIN user.roles role
-                    JOIN user.department department
-                    WHERE role.name = :roleName
-                    
-                      AND (
-                            :search IS NULL
-                    
-                            OR LOWER(user.firstName)
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                    
-                            OR LOWER(user.lastName)
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                    
-                            OR LOWER(
-                                    CONCAT(
-                                        user.firstName,
-                                        ' ',
-                                        user.lastName
-                                    )
-                               )
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                    
-                            OR LOWER(user.email)
-                               LIKE LOWER(
-                                    CONCAT(
-                                        '%',
-                                        :search,
-                                        '%'
-                                    )
-                               )
-                      )
-                    
-                      AND (
-                            :departmentId IS NULL
-                    
-                            OR department.id =
-                               :departmentId
-                      )
-                    
-                      AND (
-                            :enabled IS NULL
-                    
-                            OR user.enabled =
-                               :enabled
-                      )
-                    """
+        SELECT COUNT(DISTINCT user.id)
+        FROM User user
+        JOIN user.roles role
+        JOIN user.department department
+        WHERE role.name = :roleName
+        
+          AND (
+                :search IS NULL
+                OR LOWER(user.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(user.lastName)  LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(CONCAT(user.firstName, ' ', user.lastName)) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(user.email)     LIKE LOWER(CONCAT('%', :search, '%'))
+          )
+        
+          AND (
+                :departmentId IS NULL
+                OR department.id = :departmentId
+          )
+        
+          AND (
+                :enabled IS NULL
+                OR user.enabled = :enabled
+          )
+    """
     )
     Page<User> findEmployees(
-
-            @Param("roleName")
-            RoleName roleName,
-
-            @Param("search")
-            String search,
-
-            @Param("departmentId")
-            Long departmentId,
-
-            @Param("enabled")
-            Boolean enabled,
-
+            @Param("roleName") RoleName roleName,
+            @Param("search") String search,
+            @Param("departmentId") Long departmentId,
+            @Param("enabled") Boolean enabled,
             Pageable pageable
     );
 
