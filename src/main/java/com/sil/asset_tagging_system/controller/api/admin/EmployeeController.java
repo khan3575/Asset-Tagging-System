@@ -157,7 +157,7 @@ public class EmployeeController {
 
                 request);
 
-        return ResponseEntity.ok(ApiResponse.success("Employee password reset successfully."));
+        return ResponseEntity.ok(ApiResponse.success("Employee password reset successfully.",null));
     }
 
 }
