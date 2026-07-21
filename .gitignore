@@ -36,4 +36,4 @@ build/
 
 ##local environment##
 application-local.properties
-application-test.properties
+# application-test.properties
