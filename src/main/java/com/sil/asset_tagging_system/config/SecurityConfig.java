@@ -4,6 +4,9 @@ import com.sil.asset_tagging_system.dto.AuthResponseDTO;
 import com.sil.asset_tagging_system.mapper.AuthResponseMapper;
 import com.sil.asset_tagging_system.dto.response.ApiResponse;
 import com.sil.asset_tagging_system.security.CustomUserDetails;
+import com.sil.asset_tagging_system.security.RestAccessDeniedHandler;
+import com.sil.asset_tagging_system.security.RestAuthenticationEntryPoint;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +34,12 @@ import java.time.LocalDateTime;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+
+    @Autowired
+    private RestAccessDeniedHandler restAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager, AuthResponseMapper authResponseMapper, ObjectMapper objectMapper) throws Exception
@@ -70,6 +79,10 @@ public class SecurityConfig {
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+                .exceptionHandling(handling
+                        -> handling.authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler)
+                )
                 .sessionManagement(session -> session
                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                                 .sessionFixation().migrateSession()
@@ -156,6 +169,8 @@ public class SecurityConfig {
     {
         return config.getAuthenticationManager();
     }
+
+
     // needs to add cors for the front end or not sure how does manual origin is handled...
 
 }
