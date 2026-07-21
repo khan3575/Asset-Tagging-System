@@ -1,6 +1,5 @@
 package com.sil.asset_tagging_system.config;
 
-import com.sil.asset_tagging_system.dto.AuthResponseDTO;
 import com.sil.asset_tagging_system.dto.request.LoginRequest;
 import com.sil.asset_tagging_system.model.Department;
 import com.sil.asset_tagging_system.model.User;
@@ -16,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
