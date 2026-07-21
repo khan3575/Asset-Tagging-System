@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface AssetCategoryRepository extends JpaRepository<AssetCategory, Long> {
 
-    Optional<AssetCategory> findByName(String name);
+
 
     Optional<AssetCategory> findByNameIgnoreCase(
             String name

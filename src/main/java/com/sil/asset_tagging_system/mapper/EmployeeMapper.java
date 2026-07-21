@@ -20,8 +20,8 @@ public class EmployeeMapper {
                 employee.getLastName(),
                 employee.getFullName(),
                 employee.getEmail(),
-                employee.getDepartment().getId(),
-                employee.getDepartment().getName(),
+                employee.getDepartment() != null ? employee.getDepartment().getId() : null,
+                employee.getDepartment() != null ? employee.getDepartment().getName() : null,
                 employee.getEnabled(),
                 extractRoles(employee),
                 employee.getCreatedAt()
@@ -34,8 +34,8 @@ public class EmployeeMapper {
                 employee.getId(),
                 employee.getFullName(),
                 employee.getEmail(),
-                employee.getDepartment().getId(),
-                employee.getDepartment().getName(),
+                employee.getDepartment() != null ? employee.getDepartment().getId() : null,
+                employee.getDepartment() != null ? employee.getDepartment().getName() : null,
                 employee.getEnabled(),
                 employee.getCreatedAt()
         );

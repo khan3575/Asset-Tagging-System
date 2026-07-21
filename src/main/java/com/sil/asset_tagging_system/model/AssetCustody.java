@@ -1,20 +1,38 @@
 package com.sil.asset_tagging_system.model;
 
 import com.sil.asset_tagging_system.model.enums.CustodyStatus;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "asset_custody")
+@Table(name = "asset_custody", indexes = {@Index(name = "idx_custody_asset", columnList = "asset_id"), @Index(name = "idx_custody_custodian", columnList = "custodian_id"), @Index(name = "idx_custody_status", columnList = "status")})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AssetCustody {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -60,10 +78,10 @@ public class AssetCustody {
     private User assignedBy;
 
 
+    @CreationTimestamp
     @Column(
             name = "custody_start",
             nullable = false,
-            insertable = false,
             updatable = false
     )
     private LocalDateTime custodyStart;
@@ -85,12 +103,7 @@ public class AssetCustody {
     private CustodyStatus status = CustodyStatus.ACTIVE;
 
 
-    /*
-     * MySQL generated column.
-     *
-     * Hibernate can read this value,
-     * but it must not insert or update it.
-     */
+    // Warning: MySQL-specific virtual generated column — not portable to H2 or PostgreSQL
     @Column(
             name = "active_asset_id",
             insertable = false,

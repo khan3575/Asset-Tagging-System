@@ -2,20 +2,38 @@ package com.sil.asset_tagging_system.model;
 
 import com.sil.asset_tagging_system.model.enums.AssetStatus;
 import com.sil.asset_tagging_system.model.enums.HistoryAction;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "asset_history")
+@Table(name = "asset_history", indexes = {@Index(name = "idx_history_asset", columnList = "asset_id"), @Index(name = "idx_history_performed_by", columnList = "performed_by_user_id"), @Index(name = "idx_history_action_date", columnList = "action_date")})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AssetHistory {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -77,9 +95,9 @@ public class AssetHistory {
     private User newHolder;
 
 
+    @CreationTimestamp
     @Column(
             name = "action_date",
-            insertable = false,
             updatable = false
     )
     private LocalDateTime actionDate;

@@ -19,7 +19,7 @@ import java.util.Optional;
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, Long> {
 
-    Optional<Asset> findByAssetTag(String assetTag);
+
     Optional<Asset> findByAssetTagIgnoreCase(
             String assetTag
     );
@@ -41,25 +41,37 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
             Pageable pageable
     );
 
-    @Query("""
+    // Note: Leading wildcard LIKE ('%keyword%') prevents B-tree index usage — consider full-text search at scale
+    @Query(
+        value = """
             SELECT asset
+            FROM Asset asset
+            JOIN FETCH asset.category category
+            WHERE
+                LOWER(asset.assetTag)
+                    LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR
+                LOWER(asset.name)
+                    LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR
+                LOWER(category.name)
+                    LIKE LOWER(CONCAT('%', :keyword, '%'))
+            """,
+        countQuery = """
+            SELECT COUNT(asset)
             FROM Asset asset
             JOIN asset.category category
             WHERE
                 LOWER(asset.assetTag)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
-
                 OR
-
                 LOWER(asset.name)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
-
                 OR
-
                 LOWER(category.name)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
-            """)
-
+            """
+    )
     Page<Asset> searchAssets(
             @Param("keyword")
             String keyword,
@@ -67,29 +79,42 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
             Pageable pageable
     );
 
-    @Query("""
+    @Query(
+        value = """
             SELECT asset
             FROM Asset asset
-            JOIN asset.category category
+            JOIN FETCH asset.category category
             WHERE asset.status = :status
-
             AND
             (
                 LOWER(asset.assetTag)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
-
                 OR
-
                 LOWER(asset.name)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
-
                 OR
-
                 LOWER(category.name)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
             )
-            """)
-
+            """,
+        countQuery = """
+            SELECT COUNT(asset)
+            FROM Asset asset
+            JOIN asset.category category
+            WHERE asset.status = :status
+            AND
+            (
+                LOWER(asset.assetTag)
+                    LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR
+                LOWER(asset.name)
+                    LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR
+                LOWER(category.name)
+                    LIKE LOWER(CONCAT('%', :keyword, '%'))
+            )
+            """
+    )
     Page<Asset> searchAssetsByStatus(
             @Param("keyword")
             String keyword,

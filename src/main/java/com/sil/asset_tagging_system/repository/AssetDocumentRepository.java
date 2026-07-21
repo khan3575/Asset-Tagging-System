@@ -10,9 +10,7 @@ import java.util.Optional;
 @Repository
 public interface AssetDocumentRepository extends JpaRepository<AssetDocument, Long> {
 
-    Optional<AssetDocument> findByAssetId(
-            Long assetId
-    );
+
     boolean existsByAssetId(Long assetId);
 
 }
