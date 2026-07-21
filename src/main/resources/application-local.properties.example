@@ -1,0 +1,7 @@
+DB_NAME=enterDatabaseName
+DB_USER=enterUsername
+DB_PASS=enterPassword
+
+#save the name as  application-local.properties file
+
+

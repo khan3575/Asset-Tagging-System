@@ -1,7 +1,6 @@
 package com.sil.asset_tagging_system.service;
 
 import com.sil.asset_tagging_system.dto.request.LoginRequest;
-import com.sil.asset_tagging_system.dto.response.ApiResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
