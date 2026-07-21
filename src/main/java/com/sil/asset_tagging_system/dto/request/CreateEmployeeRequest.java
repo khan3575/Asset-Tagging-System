@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import com.sil.asset_tagging_system.validation.ValidationConstants;
 
 
 public record CreateEmployeeRequest(
@@ -14,11 +15,11 @@ public record CreateEmployeeRequest(
                 message = "First name is required."
         )
         @Size(
-                max = 60,
+                max = ValidationConstants.NAME_MAX_LENGTH,
                 message = "First name cannot exceed 60 characters."
         )
         @Pattern(
-                regexp = "^\\p{L}[\\p{L} .'-]*$",
+                regexp = ValidationConstants.NAME_PATTERN,
                 message = "First name contains invalid characters."
         )
         String firstName,
@@ -28,11 +29,11 @@ public record CreateEmployeeRequest(
                 message = "Last name is required."
         )
         @Size(
-                max = 60,
+                max = ValidationConstants.NAME_MAX_LENGTH,
                 message = "Last name cannot exceed 60 characters."
         )
         @Pattern(
-                regexp = "^\\p{L}[\\p{L} .'-]*$",
+                regexp = ValidationConstants.NAME_PATTERN,
                 message = "Last name contains invalid characters."
         )
         String lastName,
@@ -45,7 +46,7 @@ public record CreateEmployeeRequest(
                 message = "Enter a valid email address."
         )
         @Size(
-                max = 100,
+                max = ValidationConstants.EMAIL_MAX_LENGTH,
                 message = "Email address cannot exceed 100 characters."
         )
         String email,
@@ -55,12 +56,12 @@ public record CreateEmployeeRequest(
                 message = "Password is required."
         )
         @Size(
-                min = 8,
-                max = 72,
-                message = "Password must contain between 8 and 72 characters."
+                min = ValidationConstants.PASSWORD_MIN_LENGTH,
+                max = ValidationConstants.PASSWORD_MAX_LENGTH,
+                message = "Password must be between 8 and 72 characters."
         )
         @Pattern(
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9\\s])\\S+$",
+                regexp = ValidationConstants.PASSWORD_PATTERN,
                 message = "Password must contain uppercase, lowercase, number, and special characters, with no spaces."
         )
         String password,

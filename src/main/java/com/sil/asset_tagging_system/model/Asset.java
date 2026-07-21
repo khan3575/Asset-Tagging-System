@@ -1,22 +1,40 @@
 package com.sil.asset_tagging_system.model;
 
 import com.sil.asset_tagging_system.model.enums.AssetStatus;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "assets")
+@Table(name = "assets", indexes = {@Index(name = "idx_asset_category", columnList = "category_id"), @Index(name = "idx_asset_status", columnList = "status"), @Index(name = "idx_asset_created_by", columnList = "created_by_user_id")})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Asset {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -58,8 +76,9 @@ public class Asset {
     private LocalDate purchaseDate;
 
 
+    // Note: 'value' is a SQL reserved keyword; Hibernate auto-quotes it per dialect
     @Column(
-            name = "`value`",
+            name = "value",
             nullable = false,
             precision = 10,
             scale = 2
@@ -91,9 +110,9 @@ public class Asset {
     private User createdBy;
 
 
+    @CreationTimestamp
     @Column(
             name = "created_at",
-            insertable = false,
             updatable = false
     )
     private LocalDateTime createdAt;

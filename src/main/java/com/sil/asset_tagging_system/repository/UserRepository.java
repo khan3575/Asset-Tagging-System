@@ -115,6 +115,7 @@ public interface UserRepository
           )
     """
     )
+    // Note: 'roles' not fetched here — safe because callers use toSummaryResponse() which doesn't access roles
     Page<User> findEmployees(
             @Param("roleName") RoleName roleName,
             @Param("search") String search,

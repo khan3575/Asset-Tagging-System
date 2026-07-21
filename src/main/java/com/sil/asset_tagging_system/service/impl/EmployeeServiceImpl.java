@@ -19,7 +19,11 @@ import com.sil.asset_tagging_system.repository.RoleRepository;
 import com.sil.asset_tagging_system.repository.UserRepository;
 import com.sil.asset_tagging_system.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,9 +67,14 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .roles(Set.of(employeeRole))
                 .build();
 
-        User savedEmployee = userRepository.save(employee);
-
-        return employeeMapper.toResponse(savedEmployee);
+        try {
+            User savedEmployee = userRepository.save(employee);
+            return employeeMapper.toResponse(savedEmployee);
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateResourceException(
+                    "Employee", "email", normalizedEmail
+            );
+        }
     }
 
     @Override
@@ -218,12 +227,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private String normalizeEmail(String email) {
 
-        return email.trim().toLowerCase(Locale.ROOT);
+        return email != null ? email.trim().toLowerCase(Locale.ROOT) : null;
     }
 
     private String normalizeName(String name) {
 
-        return name.trim();
+        return name != null ? name.trim() : null;
     }
 
     private String normalizeOptionalSearch(String search) {

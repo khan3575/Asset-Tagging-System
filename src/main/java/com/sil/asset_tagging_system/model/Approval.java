@@ -2,20 +2,39 @@ package com.sil.asset_tagging_system.model;
 
 import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
 import com.sil.asset_tagging_system.model.enums.RequestType;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "approvals")
+@Table(name = "approvals", indexes = {@Index(name = "idx_approval_asset", columnList = "asset_id"), @Index(name = "idx_approval_requester", columnList = "requester_id"), @Index(name = "idx_approval_status", columnList = "status"), @Index(name = "idx_approval_request_type", columnList = "request_type")})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+
 public class Approval {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -140,9 +159,9 @@ public class Approval {
     private String rejectionReason;
 
 
+    @CreationTimestamp
     @Column(
             name = "request_date",
-            insertable = false,
             updatable = false
     )
     private LocalDateTime requestDate;

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import com.sil.asset_tagging_system.validation.ValidationConstants;
 
 
 /**
@@ -20,11 +21,11 @@ public record UpdateEmployeeRequest(
                 message = "First name is required."
         )
         @Size(
-                max = 60,
+                max = ValidationConstants.NAME_MAX_LENGTH,
                 message = "First name cannot exceed 60 characters."
         )
         @Pattern(
-                regexp = "^\\p{L}[\\p{L} .'-]*$",
+                regexp = ValidationConstants.NAME_PATTERN,
                 message = "First name contains invalid characters."
         )
         String firstName,
@@ -34,11 +35,11 @@ public record UpdateEmployeeRequest(
                 message = "Last name is required."
         )
         @Size(
-                max = 60,
+                max = ValidationConstants.NAME_MAX_LENGTH,
                 message = "Last name cannot exceed 60 characters."
         )
         @Pattern(
-                regexp = "^\\p{L}[\\p{L} .'-]*$",
+                regexp = ValidationConstants.NAME_PATTERN,
                 message = "Last name contains invalid characters."
         )
         String lastName,
@@ -51,7 +52,7 @@ public record UpdateEmployeeRequest(
                 message = "Enter a valid email address."
         )
         @Size(
-                max = 100,
+                max = ValidationConstants.EMAIL_MAX_LENGTH,
                 message = "Email address cannot exceed 100 characters."
         )
         String email,

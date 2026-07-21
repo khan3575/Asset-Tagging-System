@@ -1,8 +1,22 @@
 package com.sil.asset_tagging_system.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,8 +26,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AssetDocument {
 
+    @EqualsAndHashCode.Include
     @Id
 
     @Column(name = "asset_id")
@@ -33,6 +49,8 @@ public class AssetDocument {
     private Asset asset;
 
 
+    // Requires Hibernate bytecode enhancement to take effect
+    @Basic(fetch = FetchType.LAZY)
     @Lob
 
     @Column(
@@ -42,6 +60,7 @@ public class AssetDocument {
     private byte[] assetImage;
 
 
+    @Basic(fetch = FetchType.LAZY)
     @Lob
 
     @Column(
@@ -65,10 +84,9 @@ public class AssetDocument {
     private String invoiceMimeType;
 
 
+    @UpdateTimestamp
     @Column(
-            name = "updated_at",
-            insertable = false,
-            updatable = false
+            name = "updated_at"
     )
     private LocalDateTime updatedAt;
 
