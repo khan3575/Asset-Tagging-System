@@ -46,12 +46,13 @@ public class AuthControllerTest {
         mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
     }
 
+    @Test
     public void withSessionReturnsOk() throws Exception {
         User user = new User();
         user.setFirstName("sakib");
         user.setLastName("khan");
         user.setEmail("sakib@gmail.com");
-        user.setPassword("a@b12/Abs");
+        user.setPassword(encoder.encode("a@b12/Abs"));
 
         Department dept = new Department();
         dept.setName("SCE");
@@ -62,7 +63,7 @@ public class AuthControllerTest {
         MockHttpSession session = (MockHttpSession) mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(new LoginRequest("sakib@gmail.com","a@b12/Abs")))
-        ).andReturn().getRequest().getSession(false);
+        ).andReturn().getRequest().getSession(true);
 
         mockMvc.perform(get("/api/auth/me").session(session))
                 .andExpect(status().isOk())
@@ -73,4 +74,6 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.email").value("sakib@gmail.com"))
                 .andExpect(jsonPath("$.data.roles").isEmpty());
     }
+
+
 }

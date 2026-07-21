@@ -94,7 +94,8 @@ public class SecurityConfig {
         customLoginFilter.setAuthenticationFailureHandler((request, response, exception) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
-            response.getWriter().write("{\"success\":false,\"message\":\"Authentication failed: " + exception.getMessage() + "\"}");
+            ApiResponse<AuthResponseDTO> failureResponse = new ApiResponse<>(false, "Authentication failed", null, LocalDateTime.now());
+            response.getWriter().write(objectMapper.writeValueAsString(failureResponse));
         });
         http.addFilterAt(customLoginFilter, UsernamePasswordAuthenticationFilter.class);
 

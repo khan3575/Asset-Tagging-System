@@ -2,9 +2,12 @@ package com.sil.asset_tagging_system.config;
 
 import com.sil.asset_tagging_system.dto.request.LoginRequest;
 import com.sil.asset_tagging_system.model.Department;
+import com.sil.asset_tagging_system.model.Role;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.repository.DepartmentRepository;
 import com.sil.asset_tagging_system.repository.UserRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -52,6 +59,7 @@ public class SecurityConfigTest {
         Department dept = new Department();
         dept.setName("cse");
         deptRepository.save(dept);
+
         user.setDepartment(dept);
         userRepository.save(user);
 
@@ -93,5 +101,30 @@ public class SecurityConfigTest {
                 ).andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false));
 
+    }
+
+    @Test
+    public void disabledUserCannotAuthenticate() throws Exception
+    {
+        Department dept = new Department();
+        dept.setName("bba");
+        deptRepository.save(dept);
+
+        User user = new User();
+        user.setFirstName("sakib");
+        user.setLastName("khan");
+        user.setEmail("sakib@gmail.com");
+        user.setPassword(encoder.encode("aabb22@@"));
+        user.setEnabled(false);
+        user.setDepartment(dept);
+
+        userRepository.save(user);
+
+        LoginRequest loginRequest = new LoginRequest("sakib@gmail.com", "aabb22@@");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(loginRequest))
+                ).andExpect(status().isUnauthorized());
     }
 }

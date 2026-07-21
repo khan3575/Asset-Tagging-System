@@ -31,7 +31,6 @@ public class AssetDocument {
 
     @EqualsAndHashCode.Include
     @Id
-
     @Column(name = "asset_id")
     private Long assetId;
 

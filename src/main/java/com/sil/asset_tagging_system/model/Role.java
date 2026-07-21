@@ -28,6 +28,7 @@ public class Role {
     @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="id")
     private Long id;
 
 
@@ -39,5 +40,4 @@ public class Role {
             length = 50
     )
     private RoleName name;
-
 }

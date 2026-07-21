@@ -21,7 +21,7 @@ public class AuthService {
     public Authentication login(LoginRequest loginRequest)
     {
         UsernamePasswordAuthenticationToken token
-                = new UsernamePasswordAuthenticationToken(loginRequest.email()
+                = new UsernamePasswordAuthenticationToken(loginRequest.email().trim().toLowerCase()
                         , loginRequest.password());
         return manager.authenticate(token);
     }
