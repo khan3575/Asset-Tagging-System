@@ -1,6 +1,6 @@
 package com.sil.asset_tagging_system.exception;
 
-public class ResourceNotFoundException extends RuntimeException {
+public class ResourceNotFoundException extends AssetTaggingSystemException {
 
     public ResourceNotFoundException(String message) {
         super(message);
