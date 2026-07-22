@@ -76,9 +76,9 @@ public class Asset {
     private LocalDate purchaseDate;
 
 
-    // Note: 'value' is a SQL reserved keyword; Hibernate auto-quotes it per dialect
+    // Note: 'value' is a SQL reserved keyword; JPA dialect-aware quoting is enforced with escaped quotes
     @Column(
-            name = "value",
+            name = "\"value\"",
             nullable = false,
             precision = 10,
             scale = 2
@@ -117,4 +117,10 @@ public class Asset {
     )
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Column(
+            name = "enabled",
+            nullable = false
+    )
+    private Boolean enabled = true;
 }

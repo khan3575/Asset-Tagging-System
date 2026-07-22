@@ -178,14 +178,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     private Department findDepartmentById(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Department", "ID", departmentId));
 
-        return departmentRepository.findById(departmentId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Department",
-                                "ID",
-                                departmentId
-                        ));
+        if (Boolean.FALSE.equals(department.getEnabled())) {
+            throw new IllegalArgumentException("Cannot assign employee to a disabled department.");
+        }
+        return department;
     }
 
     private Role findEmployeeRole() {
