@@ -1,0 +1,29 @@
+// loading palette variables
+@use "palette" as p;
+
+
+// by default load bootstrap with light theme colors
+@use "bootstrap/scss/bootstrap" as bs with(
+    $primary: p.$light-primary,
+    $secondary: p.$light-secondary,
+    $body-bg: p.$light-body-bg,
+    $body-color: p.$light-body-color,
+    $grays: p.$light-grays
+);
+
+
+// load the dark theme colors when the user has set their system to dark mode
+@include bs.color-mode(dark){
+    --bs-primary: #{p.$dark-primary};
+    --bs-secondary: #{p.$dark-secondary};
+    --bs-body-bg: #{p.$dark-body-bg};
+    --bs-body-color: #{p.$dark-body-color};
+
+
+    @each $key, $value in p.$dark-grays{
+        --bs-gray-#{$key}: #{$value};
+    }
+}
+
+
+// here define more css properties that bootstrap default doesnt provide.

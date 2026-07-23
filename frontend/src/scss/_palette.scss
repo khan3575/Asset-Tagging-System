@@ -1,0 +1,49 @@
+// raw color values only - no bootstrap references here
+// load this in style.scss  via @use "palette" as p;
+
+
+// light theme colors
+
+$light-primary: #10B981; // 10 % Accent
+$light-secondary: #4F786C; //30 % secondary color
+$light-body-bg: #F4FAF6; // 60% base - Clear-Mint-White
+$light-body-color: #0F2520;// 60% base text-Deep Slate-Teal
+
+
+
+// overriding bootstraps light grays with our own palette
+$light-grays:(
+
+    "100": #FFFFFF, // Card & Surface Backgrounds
+    "200": #DFEAE5, // Borders, Dividers, Outlines
+    "300": #CBD5E1, // Subtle Neutral Accents
+    "400": #94A3B8, // Disabled Elements / Placeholders
+    "500": #64748B, // Muted Icons
+    "600": #4F786C, // Secondary Text / Captions
+    "700": #334155, // Subheadings
+    "800": #1E293B, // Dark Text Elements
+    "900": #0F2520  // High-Contrast Headings
+);
+
+
+// dark theme colors
+
+$dark-primary: #10B981;
+$dark-secondary: #334155;// 10 % Accent
+$dark-body-bg: #0B0F17; // 60% base -Deep Slate-Teal
+$dark-body-color: #F8FAFC; // Base Text: High-Readability Light Gray
+
+
+
+// Complete Bootstrap Grayscale Override Map (Dark)
+$dark-grays: (
+  "100": #161F30, // Card & Surface Backgrounds (Dark Navy)
+  "200": #334155, // Borders & Separators
+  "300": #475569, // Muted Structural Elements
+  "400": #64748B, // Disabled States
+  "500": #94A3B8, // Secondary Icons
+  "600": #64748B, // Secondary Text (Muted Steel)
+  "700": #CBD5E1, // Subheadings
+  "800": #E2E8F0, // Bright Text
+  "900": #F8FAFC  // Headings
+);
