@@ -35,7 +35,7 @@ public class UserRepositoryTest {
                 .lastName(lastName)
                 .email(email)
                 .password("encoded_pass")
-                .department(dept)
+                .department(savedDepartment)
                 .enabled(true)
                 .build();
         user.addRole(role);

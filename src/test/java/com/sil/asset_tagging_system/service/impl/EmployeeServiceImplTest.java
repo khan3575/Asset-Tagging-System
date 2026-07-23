@@ -7,6 +7,7 @@ import com.sil.asset_tagging_system.dto.request.UpdateEmployeeStatusRequest;
 import com.sil.asset_tagging_system.dto.response.EmployeeResponse;
 import com.sil.asset_tagging_system.dto.response.EmployeeSummaryResponse;
 import com.sil.asset_tagging_system.dto.response.PageResponse;
+import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.exception.DuplicateResourceException;
 import com.sil.asset_tagging_system.exception.ResourceNotFoundException;
 import com.sil.asset_tagging_system.mapper.EmployeeMapper;
@@ -61,7 +62,7 @@ public class EmployeeServiceImplTest {
         CreateEmployeeRequest request = new CreateEmployeeRequest(
                 "Mostafiz", "Fahim", "mostafizfahim@test.com", "Password123!", 1L
         );
-        Department dept = Department.builder().id(1L).name("IT").build();
+        Department dept = Department.builder().id(1L).name("IT").enabled(true).build();
         Role role = Role.builder().id(1L).name(RoleName.ROLE_EMPLOYEE).build();
 
         User savedUser = User.builder()
@@ -115,6 +116,21 @@ public class EmployeeServiceImplTest {
         // Act & Assert
         assertThatThrownBy(() -> employeeService.createEmployee(request))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("createEmployee should throw BusinessRuleException when department is disabled")
+    void createEmployee_DisabledDepartment_ThrowsException() {
+        // Arrange
+        CreateEmployeeRequest request = new CreateEmployeeRequest("Mostafiz", "Fahim", "mostafizfahim@test.com", "Password123!", 1L);
+        Department disabledDept = Department.builder().id(1L).name("IT").enabled(false).build();
+        when(userRepository.existsByEmailIgnoreCase("mostafizfahim@test.com")).thenReturn(false);
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(disabledDept));
+
+        // Act & Assert
+        assertThatThrownBy(() -> employeeService.createEmployee(request))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessage("Cannot assign employee to a disabled department.");
     }
 
     @Test
