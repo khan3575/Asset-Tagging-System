@@ -6,6 +6,7 @@ import com.sil.asset_tagging_system.model.enums.AssetStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,23 +20,48 @@ import java.util.Optional;
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, Long> {
 
-
+    @EntityGraph(attributePaths = {"category", "createdBy"})
     Optional<Asset> findByAssetTagIgnoreCase(
             String assetTag
     );
+
     boolean existsByAssetTagIgnoreCase(
             String assetTag
     );
+
+    boolean existsByAssetTagIgnoreCaseAndIdNot(
+            String assetTag,
+            Long id
+    );
+
+    @EntityGraph(attributePaths = {"category", "createdBy"})
     Page<Asset> findByStatus(
             AssetStatus status,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"category", "createdBy"})
+    Page<Asset> findByEnabled(
+            Boolean enabled,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"category", "createdBy"})
+    Page<Asset> findByStatusAndEnabled(
+            AssetStatus status,
+            Boolean enabled,
             Pageable pageable
     );
 
     List<Asset> findAllByStatusOrderByNameAsc(
             AssetStatus status
     );
+
     long countByStatus(AssetStatus status);
 
+    long countByStatusAndEnabled(AssetStatus status, Boolean enabled);
+
+    @EntityGraph(attributePaths = {"category", "createdBy"})
     Page<Asset> findByCategoryId(
             Long categoryId,
             Pageable pageable
@@ -47,6 +73,7 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
             SELECT asset
             FROM Asset asset
             JOIN FETCH asset.category category
+            JOIN FETCH asset.createdBy createdBy
             WHERE
                 LOWER(asset.assetTag)
                     LIKE LOWER(CONCAT('%', :keyword, '%'))
@@ -84,6 +111,7 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
             SELECT asset
             FROM Asset asset
             JOIN FETCH asset.category category
+            JOIN FETCH asset.createdBy createdBy
             WHERE asset.status = :status
             AND
             (
@@ -125,4 +153,4 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
             Pageable pageable
     );
 
-}
+}

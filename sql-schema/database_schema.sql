@@ -8,7 +8,8 @@ USE asset_tagging_system;
 
 CREATE TABLE departments (
                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             name VARCHAR(50) NOT NULL UNIQUE
+                             name VARCHAR(50) NOT NULL UNIQUE,
+                             enabled TINYINT(1) NOT NULL DEFAULT 1
 );
 
 CREATE TABLE roles (
@@ -29,7 +30,7 @@ CREATE TABLE users (
                        email VARCHAR(100) NOT NULL UNIQUE,
                        password VARCHAR(255) NOT NULL,
                        dept_id BIGINT NOT NULL,
-                       enabled TINYINT(1) DEFAULT 1,
+                       enabled TINYINT(1) NOT NULL DEFAULT 1,
                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                        CONSTRAINT fk_user_dept FOREIGN KEY (dept_id) REFERENCES departments(id)
@@ -54,6 +55,7 @@ CREATE TABLE assets (
                         status VARCHAR(50) NOT NULL DEFAULT 'AVAILABLE',
                         created_by_user_id BIGINT NOT NULL,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        enabled TINYINT(1) NOT NULL DEFAULT 1,
 
                         CONSTRAINT fk_asset_category FOREIGN KEY (category_id) REFERENCES asset_categories(id),
                         CONSTRAINT fk_asset_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id)
