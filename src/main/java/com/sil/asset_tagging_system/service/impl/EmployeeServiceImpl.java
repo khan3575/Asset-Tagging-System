@@ -7,6 +7,7 @@ import com.sil.asset_tagging_system.dto.request.UpdateEmployeeStatusRequest;
 import com.sil.asset_tagging_system.dto.response.EmployeeResponse;
 import com.sil.asset_tagging_system.dto.response.EmployeeSummaryResponse;
 import com.sil.asset_tagging_system.dto.response.PageResponse;
+import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.exception.DuplicateResourceException;
 import com.sil.asset_tagging_system.exception.ResourceNotFoundException;
 import com.sil.asset_tagging_system.mapper.EmployeeMapper;
@@ -178,14 +179,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     private Department findDepartmentById(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Department", "ID", departmentId));
 
-        return departmentRepository.findById(departmentId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Department",
-                                "ID",
-                                departmentId
-                        ));
+        if (Boolean.FALSE.equals(department.getEnabled())) {
+            throw new BusinessRuleException("Cannot assign employee to a disabled department.");
+        }
+        return department;
     }
 
     private Role findEmployeeRole() {

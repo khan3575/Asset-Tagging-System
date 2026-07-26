@@ -34,4 +34,11 @@ public class Department {
             length = 50
     )
     private String name;
+
+    @Builder.Default
+    @Column(
+            name = "enabled",
+            nullable = false
+    )
+    private Boolean enabled = true;
 }
