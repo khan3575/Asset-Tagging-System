@@ -1,11 +1,7 @@
 package com.sil.asset_tagging_system.config;
 
-import com.sil.asset_tagging_system.dto.AuthResponseDTO;
-import com.sil.asset_tagging_system.mapper.AuthResponseMapper;
-import com.sil.asset_tagging_system.dto.response.ApiResponse;
-import com.sil.asset_tagging_system.security.CustomUserDetails;
-import com.sil.asset_tagging_system.security.RestAccessDeniedHandler;
-import com.sil.asset_tagging_system.security.RestAuthenticationEntryPoint;
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -26,9 +22,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import java.time.LocalDateTime;
+import com.sil.asset_tagging_system.dto.AuthResponseDTO;
+import com.sil.asset_tagging_system.dto.response.ApiResponse;
+import com.sil.asset_tagging_system.mapper.AuthResponseMapper;
+import com.sil.asset_tagging_system.security.CustomUserDetails;
+import com.sil.asset_tagging_system.security.RestAccessDeniedHandler;
+import com.sil.asset_tagging_system.security.RestAuthenticationEntryPoint;
+
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @EnableWebSecurity
@@ -172,5 +176,11 @@ public class SecurityConfig {
 
 
     // needs to add cors for the front end or not sure how does manual origin is handled...
-
+    @Bean
+    public ViewResolver viewResolver(){
+        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+        resolver.setPrefix("/WEB-INF/views/");
+        resolver.setSuffix(".jsp");
+        return resolver;
+    }
 }
