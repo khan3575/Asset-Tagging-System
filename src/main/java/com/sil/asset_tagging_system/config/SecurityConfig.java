@@ -1,7 +1,5 @@
 package com.sil.asset_tagging_system.config;
 
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -22,13 +20,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import com.sil.asset_tagging_system.dto.AuthResponseDTO;
 import com.sil.asset_tagging_system.dto.response.ApiResponse;
 import com.sil.asset_tagging_system.mapper.AuthResponseMapper;
-import com.sil.asset_tagging_system.security.CustomUserDetails;
 import com.sil.asset_tagging_system.security.RestAccessDeniedHandler;
 import com.sil.asset_tagging_system.security.RestAuthenticationEntryPoint;
 
@@ -61,7 +55,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         // add more path inside when needed
-                        auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                        auth -> auth.requestMatchers("/api/auth/**","/login").permitAll()
                                 .requestMatchers("/api/employee/**").hasRole("EMPLOYEE")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
@@ -98,21 +92,11 @@ public class SecurityConfig {
 
         customLoginFilter.setSecurityContextRepository(securityContextRepository());
         customLoginFilter.setAuthenticationSuccessHandler((request, response, authentication)->{
-            response.setStatus(HttpStatus.OK.value());
-            response.setContentType("application/json");
-//            response.getWriter().write("{\"success\":true,\"message\":\"Login successful\"}");
-            // removed the hard coded auth added ApiResponse to
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            AuthResponseDTO authDTO = authResponseMapper.toAuthResponseDTO(userDetails);
-            ApiResponse<AuthResponseDTO> apiResponse = new ApiResponse<>(true, "Authentication successful", authDTO, LocalDateTime.now());
-            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+            response.sendRedirect(request.getContextPath()+"/dashboard?login=success");
         });
 
         customLoginFilter.setAuthenticationFailureHandler((request, response, exception) -> {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType("application/json");
-            ApiResponse<AuthResponseDTO> failureResponse = new ApiResponse<>(false, "Authentication failed", null, LocalDateTime.now());
-            response.getWriter().write(objectMapper.writeValueAsString(failureResponse));
+            response.sendRedirect(request.getContextPath()+"?error");
         });
         http.addFilterAt(customLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -176,11 +160,5 @@ public class SecurityConfig {
 
 
     // needs to add cors for the front end or not sure how does manual origin is handled...
-    @Bean
-    public ViewResolver viewResolver(){
-        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-        resolver.setPrefix("/WEB-INF/views/");
-        resolver.setSuffix(".jsp");
-        return resolver;
-    }
+    
 }
