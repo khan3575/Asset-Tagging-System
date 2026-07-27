@@ -44,7 +44,7 @@ public class SecurityAuthorizationTest {
 
     @Test
     public void unauthenticatedRequestIsNotRedirectedToLoginPage() throws Exception{
-        mockMvc.perform(post("/api/admin/profile")).andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/profile")).andExpect(status().isUnauthorized());
     }
 }
 

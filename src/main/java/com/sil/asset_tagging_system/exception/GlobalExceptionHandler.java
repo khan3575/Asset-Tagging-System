@@ -65,12 +65,12 @@ public class GlobalExceptionHandler {
      * - role not found
      */
 
-        @ExceptionHandler(AuthenticationException.class)
-        public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException exception) {
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException exception) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.failure(exception.getMessage()));
-        }
+    }
 
     @ExceptionHandler(
             ResourceNotFoundException.class
@@ -125,6 +125,12 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ExceptionHandler(UnauthorizedOperationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedOperationException(UnauthorizedOperationException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ApiResponse.failure(exception.getMessage())
+        );
+    }
 
     // ========================================================
     // BUSINESS-RULE VIOLATION
@@ -283,13 +289,13 @@ public class GlobalExceptionHandler {
     }
 
 
-        @ExceptionHandler(NoResourceFoundException.class)
-        public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(NoResourceFoundException exception) {
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(NoResourceFoundException exception) {
 
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(ApiResponse.failure(exception.getMessage()));
-        }
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.failure(exception.getMessage()));
+    }
 
     // ========================================================
     // INVALID PARAMETER TYPE

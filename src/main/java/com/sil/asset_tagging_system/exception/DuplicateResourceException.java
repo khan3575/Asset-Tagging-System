@@ -1,7 +1,7 @@
 package com.sil.asset_tagging_system.exception;
 
 public class DuplicateResourceException
-        extends RuntimeException {
+        extends AssetTaggingSystemException {
 
     public DuplicateResourceException(
             String message
