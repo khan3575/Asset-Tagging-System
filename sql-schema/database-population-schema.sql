@@ -26,9 +26,9 @@ INSERT INTO asset_categories (name, depreciation_rate_percentage) VALUES
 -- This is a real, verified hash of that string (checked with bcrypt.checkpw before commit) --
 -- it is for local/dev seed data only and must never be reused for a real account.
 INSERT INTO users (first_name, last_name, email, password, dept_id, enabled) VALUES
-                                                                                 ('Sakib', 'Khan', 'sakib.khan@enterprise.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 1, 1), -- ID: 1 (Employee 1)
-                                                                                 ('Mehedi', 'Hasan', 'mehedi.hasan@enterprise.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 4, 1), -- ID: 2 (Admin 1)
-                                                                                 ('Fahim', 'Ahmad', 'fahim.ahmad@enterprise.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 3, 1);    -- ID: 3 (Admin 2)
+                                                                                 ('Sakib', 'Khan', 'sakib@gmail.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 1, 1), -- ID: 1 (Employee 1)
+                                                                                 ('Mehedi', 'Hasan', 'mehedi@gmail.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 4, 1), -- ID: 2 (Admin 1)
+                                                                                 ('Fahim', 'Ahmad', 'fahim@gmail.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 3, 1);    -- ID: 3 (Admin 2)
 
 -- 5. MAP USERS TO ROLES (user_role)
 INSERT INTO user_role (user_id, role_id) VALUES
