@@ -53,12 +53,12 @@ public class SecurityConfig {
                         logout ->
                                 logout.logoutUrl("/logout")
                                 .logoutSuccessHandler((request, response, authentication)->{
-                                    response.sendRedirect(request.getContextPath() + "/login.xhtml?logout");})
+                                    response.sendRedirect(request.getContextPath() + "/login?logout");})
                 )
                 .formLogin(
-                    login -> login.loginPage("/login.xhtml")
+                    login -> login.loginPage("/login")
                     .defaultSuccessUrl("/dashboard?login=success",true)
-                    .failureUrl("/login.xhtml?error").permitAll()
+                    .failureUrl("/login?error").permitAll()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(handling-> handling.accessDeniedHandler(restAccessDeniedHandler)
