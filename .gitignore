@@ -37,3 +37,6 @@ build/
 ##local environment##
 application-local.properties
 # application-test.properties
+
+##personal notes##
+docs/

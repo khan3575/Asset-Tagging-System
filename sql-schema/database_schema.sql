@@ -44,6 +44,18 @@ CREATE TABLE user_role (
                            CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                            CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
+CREATE TABLE audit_log (
+                           id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                           actor_user_id BIGINT NULL,
+                           action VARCHAR(50) NOT NULL,
+                           entity_type VARCHAR(50) NULL,
+                           entity_id BIGINT NULL,
+                           description VARCHAR(255) NULL,
+                           ip_address VARCHAR(45) NULL,
+                           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                           CONSTRAINT fk_audit_actor FOREIGN KEY (actor_user_id) REFERENCES users(id)
+);
 
 CREATE TABLE assets (
                         id BIGINT PRIMARY KEY AUTO_INCREMENT,
