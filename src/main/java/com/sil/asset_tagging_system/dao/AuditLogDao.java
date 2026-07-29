@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +14,11 @@ import java.util.List;
 public class AuditLogDao {
 
     // this persistence context caches the same id. if we use the same id in same query it use the cache.
-    @PersistenceContext
     EntityManager entityManager;
+    AuditLogDao(EntityManager entityManager)
+    {
+        this.entityManager = entityManager;
+    }
 
     @Transactional
     public void log(Long actorUserId, String action, String entityType, Long entityId, String description, String ipAddress){
@@ -56,7 +60,7 @@ public class AuditLogDao {
                     .entityId( (row[4] == null) ? null :  ((Number)row[4]).longValue())
                     .description((String) row[5])
                     .ipAddress((String)row[6])
-                    .createdAt(((Timestamp)row[7]).toLocalDateTime())
+                    .createdAt(((LocalDateTime)row[7]))
                     .build());
         }
         return entries;

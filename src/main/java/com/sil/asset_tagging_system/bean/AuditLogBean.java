@@ -18,7 +18,7 @@ import java.util.List;
 public class AuditLogBean {
 
     @Inject
-    AuditLogDao auditLogDao;
+    private AuditLogDao auditLogDao;
 
     // this getter is used to get entries 
     @Getter
