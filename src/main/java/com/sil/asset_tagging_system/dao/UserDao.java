@@ -80,5 +80,98 @@ public class UserDao {
         return roles;
     }
 
+    public Boolean existsByEmailIgnoreCase(String email)
+    {
+        String sql = """
+                SELECT COUNT(*)
+                FROM users
+                WHERE LOWER(email) = LOWER(:email)
+                """;
+
+        Number count = (Number) entityManager.createNativeQuery(sql)
+                .setParameter("email", email)
+                .getSingleResult();
+
+        return (count.longValue() > 0);
+    }
+
+    public Boolean existsByEmailIgnoreCaseAndIdNot(String email, Long userId)
+    {
+        String sql = """
+                SELECT COUNT(*)
+                FROM users
+                WHERE LOWER(email)= LOWER(:email) and id != :userId
+                """;
+
+        Number count = (Number) entityManager.createNativeQuery(sql)
+                .setParameter("email",email )
+                .setParameter("userId", userId)
+                .getSingleResult();
+
+        return count.longValue() > 0;
+    }
+
+    public Optional<User> findByIdAndRoleName(Long userId, RoleName roleName)
+    {
+        String sql = """
+                SELECT u.id, u.first_name, u.last_name, u.email, u.password, u.enabled, u.created_at, d.id as dept_id, d.name as dept_name
+                FROM users u
+                JOIN departments d ON u.dept_id = d.id
+                JOIN user_role ur ON ur.user_id = u.id
+                JOIN roles r ON ur.role_id = r.id
+                WHERE u.id = :userId AND r.name = :roleName
+                """;
+        List<Object[]> rowList = entityManager.createNativeQuery(sql)
+                .setParameter("userId", userId)
+                .setParameter("roleName", roleName.name())
+                .getResultList();
+        if(rowList.isEmpty())
+        {
+            return Optional.empty();
+        }
+
+        Object[] rows = rowList.getFirst();
+        Department dept = Department.builder().id(((Number)rows[7]).longValue()).name((String)rows[8]).build();
+
+        User user = User.builder()
+                .id( ((Number)rows[0]).longValue() )
+                .firstName((String) rows[1])
+                .lastName((String) rows[2])
+                .email((String) rows[3])
+                .password((String) rows[4])
+                .department(dept)
+                .enabled((Boolean) rows[5])
+                .createdAt((LocalDateTime) rows[6])
+                .build();
+
+        return Optional.of(user);
+    }
+
+    public Long countAllActiveEmployees()
+    {
+        String sql = """
+                SELECT COUNT(DISTINCT u.id)
+                FROM users u
+                where enabled = true
+                """;
+
+        Number count = (Number) entityManager.createNativeQuery(sql).getSingleResult();
+
+        return count.longValue();
+    }
+
+    public Long countEmployees()
+    {
+        String sql = """
+                SELECT COUNT(DISTINCT u.id)
+                FROM users u
+                """;
+
+        Number count = (Number) entityManager.createNativeQuery(sql).getSingleResult();
+
+        return count.longValue();
+    }
+
+
 
 }
