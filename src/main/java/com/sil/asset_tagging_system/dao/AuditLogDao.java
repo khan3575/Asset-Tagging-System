@@ -1,20 +1,21 @@
 package com.sil.asset_tagging_system.dao;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Repository
 public class AuditLogDao {
-
+    private static final Logger log = LoggerFactory.getLogger(AuditLogDao.class);
     // this persistence context caches the same id. if we use the same id in same query it use the cache.
-    EntityManager entityManager;
+    private final EntityManager entityManager;
     AuditLogDao(EntityManager entityManager)
     {
         this.entityManager = entityManager;
@@ -26,14 +27,19 @@ public class AuditLogDao {
                 INSERT INTO audit_log(actor_user_id, action, entity_type, entity_id, description, ip_address)
                 VALUES(:actorUserId, :action, :entityType, :entityId, :description, :ipAddress) 
                 """;
-
-        entityManager.createNativeQuery(sql).setParameter("actorUserId", actorUserId)
-                .setParameter("action", action)
-                .setParameter("entityType", entityType)
-                .setParameter("entityId", entityId)
-                .setParameter("description", description)
-                .setParameter("ipAddress", ipAddress)
-                .executeUpdate();
+        try{
+            entityManager.createNativeQuery(sql).setParameter("actorUserId", actorUserId)
+                    .setParameter("action", action)
+                    .setParameter("entityType", entityType)
+                    .setParameter("entityId", entityId)
+                    .setParameter("description", description)
+                    .setParameter("ipAddress", ipAddress)
+                    .executeUpdate();
+        }
+        catch(Exception e)
+        {
+            log.error("Failed to write audit log entry :  action={}, entityType={}", action, entityType, e);
+        }
     }
 
 

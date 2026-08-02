@@ -36,7 +36,11 @@ build/
 
 ##local environment##
 application-local.properties
+application-prod.properties
 # application-test.properties
+
+##generated logs (2.7)##
+logs/
 
 ##personal notes##
 docs/
