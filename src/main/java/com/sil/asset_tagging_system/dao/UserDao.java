@@ -242,7 +242,7 @@ public class UserDao {
     public long countEmployees(RoleName roleName, String search, Long departmentId, Boolean enabled)
     {
         StringBuilder sql = new StringBuilder("""
-                SELECT COUNT (DISTINCT u.id)
+                SELECT COUNT(DISTINCT u.id)
                 FROM users u
                 JOIN departments d ON u.dept_id = d.id
                 LEFT JOIN user_role ur ON ur.user_id = u.id
