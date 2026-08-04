@@ -32,7 +32,7 @@ public class UserListBean {
     private String search;
     private RoleName roleName;
     private Long departmentId;
-    private Boolean status;
+    private Boolean enabled;
     private final Integer pageSize = 10;
     private Integer offset;
 
@@ -58,8 +58,8 @@ public class UserListBean {
         String departmentIdParam = params.get("departmentId");
         this.departmentId = (departmentIdParam == null || departmentIdParam.isBlank()) ? null : Long.valueOf(departmentIdParam);
 
-        String statusParam = params.get("status");
-        this.status = (statusParam == null || statusParam.isBlank()) ? null : Boolean.valueOf(statusParam);
+        String enabledParam = params.get("enabled");
+        this.enabled = (enabledParam == null || enabledParam.isBlank()) ? null : Boolean.valueOf(enabledParam);
 
         String pageParam = params.get("page");
         if (pageParam == null || pageParam.isBlank()) {
@@ -77,9 +77,9 @@ public class UserListBean {
         log.info("UserListBean init -- Search {}", search);
 
         // getting user list
-       users = userDao.findUsers(roleName, search, departmentId, status,pageSize,offset);
+       users = userDao.findUsers(roleName, search, departmentId, enabled,pageSize,offset);
 
-       totalCount = userDao.countUsers(roleName, search, departmentId, status);
+       totalCount = userDao.countUsers(roleName, search, departmentId, enabled);
 
         // total page count
         totalPageCount = (int) Math.ceil( (double) totalCount / pageSize);
