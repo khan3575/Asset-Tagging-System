@@ -316,6 +316,43 @@ public class UserDao {
         return roleMap;
     }
 
+    public Optional<User> findById(Long id)
+    {
+        String sql = """
+                SELECT u.id, u.first_name, u.last_name, u.email,
+                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled 
+                FROM users u
+                JOIN departments d ON u.dept_id = d.id
+                WHERE u.id = :id
+                """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rowList = entityManager.createNativeQuery(sql)
+                .setParameter("id", id).getResultList();
+
+        if(rowList.isEmpty())
+        {
+            return Optional.empty();
+        }
+
+        Object[] row = rowList.getFirst();
+        Long userId = ((Number)row[0]).longValue();
+
+        Department dept = Department.builder().id(((Number)row[7])
+                .longValue()).name((String)row[8]).enabled((Boolean)row[9]).build();
+
+
+        User user = User.builder().id(userId)
+                .firstName((String)row[1])
+                .lastName((String)row[2])
+                .email((String)row[3])
+                .department(dept)
+                .enabled((Boolean) row[4])
+                .roles(new HashSet<>( findRolesForUser(userId)))
+                .createdAt((LocalDateTime)row[5]).build();
+        return Optional.of(user);
+    }
+
 }
 
 

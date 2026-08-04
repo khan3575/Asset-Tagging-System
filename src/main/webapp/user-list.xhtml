@@ -75,6 +75,10 @@
                             <!-- user tables will be rendered here -->
                             <h:dataTable value="#{userListBean.users}" var="user" styleClass="table table-striped border">
                                 <h:column>
+                                    <f:facet name="header">ID</f:facet>
+                                    #{user.id}
+                                </h:column>
+                                <h:column>
                                     <f:facet name="header">Full name</f:facet>
                                     #{user.firstName} #{user.lastName}
                                 </h:column>

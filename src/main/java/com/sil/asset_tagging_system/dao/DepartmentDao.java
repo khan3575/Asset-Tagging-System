@@ -4,6 +4,7 @@ import com.sil.asset_tagging_system.model.Department;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +50,17 @@ public class DepartmentDao {
                 .setParameter("name", name)
                 .getSingleResult();
         return count.longValue() > 0;
+    }
+
+    public List<Department> findAllDepartments()
+    {
+        String sql = """
+                SELECT id, name, enabled
+                FROM departments
+                """;
+
+        List<Department> list = entityManager.createNativeQuery(sql,Department.class).getResultList();
+        return list;
     }
 
 }
