@@ -1,41 +1,43 @@
 package com.sil.asset_tagging_system.bean;
 
-import com.sil.asset_tagging_system.dao.UserDao;
-import com.sil.asset_tagging_system.model.User;
-import com.sil.asset_tagging_system.model.enums.RoleName;
+import java.util.List;
+import java.util.Map;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import java.util.List;
-import java.util.Map;
-
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sil.asset_tagging_system.dao.UserDao;
+import com.sil.asset_tagging_system.model.User;
+import com.sil.asset_tagging_system.model.enums.RoleName;
+
+import lombok.Getter;
 
 @Getter
 @Named
 @RequestScoped
-public class EmployeeListBean {
-    private final Logger log = LoggerFactory.getLogger(EmployeeListBean.class);
+public class UserListBean {
+    private final Logger log = LoggerFactory.getLogger(UserListBean.class);
 
     private final UserDao userDao;
-    private List<User> employees;
+    private List<User> users;
     private Long totalCount;
     private Integer totalPageCount;
     private Integer page;
     private String search;
     private RoleName roleName;
     private Long departmentId;
-    private Boolean enabled;
+    private Boolean status;
     private final Integer pageSize = 10;
     private Integer offset;
 
     @Inject
-    public EmployeeListBean(UserDao userDao)
+    public UserListBean(UserDao userDao)
     {
         this.userDao = userDao;
     }
@@ -56,8 +58,8 @@ public class EmployeeListBean {
         String departmentIdParam = params.get("departmentId");
         this.departmentId = (departmentIdParam == null || departmentIdParam.isBlank()) ? null : Long.valueOf(departmentIdParam);
 
-        String enabledParam = params.get("enabled");
-        this.enabled = (enabledParam == null || enabledParam.isBlank()) ? null : Boolean.valueOf(enabledParam);
+        String statusParam = params.get("status");
+        this.status = (statusParam == null || statusParam.isBlank()) ? null : Boolean.valueOf(statusParam);
 
         String pageParam = params.get("page");
         if (pageParam == null || pageParam.isBlank()) {
@@ -72,16 +74,21 @@ public class EmployeeListBean {
                 offset = 0;
             }
         }
-        log.info("EmployeeBeanList init -- Search {}", search);
+        log.info("UserListBean init -- Search {}", search);
 
         // getting user list
-       employees = userDao.findEmployees(roleName, search, departmentId,enabled,pageSize,offset);
+       users = userDao.findUsers(roleName, search, departmentId, status,pageSize,offset);
 
-       totalCount = userDao.countEmployees(roleName, search, departmentId, enabled);
+       totalCount = userDao.countUsers(roleName, search, departmentId, status);
 
         // total page count
         totalPageCount = (int) Math.ceil( (double) totalCount / pageSize);
 
+    }
+
+    public RoleName[] getRoleOptions()
+    {
+        return RoleName.values();
     }
 
 }

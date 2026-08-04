@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 public class UserListViewController {
 
-    @GetMapping("/user-list")
+    @GetMapping("/user")
     public void getUserView(HttpServletRequest request, HttpServletResponse response) throws Exception
     {
         request.getRequestDispatcher("/user-list.xhtml").forward(request, response);

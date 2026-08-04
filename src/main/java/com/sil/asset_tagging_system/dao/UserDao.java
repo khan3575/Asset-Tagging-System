@@ -146,7 +146,7 @@ public class UserDao {
 
         return Optional.of(user);
     }
-    public List<User> findEmployees(RoleName roleName, String search, Long deptId, Boolean enabled, int limit , int offset)
+    public List<User> findUsers(RoleName roleName, String search, Long deptId, Boolean enabled, int limit , int offset)
     {
         StringBuilder sql = new StringBuilder("""
                 SELECT DISTINCT u.id, u.first_name, u.last_name, u.email
@@ -239,7 +239,7 @@ public class UserDao {
         return userList;
     }
 
-    public long countEmployees(RoleName roleName, String search, Long departmentId, Boolean enabled)
+    public long countUsers(RoleName roleName, String search, Long departmentId, Boolean enabled)
     {
         StringBuilder sql = new StringBuilder("""
                 SELECT COUNT(DISTINCT u.id)
