@@ -97,6 +97,31 @@
                                     #{user.enabled}
                                 </h:column>
                             </h:dataTable>
+                            <div class="d-flex justify-content-between">
+                                <ui:fragment rendered="#{userListBean.page gt 1}" >
+                                    <h:outputLink value="/user" styleClass="btn btn-outline-primary">
+                                        <f:param name="page" value="#{userListBean.page - 1}"/>
+                                        <f:param name="search" value="#{userListBean.search}"/>
+                                        <f:param name="roleName" value="#{userListBean.roleName}"/>
+                                        <f:param name="departmentId" value="#{userListBean.departmentId}"/>
+                                        <f:param name="enabled" value="#{userListBean.enabled}"/>
+                                        Previous
+                                    </h:outputLink>
+                                </ui:fragment>
+
+                                <ui:fragment rendered="#{userListBean.page lt userListBean.totalPageCount}" >
+                                    <h:outputLink value="/user" styleClass="btn btn-outline-primary">
+                                        <f:param name="page" value="#{userListBean.page + 1}"/>
+                                        <f:param name="search" value="#{userListBean.search}"/>
+                                        <f:param name="roleName" value="#{userListBean.roleName}"/>
+                                        <f:param name="departmentId" value="#{userListBean.departmentId}"/>
+                                        <f:param name="enabled" value="#{userListBean.enabled}"/>
+                                        Next
+                                    </h:outputLink>
+                                </ui:fragment>
+                                <span>Page : #{userListBean.page} of #{userListBean.totalPageCount}</span>
+
+                            </div>
                         </div>
 
                     </div>
