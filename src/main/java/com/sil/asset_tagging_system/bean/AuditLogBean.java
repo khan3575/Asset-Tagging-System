@@ -9,19 +9,22 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
 @Named
 @RequestScoped
+@Getter
+
 public class AuditLogBean {
 
+    private final AuditLogDao auditLogDao;
     @Inject
-    private AuditLogDao auditLogDao;
+    public AuditLogBean(AuditLogDao auditLogDao)
+    {
+        this.auditLogDao = auditLogDao;
+    }
 
-    // this getter is used to get entries 
-    @Getter
     private List<AuditLogEntry> entries;
 
     @PostConstruct
@@ -29,5 +32,4 @@ public class AuditLogBean {
     {
         entries = auditLogDao.findRecent(50);
     }
-
 }
