@@ -43,5 +43,14 @@ public class RoleDao {
         return count.longValue() > 0;
     }
 
+    public List<Role> findAllRoles()
+    {
+        String sql = """
+                SELECT id, name
+                FROM roles
+                """;
+        return entityManager.createNativeQuery(sql,Role.class).getResultList();
+    }
+
 
 }
