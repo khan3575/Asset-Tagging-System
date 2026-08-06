@@ -1,10 +1,9 @@
 package com.sil.asset_tagging_system.bean;
 
-import com.sil.asset_tagging_system.dao.DepartmentDao;
 import com.sil.asset_tagging_system.dao.UserDao;
 import com.sil.asset_tagging_system.exception.DbFetchException;
-import com.sil.asset_tagging_system.model.Department;
 import com.sil.asset_tagging_system.model.User;
+import com.sil.asset_tagging_system.model.enums.RoleName;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.context.FacesContext;
@@ -12,7 +11,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -20,16 +18,13 @@ import java.util.Map;
 @RequestScoped
 public class UserDetailBean {
     private final UserDao userDao;
-    private final DepartmentDao deptDao;
     private Long id;
     private User user;
-    private List<Department> departmentList;
 
     @Inject
-    public UserDetailBean(UserDao userDao, DepartmentDao deptDao)
+    public UserDetailBean(UserDao userDao)
     {
         this.userDao = userDao;
-        this.deptDao = deptDao;
     }
 
 
@@ -37,13 +32,7 @@ public class UserDetailBean {
     public void init()
     {
         initiateUser();
-        initiateDepartments();
 
-    }
-
-    public void initiateDepartments()
-    {
-        this.departmentList = deptDao.findAllDepartments();
     }
 
     public void initiateUser(){
@@ -59,6 +48,11 @@ public class UserDetailBean {
             this.id = Long.valueOf(idParam);
             user = userDao.findById(id).orElseThrow(()->new DbFetchException("User fetching error from DB"));
         }
+    }
+
+    public boolean hasRole(RoleName roleName)
+    {
+        return user.getRoles().stream().anyMatch(role -> role.getName() == roleName);
     }
 
 }
