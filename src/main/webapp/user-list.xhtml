@@ -73,10 +73,12 @@
                         </div>
                         <div >
                             <!-- user tables will be rendered here -->
-                            <h:dataTable value="#{userListBean.users}" var="user" styleClass="table table-striped border">
+                            <h:dataTable value="#{userListBean.users}" var="user" styleClass="table table-striped border table-hover clickable-rows">
                                 <h:column>
                                     <f:facet name="header">ID</f:facet>
-                                    #{user.id}
+                                    <a href="#{request.contextPath}/user/#{user.id}" class="text-decoration-none text-body d-block">
+                                        #{user.id}
+                                    </a>
                                 </h:column>
                                 <h:column>
                                     <f:facet name="header">Full name</f:facet>
