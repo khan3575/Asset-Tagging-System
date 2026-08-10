@@ -28,9 +28,9 @@ import java.time.LocalDateTime;
 @Table(name = "assets", indexes = {@Index(name = "idx_asset_category", columnList = "category_id"), @Index(name = "idx_asset_status", columnList = "status"), @Index(name = "idx_asset_created_by", columnList = "created_by_user_id")})
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Asset {
 

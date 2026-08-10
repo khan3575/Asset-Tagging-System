@@ -48,6 +48,22 @@
                             #{entry.ipAddress}
                         </h:column>
                     </h:dataTable>
+                    <div class="d-flex justify-content-between">
+                        <ui:fragment rendered="#{auditLogBean.page gt 1}">
+                            <h:outputLink value="/audit-log" styleClass="btn btn-outline-primary">
+                                <f:param name="page" value="#{auditLogBean.page - 1}"/>
+                                Previous
+                            </h:outputLink>
+                        </ui:fragment>
+
+                        <ui:fragment rendered="#{auditLogBean.page lt auditLogBean.totalPageCount}">
+                            <h:outputLink value="/audit-log" styleClass="btn btn-outline-primary">
+                                <f:param name="page" value="#{auditLogBean.page + 1}"/>
+                                Next
+                            </h:outputLink>
+                        </ui:fragment>
+                        <span>Page : #{auditLogBean.page} of #{auditLogBean.totalPageCount}</span>
+                    </div>
                 </main>
 
             </div>
