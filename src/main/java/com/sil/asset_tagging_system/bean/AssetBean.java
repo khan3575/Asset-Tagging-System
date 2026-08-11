@@ -72,8 +72,8 @@ public class AssetBean {
         log.info("AssetBean initiated - search {}", search);
 
         all = assetDao.findAll();
-        
-        if(search != null || !search.trim().isEmpty())
+        filteredList = all;
+        if(search != null && !search.trim().isEmpty())
         {
             String searchLowerCase = search.trim().toLowerCase();
 
@@ -84,7 +84,7 @@ public class AssetBean {
             ).collect(Collectors.toList());
         }
         totalCount = filteredList.size();
-        totalPageCount = (int) Math.ceil(totalCount / pageSize);
+        totalPageCount = (int) Math.ceil((double)totalCount / pageSize);
 
         int start = Math.min(offset, totalCount);
         int end = Math.min(start + pageSize, totalCount);
