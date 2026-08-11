@@ -8,4 +8,5 @@ import jakarta.inject.Named;
 @RequestScoped
 public class DashboardBean {
 
+    
 }
