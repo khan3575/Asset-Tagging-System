@@ -14,5 +14,11 @@ public class AssetController {
     {
         request.getRequestDispatcher("/asset-list.xhtml").forward(request, response);
     }
-    
+
+    @GetMapping("/assets/new")
+    public void getAssetForm(HttpServletRequest request , HttpServletResponse response) throws Exception
+    {
+        request.getRequestDispatcher("/add-asset.xhtml").forward(request, response);
+    }
+
 }
