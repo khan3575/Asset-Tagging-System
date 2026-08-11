@@ -1,15 +1,15 @@
 package com.sil.asset_tagging_system.dao;
 
-import jakarta.persistence.EntityManager;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class AuditLogDao {
@@ -44,7 +44,7 @@ public class AuditLogDao {
 
 
     @SuppressWarnings("unchecked")
-    public List<AuditLogEntry> findRecent(int limit)
+    public List<AuditLogEntry> findRecent(int limit, int offset)
     {
         String sql = """
                 SELECT id, actor_user_id, action, entity_type, entity_id, description, ip_address, created_at
@@ -52,7 +52,9 @@ public class AuditLogDao {
                 """;
 
         List<Object[]> rows = entityManager.createNativeQuery(sql)
-                .setMaxResults(limit).getResultList();
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
 
         List<AuditLogEntry> entries = new ArrayList<>();
 
@@ -70,6 +72,15 @@ public class AuditLogDao {
                     .build());
         }
         return entries;
+    }
+
+    public long countAll()
+    {
+        String sql = """
+                SELECT COUNT(*)
+                FROM audit_log
+                """;
+        return ((Number) entityManager.createNativeQuery(sql).getSingleResult()).longValue();
     }
 
 }

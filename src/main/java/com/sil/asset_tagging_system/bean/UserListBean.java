@@ -47,7 +47,9 @@ public class UserListBean {
     {
         // here the xhtml initially doesnt get the parameters as the url are redirected from the controller. so we have to
         // first get the current instance, then from the external context them map it be used.
-        Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        Map<String, String> params = FacesContext.getCurrentInstance()
+                                    .getExternalContext()
+                                    .getRequestParameterMap();
 
         // getting parameter from the url to do query
         this.search = params.get("search");

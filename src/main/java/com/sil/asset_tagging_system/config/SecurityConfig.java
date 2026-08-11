@@ -43,8 +43,8 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
-                        // add more path inside when needed
-                        auth -> auth.requestMatchers("/login", "/css/**", "/js/**", "/**").permitAll()
+                        auth -> auth.requestMatchers("/login", "/login.xhtml", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
+                                .anyRequest().authenticated()
                 ).sessionManagement(
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.IF_REQUIRED)

@@ -64,8 +64,6 @@
             <artifactId>spring-boot-starter-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-
         <!-- Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
