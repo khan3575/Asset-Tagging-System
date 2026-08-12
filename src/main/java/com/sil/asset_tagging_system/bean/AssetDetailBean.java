@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestScoped
 public class AssetDetailBean {
     private final AssetDao assetDao;
-
     private Long id;
     private Asset asset;
 

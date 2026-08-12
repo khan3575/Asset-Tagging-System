@@ -106,5 +106,18 @@ public class AssetDao {
                 .getSingleResult();
         return count.longValue() > 0;
     }
+    @Transactional
+    public void updateAsset(Long id, AssetStatus status, BigDecimal value)
+    {
+        String sql = """
+                        UPDATE assets SET status = :status, value = :value
+                        WHERE id = :id
+                        """;
+        entityManager.createNativeQuery(sql)
+        .setParameter("status", status.name())
+        .setParameter("value", value).executeUpdate();
+    }
+
+    
 
 }
