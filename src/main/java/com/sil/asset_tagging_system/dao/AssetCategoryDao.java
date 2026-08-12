@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.dao;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
@@ -25,9 +26,9 @@ public class AssetCategoryDao {
                 FROM asset_categories
                 WHERE LOWER(name) = LOWER(:name)
                 """;
-        return entityManager.createNativeQuery(query)
+        return entityManager.createNativeQuery(query, AssetCategory.class)
                 .setParameter("name", name)
-                .getResultStream().findFirst();           
+                .getResultStream().findFirst();
     }
 
     public boolean existsByNameIgnoreCase(String name)
@@ -37,12 +38,8 @@ public class AssetCategoryDao {
                 FROM asset_categories
                 WHERE LOWER(name) = LOWER(:name)
                     """;
-        
-        return (((Number) entityManager.createNativeQuery(sql)
-                .setParameter("name", name)
-                .getSingleResult()
-                ).longValue() > 0);
-    
+
+        return DaoUtils.exists(entityManager, sql, Map.of("name", name));
     }
 
     @SuppressWarnings("unchecked")

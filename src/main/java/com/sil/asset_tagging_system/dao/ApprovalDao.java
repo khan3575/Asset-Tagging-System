@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.persistence.EntityManager;
 
@@ -26,13 +27,11 @@ public class ApprovalDao {
                 AND request_type = :requestType
                 AND status IN (:openStatuses)
                 """;
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("assetId", assetId)
-                .setParameter("requestType", RequestType.TRANSFER_REQUEST.name())
-                .setParameter("openStatuses", List.of(ApprovalStatus.PENDING.name(), ApprovalStatus.FIRST_APPROVED.name()))
-                .getSingleResult();
-
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of(
+                "assetId", assetId,
+                "requestType", RequestType.TRANSFER_REQUEST.name(),
+                "openStatuses", List.of(ApprovalStatus.PENDING.name(), ApprovalStatus.FIRST_APPROVED.name())
+        ));
     }
 
     // previousHolderId may be null if the asset has no current custodian yet
@@ -51,7 +50,6 @@ public class ApprovalDao {
                 .setParameter("status", ApprovalStatus.PENDING.name())
                 .executeUpdate();
 
-        Number generatedId = (Number) entityManager.createNativeQuery("SELECT LAST_INSERT_ID()").getSingleResult();
-        return generatedId.longValue();
+        return DaoUtils.getLastInsertId(entityManager);
     }
 }

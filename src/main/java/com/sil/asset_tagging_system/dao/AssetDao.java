@@ -3,6 +3,7 @@ package com.sil.asset_tagging_system.dao;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
@@ -81,8 +82,7 @@ public class AssetDao {
                 .setParameter("createdByUserId", createdByUserId)
                 .executeUpdate();
 
-        Number generatedId = (Number) entityManager.createNativeQuery("SELECT LAST_INSERT_ID()").getSingleResult();
-        return generatedId.longValue();
+        return DaoUtils.getLastInsertId(entityManager);
     }
 
     public Boolean existsByAssetTagIgnoreCase(String assetTag) {
@@ -91,9 +91,7 @@ public class AssetDao {
                 FROM assets
                 WHERE LOWER(asset_tag) = LOWER(:assetTag)
                 """;
-        Number count = (Number) entityManager.createNativeQuery(sql).setParameter("assetTag", assetTag).getSingleResult();
-
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of("assetTag", assetTag));
     }
 
     public Boolean existsByAssetTagIgnoreCaseAndIdNot(String assetTag, Long id) {
@@ -103,22 +101,23 @@ public class AssetDao {
                 WHERE LOWER(asset_tag) = LOWER(:assetTag)
                 AND id != :id
                 """;
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("assetTag", assetTag)
-                .setParameter("id", id)
-                .getSingleResult();
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of("assetTag", assetTag, "id", id));
     }
     @Transactional
     public void updateAsset(Long id, AssetStatus status, BigDecimal value)
     {
+        if (status == null) {
+            throw new IllegalArgumentException("status must not be null");
+        }
         String sql = """
                         UPDATE assets SET status = :status, value = :value
                         WHERE id = :id
                         """;
         entityManager.createNativeQuery(sql)
         .setParameter("status", status.name())
-        .setParameter("value", value).executeUpdate();
+        .setParameter("value", value)
+        .setParameter("id", id)
+        .executeUpdate();
     }
 
     

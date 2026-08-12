@@ -6,11 +6,13 @@ import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sil.asset_tagging_system.dao.AssetDao;
 import com.sil.asset_tagging_system.model.Asset;
+import com.sil.asset_tagging_system.util.FacesUtil;
+import com.sil.asset_tagging_system.util.PageParams;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,8 @@ public class AssetBean {
     private int totalPageCount;
     private int totalCount;
     private final int pageSize = 10;
+
+    @Inject
     public AssetBean(AssetDao assetDao)
     {
         this.assetDao = assetDao;
@@ -40,9 +44,7 @@ public class AssetBean {
     @PostConstruct
     public void init()
     {
-        Map<String, String> params = FacesContext.getCurrentInstance()
-                                    .getExternalContext()
-                                    .getRequestParameterMap();
+        Map<String, String> params = FacesUtil.getRequestParams();
 
         this.search = params.get("search");
         if(search == null || search.isBlank() || search.trim().isBlank())
@@ -52,23 +54,9 @@ public class AssetBean {
         else{
             search = search.trim().toLowerCase();
         }
-        String pageParam = params.get("page");
-        if(pageParam == null || pageParam.isBlank())
-        {
-            page = 1;
-            offset = 0;
-        }
-        else{
-            if(pageParam.matches("\\d+"))
-            {
-                page = Integer.valueOf(pageParam);
-                offset = (page - 1) * pageSize;
-            }
-            else{
-                page = 1;
-                offset = 0;
-            }
-        }
+        PageParams pageParams = PageParams.parse(params, pageSize);
+        page = pageParams.page;
+        offset = pageParams.offset;
         log.info("AssetBean initiated - search {}", search);
 
         all = assetDao.findAll();

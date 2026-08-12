@@ -1,5 +1,7 @@
 package com.sil.asset_tagging_system.dao;
 
+import java.util.Map;
+
 import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
@@ -18,10 +20,6 @@ public class AssetDocumentDao {
                 FROM asset_documents
                 WHERE asset_id = :assetId
                 """;
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("assetId", assetId)
-                .getSingleResult();
-
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of("assetId", assetId));
     }
 }

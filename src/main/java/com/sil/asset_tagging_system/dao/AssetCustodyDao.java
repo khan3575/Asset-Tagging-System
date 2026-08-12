@@ -6,6 +6,8 @@ import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
 
+import com.sil.asset_tagging_system.model.enums.CustodyStatus;
+
 @Repository
 public class AssetCustodyDao {
     private final EntityManager entityManager;
@@ -19,10 +21,11 @@ public class AssetCustodyDao {
         String sql = """
                 SELECT custodian_id
                 FROM asset_custody
-                WHERE asset_id = :assetId AND status = 'ACTIVE'
+                WHERE asset_id = :assetId AND status = :status
                 """;
         return entityManager.createNativeQuery(sql)
                 .setParameter("assetId", assetId)
+                .setParameter("status", CustodyStatus.ACTIVE.name())
                 .getResultStream()
                 .map(row -> ((Number) row).longValue())
                 .findFirst();

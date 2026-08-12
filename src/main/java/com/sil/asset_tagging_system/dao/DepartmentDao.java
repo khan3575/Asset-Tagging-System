@@ -1,12 +1,13 @@
 package com.sil.asset_tagging_system.dao;
 
-import com.sil.asset_tagging_system.model.Department;
+import java.util.List;
+import java.util.Map;
+
 import jakarta.persistence.EntityManager;
+
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.sil.asset_tagging_system.model.Department;
 
 @Repository
 public class DepartmentDao {
@@ -18,40 +19,12 @@ public class DepartmentDao {
         this.entityManager = entityManager;
     }
 
-    @SuppressWarnings("unchecked")
-    public Optional<Department> findByName(String name)
-    {
-        String sql = """
-                SELECT * FROM departments WHERE name = :name
-                """;
-        List<Department> results = entityManager.createNativeQuery(sql,Department.class)
-                .setParameter("name", name)
-                .getResultList();
-        return results.stream().findFirst();
-    }
-
-    @SuppressWarnings("unchecked")
-    public Optional<Department> findByNameAndEnabled(String name, Boolean enabled)
-    {
-        String sql = """
-                SELECT * FROM departments WHERE name = :name AND enabled = :enabled 
-                """;
-        List<Department> results = entityManager.createNativeQuery(sql,Department.class)
-                .setParameter("name", name)
-                .setParameter("enabled", enabled)
-                .getResultList();
-        return results.stream().findFirst();
-    }
-
     public Boolean existsByNameIgnoreCase(String name)
     {
         String sql = """
                 SELECT COUNT(*) FROM departments WHERE LOWER(name) = LOWER(:name)
                 """;
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("name", name)
-                .getSingleResult();
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of("name", name));
     }
 
     @SuppressWarnings("unchecked")

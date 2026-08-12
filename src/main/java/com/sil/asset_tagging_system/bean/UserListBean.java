@@ -5,7 +5,6 @@ import java.util.Map;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -15,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.sil.asset_tagging_system.dao.UserDao;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
+import com.sil.asset_tagging_system.util.FacesUtil;
+import com.sil.asset_tagging_system.util.PageParams;
 
 import lombok.Getter;
 
@@ -47,9 +48,7 @@ public class UserListBean {
     {
         // here the xhtml initially doesnt get the parameters as the url are redirected from the controller. so we have to
         // first get the current instance, then from the external context them map it be used.
-        Map<String, String> params = FacesContext.getCurrentInstance()
-                                    .getExternalContext()
-                                    .getRequestParameterMap();
+        Map<String, String> params = FacesUtil.getRequestParams();
 
         // getting parameter from the url to do query
         this.search = params.get("search");
@@ -63,19 +62,9 @@ public class UserListBean {
         String enabledParam = params.get("enabled");
         this.enabled = (enabledParam == null || enabledParam.isBlank()) ? null : Boolean.valueOf(enabledParam);
 
-        String pageParam = params.get("page");
-        if (pageParam == null || pageParam.isBlank()) {
-            page = 1;
-            offset = 0;
-        } else {
-            if (pageParam.matches("\\d+")) {
-                page = Integer.valueOf(pageParam);
-                offset = (page - 1) * pageSize;
-            } else {
-                page = 1;
-                offset = 0;
-            }
-        }
+        PageParams pageParams = PageParams.parse(params, pageSize);
+        page = pageParams.page;
+        offset = pageParams.offset;
         log.info("UserListBean init -- Search {}", search);
 
         // getting user list

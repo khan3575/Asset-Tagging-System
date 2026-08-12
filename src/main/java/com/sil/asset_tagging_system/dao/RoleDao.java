@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -37,11 +38,7 @@ public class RoleDao {
         String sql = """
                 SELECT COUNT(*) FROM roles WHERE name = :name
                 """;
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("name", name.name())
-                .getSingleResult();
-
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of("name", name.name()));
     }
 
     @SuppressWarnings("unchecked")
