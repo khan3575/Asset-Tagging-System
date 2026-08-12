@@ -17,6 +17,7 @@ public class AssetCategoryDao {
     {
         this.entityManager = entityManager;
     }
+    @SuppressWarnings("unchecked")
     public Optional<AssetCategory> findByNameIgnoreCase(String name)
     {
         String query = """
@@ -44,6 +45,7 @@ public class AssetCategoryDao {
     
     }
 
+    @SuppressWarnings("unchecked")
     public List<AssetCategory> findAll() {
     String sql = """
             SELECT id, name, depreciation_rate_percentage

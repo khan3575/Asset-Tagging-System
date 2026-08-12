@@ -18,6 +18,7 @@ public class RoleDao {
         this.entityManager = entityManager;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<Role> findByName(RoleName name)
     {
         String sql = """
@@ -43,6 +44,7 @@ public class RoleDao {
         return count.longValue() > 0;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Role> findAllRoles()
     {
         String sql = """

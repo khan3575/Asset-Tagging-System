@@ -18,6 +18,7 @@ public class DepartmentDao {
         this.entityManager = entityManager;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<Department> findByName(String name)
     {
         String sql = """
@@ -29,6 +30,7 @@ public class DepartmentDao {
         return results.stream().findFirst();
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<Department> findByNameAndEnabled(String name, Boolean enabled)
     {
         String sql = """
@@ -52,6 +54,7 @@ public class DepartmentDao {
         return count.longValue() > 0;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Department> findAllDepartments()
     {
         String sql = """

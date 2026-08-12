@@ -24,6 +24,7 @@ public class AssetDao {
         this.entityManager = entityManager;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<Asset> findByAssetTagIgnoreCase(String assetTag) {
         String sql = """
                 SELECT id , asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, created_at, enabled
@@ -37,6 +38,7 @@ public class AssetDao {
                 .findFirst();
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<Asset> findById(Long id)
     {
         String sql = """
@@ -53,6 +55,7 @@ public class AssetDao {
     }
 
 
+    @SuppressWarnings("unchecked")
     public List<Asset> findAll() {
         String sql = """
                 SELECT id, asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, created_at, enabled

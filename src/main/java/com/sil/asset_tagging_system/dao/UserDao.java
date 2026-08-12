@@ -23,6 +23,7 @@ public class UserDao {
         this.entityManager= entityManager;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<User> findByEmailIgnoreCase(String email)
     {
         String sql = """
@@ -59,6 +60,7 @@ public class UserDao {
         return Optional.of(user);
     }
 
+    @SuppressWarnings("unchecked")
     public List<Role> findRolesForUser(Long userId)
     {
         String sql = """
@@ -111,6 +113,7 @@ public class UserDao {
         return count.longValue() > 0;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<User> findByIdAndRoleName(Long userId, RoleName roleName)
     {
         String sql = """
@@ -146,6 +149,7 @@ public class UserDao {
 
         return Optional.of(user);
     }
+    @SuppressWarnings("unchecked")
     public List<User> findUsers(RoleName roleName, String search, Long deptId, Boolean enabled, int limit , int offset)
     {
         StringBuilder sql = new StringBuilder("""
@@ -286,6 +290,7 @@ public class UserDao {
     }
 
 
+    @SuppressWarnings("unchecked")
     public Map<Long , Set<Role>> findRolesForUsers(List<Long> userList)
     {
         if(userList.isEmpty())
@@ -316,17 +321,17 @@ public class UserDao {
         return roleMap;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<User> findById(Long id)
     {
         String sql = """
                 SELECT u.id, u.first_name, u.last_name, u.email,
-                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled 
+                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled
                 FROM users u
                 JOIN departments d ON u.dept_id = d.id
                 WHERE u.id = :id
                 """;
 
-        @SuppressWarnings("unchecked")
         List<Object[]> rowList = entityManager.createNativeQuery(sql)
                 .setParameter("id", id).getResultList();
 
