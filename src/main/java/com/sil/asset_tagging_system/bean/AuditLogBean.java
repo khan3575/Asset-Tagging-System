@@ -3,9 +3,10 @@ package com.sil.asset_tagging_system.bean;
 
 import com.sil.asset_tagging_system.dao.AuditLogDao;
 import com.sil.asset_tagging_system.dao.AuditLogEntry;
+import com.sil.asset_tagging_system.util.FacesUtil;
+import com.sil.asset_tagging_system.util.PageParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.Getter;
@@ -37,16 +38,11 @@ public class AuditLogBean {
     @PostConstruct
     public void init()
     {
-        Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        Map<String, String> params = FacesUtil.getRequestParams();
 
-        String pageParam = params.get("page");
-        if (pageParam == null || pageParam.isBlank() || !pageParam.matches("\\d+")) {
-            page = 1;
-            offset = 0;
-        } else {
-            page = Integer.valueOf(pageParam);
-            offset = (page - 1) * pageSize;
-        }
+        PageParams pageParams = PageParams.parse(params, pageSize);
+        page = pageParams.page;
+        offset = pageParams.offset;
 
         entries = auditLogDao.findRecent(pageSize, offset);
         totalCount = auditLogDao.countAll();

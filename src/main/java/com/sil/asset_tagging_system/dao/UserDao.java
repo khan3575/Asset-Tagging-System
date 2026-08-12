@@ -23,6 +23,7 @@ public class UserDao {
         this.entityManager= entityManager;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<User> findByEmailIgnoreCase(String email)
     {
         String sql = """
@@ -59,6 +60,7 @@ public class UserDao {
         return Optional.of(user);
     }
 
+    @SuppressWarnings("unchecked")
     public List<Role> findRolesForUser(Long userId)
     {
         String sql = """
@@ -87,12 +89,7 @@ public class UserDao {
                 FROM users
                 WHERE LOWER(email) = LOWER(:email)
                 """;
-
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("email", email)
-                .getSingleResult();
-
-        return (count.longValue() > 0);
+        return DaoUtils.exists(entityManager, sql, Map.of("email", email));
     }
 
     public Boolean existsByEmailIgnoreCaseAndIdNot(String email, Long userId)
@@ -102,15 +99,10 @@ public class UserDao {
                 FROM users
                 WHERE LOWER(email)= LOWER(:email) and id != :userId
                 """;
-
-        Number count = (Number) entityManager.createNativeQuery(sql)
-                .setParameter("email",email )
-                .setParameter("userId", userId)
-                .getSingleResult();
-
-        return count.longValue() > 0;
+        return DaoUtils.exists(entityManager, sql, Map.of("email", email, "userId", userId));
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<User> findByIdAndRoleName(Long userId, RoleName roleName)
     {
         String sql = """
@@ -146,18 +138,8 @@ public class UserDao {
 
         return Optional.of(user);
     }
-    public List<User> findUsers(RoleName roleName, String search, Long deptId, Boolean enabled, int limit , int offset)
+    private void appendUserFilters(StringBuilder sql, RoleName roleName, String search, Long deptId, Boolean enabled)
     {
-        StringBuilder sql = new StringBuilder("""
-                SELECT DISTINCT u.id, u.first_name, u.last_name, u.email
-                , u.password, u.dept_id, u.enabled, u.created_at, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled
-                FROM users u
-                JOIN departments d ON u.dept_id = d.id
-                LEFT JOIN user_role ur ON ur.user_id = u.id
-                LEFT JOIN roles r ON r.id = ur.role_id
-                WHERE 1=1
-                """);
-
         if(roleName != null)
         {
             sql.append(" AND r.name = :roleName");
@@ -175,11 +157,10 @@ public class UserDao {
         {
             sql.append(" AND u.enabled = :enabled");
         }
+    }
 
-        sql.append(" ORDER BY u.id LIMIT :limit OFFSET :offset");
-
-        Query query = entityManager.createNativeQuery(sql.toString());
-
+    private void bindUserFilters(Query query, RoleName roleName, String search, Long deptId, Boolean enabled)
+    {
         if (roleName != null) {
             query.setParameter("roleName", roleName.name());
         }
@@ -193,6 +174,28 @@ public class UserDao {
         if (enabled != null) {
             query.setParameter("enabled", enabled);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<User> findUsers(RoleName roleName, String search, Long deptId, Boolean enabled, int limit , int offset)
+    {
+        StringBuilder sql = new StringBuilder("""
+                SELECT DISTINCT u.id, u.first_name, u.last_name, u.email
+                , u.password, u.dept_id, u.enabled, u.created_at, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled
+                FROM users u
+                JOIN departments d ON u.dept_id = d.id
+                LEFT JOIN user_role ur ON ur.user_id = u.id
+                LEFT JOIN roles r ON r.id = ur.role_id
+                WHERE 1=1
+                """);
+
+        appendUserFilters(sql, roleName, search, deptId, enabled);
+
+        sql.append(" ORDER BY u.id LIMIT :limit OFFSET :offset");
+
+        Query query = entityManager.createNativeQuery(sql.toString());
+
+        bindUserFilters(query, roleName, search, deptId, enabled);
         query.setParameter("limit", limit);
         query.setParameter("offset",offset);
 
@@ -249,43 +252,18 @@ public class UserDao {
                 LEFT JOIN roles r ON r.id = ur.role_id
                 WHERE 1=1
                 """);
-        if(roleName != null)
-        {
-            sql.append(" AND r.name = :roleName");
-        }
-        if(search != null && !search.trim().isEmpty())
-        {
-            sql.append(" AND (LOWER(u.first_name) LIKE :search OR LOWER(u.last_name) LIKE :search OR LOWER(u.email) LIKE :search)");
-        }
-        if(departmentId != null)
-        {
-            sql.append(" AND u.dept_id = :deptId");
-        }
-        if(enabled != null)
-        {
-            sql.append(" AND u.enabled = :enabled");
-        }
+
+        appendUserFilters(sql, roleName, search, departmentId, enabled);
 
         Query query = entityManager.createNativeQuery(sql.toString());
 
-        if (roleName != null) {
-            query.setParameter("roleName", roleName.name());
-        }
-        if (search != null && !search.trim().isEmpty()) {
-            // Wrap search string in wildcards and convert to lowercase for LIKE comparison
-            query.setParameter("search", "%" + search.toLowerCase() + "%");
-        }
-        if (departmentId != null) {
-            query.setParameter("deptId", departmentId);
-        }
-        if (enabled != null) {
-            query.setParameter("enabled", enabled);
-        }
+        bindUserFilters(query, roleName, search, departmentId, enabled);
 
         return ((Number) query.getSingleResult()).longValue();
     }
 
 
+    @SuppressWarnings("unchecked")
     public Map<Long , Set<Role>> findRolesForUsers(List<Long> userList)
     {
         if(userList.isEmpty())
@@ -316,17 +294,17 @@ public class UserDao {
         return roleMap;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<User> findById(Long id)
     {
         String sql = """
                 SELECT u.id, u.first_name, u.last_name, u.email,
-                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled 
+                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled
                 FROM users u
                 JOIN departments d ON u.dept_id = d.id
                 WHERE u.id = :id
                 """;
 
-        @SuppressWarnings("unchecked")
         List<Object[]> rowList = entityManager.createNativeQuery(sql)
                 .setParameter("id", id).getResultList();
 

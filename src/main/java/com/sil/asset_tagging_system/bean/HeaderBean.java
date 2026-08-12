@@ -1,10 +1,12 @@
 package com.sil.asset_tagging_system.bean;
 
-import com.sil.asset_tagging_system.security.CustomUserDetails;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Named;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.sil.asset_tagging_system.security.CustomUserDetails;
 
 @Named
 @RequestScoped

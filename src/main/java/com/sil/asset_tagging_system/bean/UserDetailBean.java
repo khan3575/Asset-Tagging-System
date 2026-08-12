@@ -1,12 +1,12 @@
 package com.sil.asset_tagging_system.bean;
 
 import com.sil.asset_tagging_system.dao.UserDao;
-import com.sil.asset_tagging_system.exception.DbFetchException;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
+import com.sil.asset_tagging_system.util.FacesUtil;
+import com.sil.asset_tagging_system.util.OptionalUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.Getter;
@@ -36,7 +36,7 @@ public class UserDetailBean {
     }
 
     public void initiateUser(){
-        Map<String, String> params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        Map<String, String> params = FacesUtil.getRequestParams();
 
         String idParam = params.get("id");
 
@@ -46,13 +46,13 @@ public class UserDetailBean {
         }
         else{
             this.id = Long.valueOf(idParam);
-            user = userDao.findById(id).orElseThrow(()->new DbFetchException("User fetching error from DB"));
+            user = OptionalUtils.orThrowDbFetch(userDao.findById(id), "User");
         }
     }
 
     public boolean hasRole(RoleName roleName)
     {
-        return user.getRoles().stream().anyMatch(role -> role.getName() == roleName);
+        return user != null && user.getRoles().stream().anyMatch(role -> role.getName() == roleName);
     }
 
 }
