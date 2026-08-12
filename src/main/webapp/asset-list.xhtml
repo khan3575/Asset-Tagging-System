@@ -50,7 +50,9 @@
                             <h:dataTable value="#{assetBean.assetList}" var="asset" styleClass="table table-striped border table-hover clickable-rows">
                                 <h:column>
                                     <f:facet name="header">Asset Tag</f:facet>
-                                    #{asset.assetTag}
+                                    <h:outputLink value="/assets/#{asset.id}">
+                                        #{asset.assetTag}
+                                    </h:outputLink>
                                 </h:column>
                                 <h:column>
                                     <f:facet name="header">Name</f:facet>

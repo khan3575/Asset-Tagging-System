@@ -37,6 +37,22 @@ public class AssetDao {
                 .findFirst();
     }
 
+    public Optional<Asset> findById(Long id)
+    {
+        String sql = """
+                        SELECT id, asset_tag, name, category_id, purchase_date
+                                , value, status, created_by_user_id, created_at, enabled
+                        FROM assets
+                        WHERE id = :id
+                        """;
+        return entityManager.createNativeQuery(sql,Asset.class)
+                .setParameter("id",id)
+                .getResultStream()
+                .map(Asset.class::cast)
+                .findFirst();
+    }
+
+
     public List<Asset> findAll() {
         String sql = """
                 SELECT id, asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, created_at, enabled
