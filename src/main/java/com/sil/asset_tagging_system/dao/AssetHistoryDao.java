@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Repository
 public class AssetHistoryDao {
     private final EntityManager entityManager;
-
+   
     public AssetHistoryDao(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
@@ -37,12 +37,12 @@ public class AssetHistoryDao {
     }
 
     @Transactional
-    public void insert(Long assetId, HistoryAction action, AssetStatus previousStatus, AssetStatus newStatus,
-                    Long previousHolderId, Long newHolderId, Long performedByUserId, Long approvalId, String notes)
+    public void insert(Long assetId, HistoryAction action, Long performedByUserId, Long previousHolderId,
+                    Long newHolderId, AssetStatus previousStatus, AssetStatus newStatus, Long approvalId, String notes)
         {
             String sql = """
                     INSERT INTO asset_history (asset_id, action, previous_status, new_status
-                    , new_holder_id, previous_holder_id, performed_by_user_id, approval_id, notes) 
+                    ,previous_holder_id, new_holder_id, performed_by_user_id, approval_id, notes)
                     VALUES(:assetId, :action, :previousStatus, :newStatus, :previousHolderId
                     , :newHolderId, :performedByUserId, :approvalId, :notes)
                     """;
@@ -52,8 +52,8 @@ public class AssetHistoryDao {
                     .setParameter("action",action.name())
                     .setParameter("previousStatus", (previousStatus == null)? null : previousStatus.name())
                     .setParameter("newStatus", (newStatus == null) ? null : newStatus.name())
-                    .setParameter("newHolderId", newHolderId)
                     .setParameter("previousHolderId", previousHolderId)
+                    .setParameter("newHolderId", newHolderId)
                     .setParameter("performedByUserId", performedByUserId)
                     .setParameter("approvalId",approvalId)
                     .setParameter("notes", notes)
@@ -63,7 +63,7 @@ public class AssetHistoryDao {
             }
             catch(Exception ex)
             {
-                log.error("AssetHistoryDao insertion failed");
+                log.error("AssetHistoryDao insertion failed",ex);
                 throw ex;
             }
         }
