@@ -1,0 +1,125 @@
+package com.sil.asset_tagging_system.dao;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.sil.asset_tagging_system.model.Asset;
+import com.sil.asset_tagging_system.model.enums.AssetStatus;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Repository
+public class AssetDao {
+    private final EntityManager entityManager;
+
+    public AssetDao(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Optional<Asset> findByAssetTagIgnoreCase(String assetTag) {
+        String sql = """
+                SELECT id , asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, created_at, enabled
+                FROM assets
+                WHERE LOWER(asset_tag) = LOWER(:assetTag)
+                """;
+
+        return entityManager.createNativeQuery(sql, Asset.class)
+                .setParameter("assetTag", assetTag)
+                .getResultStream()
+                .findFirst();
+    }
+
+    @SuppressWarnings("unchecked")
+    public Optional<Asset> findById(Long id)
+    {
+        String sql = """
+                        SELECT id, asset_tag, name, category_id, purchase_date
+                                , value, status, created_by_user_id, created_at, enabled
+                        FROM assets
+                        WHERE id = :id
+                        """;
+        return entityManager.createNativeQuery(sql,Asset.class)
+                .setParameter("id",id)
+                .getResultStream()
+                .map(Asset.class::cast)
+                .findFirst();
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<Asset> findAll() {
+        String sql = """
+                SELECT id, asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, created_at, enabled
+                FROM assets
+                """;
+        return entityManager.createNativeQuery(sql, Asset.class).getResultList();
+    }
+
+    @Transactional
+    public Long createAsset(String assetTag, String name, Long categoryId, LocalDate purchaseDate,
+                             BigDecimal value, Long createdByUserId) {
+        String insertSql = """
+                INSERT INTO assets (asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, enabled)
+                VALUES (:assetTag, :name, :categoryId, :purchaseDate, :value, :status, :createdByUserId, true)
+                """;
+        entityManager.createNativeQuery(insertSql)
+                .setParameter("assetTag", assetTag)
+                .setParameter("name", name)
+                .setParameter("categoryId", categoryId)
+                .setParameter("purchaseDate", purchaseDate)
+                .setParameter("value", value)
+                .setParameter("status", AssetStatus.AVAILABLE.name())
+                .setParameter("createdByUserId", createdByUserId)
+                .executeUpdate();
+
+        return DaoUtils.getLastInsertId(entityManager);
+    }
+
+    public Boolean existsByAssetTagIgnoreCase(String assetTag) {
+        String sql = """
+                SELECT count(*)
+                FROM assets
+                WHERE LOWER(asset_tag) = LOWER(:assetTag)
+                """;
+        return DaoUtils.exists(entityManager, sql, Map.of("assetTag", assetTag));
+    }
+
+    public Boolean existsByAssetTagIgnoreCaseAndIdNot(String assetTag, Long id) {
+        String sql = """
+                SELECT count(*)
+                FROM assets
+                WHERE LOWER(asset_tag) = LOWER(:assetTag)
+                AND id != :id
+                """;
+        return DaoUtils.exists(entityManager, sql, Map.of("assetTag", assetTag, "id", id));
+    }
+    @Transactional
+    public void updateAsset(Long id, AssetStatus status, BigDecimal value)
+    {
+        if (status == null) {
+            throw new IllegalArgumentException("status must not be null");
+        }
+        String sql = """
+                        UPDATE assets SET status = :status, value = :value
+                        WHERE id = :id
+                        """;
+        entityManager.createNativeQuery(sql)
+        .setParameter("status", status.name())
+        .setParameter("value", value)
+        .setParameter("id", id)
+        .executeUpdate();
+    }
+
+    
+
+}

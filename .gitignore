@@ -31,7 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+.DS_Store
 
 
 ##local environment##
 application-local.properties
+application-prod.properties
+# application-test.properties
+
+##generated logs (2.7)##
+logs/
+
+##personal working notes (not shared/committed)##
+docs/development-plan.md
+docs/jsf-basics-guide.md

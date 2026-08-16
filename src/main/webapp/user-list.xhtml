@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:p="jakarta.faces.passthrough"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core">
+
+    <h:head>
+        <title>User List</title>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    </h:head>
+    <h:body   styleClass="bg-body text-body">
+        <div class="container">
+<!--            header-->
+            <ui:include src="/WEB-INF/templates/header.xhtml"/>
+            <div class="row">
+                <ui:include src="/WEB-INF/templates/sidebar.xhtml"/>
+                <main class="col-9">
+                    <div class="d-flex flex-column justify-content-between mb-3">
+                        <!-- main content heading goes here -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="gap-2 p-2">
+                                <h2 class="text-primary fw-bold">User Management</h2>
+                                <p class="text-secondary text-muted">View, Search and Filter here</p>
+                            </div>
+                            <span class="badge bg-primary bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6" >
+                                Total records : <strong>#{userListBean.totalCount}</strong>
+                            </span>
+                        </div>
+                        <!--Search input -->
+                        <div>
+                            <form>
+                                <div class="row">
+                                    <div class="col-auto">
+                                        <label for="search" class="form-label mb-0">Search</label>
+                                        <input type="text" name="search" id="search" value="#{userListBean.search}" class="form-control mb-2"/>
+                                    </div>
+                                    <div class="col-auto">
+                                        <label for="roleName" class="form-label mb-0" >Roles</label>
+                                        <select id="roleName" name="roleName" class="form-select">
+                                            <option value="">All roles</option>
+                                            <ui:repeat value="#{userListBean.roleOptions}" var="role">
+                                                <ui:fragment rendered="#{role == userListBean.roleName}">
+                                                    <option value="#{role}" selected="selected">#{role}</option>
+                                                </ui:fragment>
+                                                <ui:fragment rendered="#{role != userListBean.roleName}">
+                                                    <option value="#{role}">#{role}</option>
+                                                </ui:fragment>
+                                            </ui:repeat>
+
+                                        </select>
+                                    </div>
+                                    <div class="col-auto">
+                                        <label for="departmentId" class="form-label mb-0">Department id : </label>
+                                        <input type="text" name="departmentId" id="departmentId" value="#{userListBean.departmentId}" class="form-control mb-2"/>
+                                    </div>
+                                    <div class="col-auto">
+                                        <label for="enabled" class="form-label mb-0">Status : </label>
+                                        <select id="enabled" name="enabled" class="form-select">
+                                            <option value="">Any</option>
+                                            <option  value="true">Enabled</option>
+                                            <option  value="false">Disabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button class="btn btn-primary mt-4" type="submit">Search</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div >
+                            <!-- user tables will be rendered here -->
+                            <h:dataTable value="#{userListBean.users}" var="user" styleClass="table table-striped border table-hover clickable-rows">
+                                <h:column>
+                                    <f:facet name="header">ID</f:facet>
+                                    <a href="#{request.contextPath}/user/#{user.id}" class="text-decoration-none text-body d-block">
+                                        #{user.id}
+                                    </a>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Full name</f:facet>
+                                    #{user.firstName} #{user.lastName}
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Email</f:facet>
+                                    #{user.email}
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Department</f:facet>
+                                    #{user.department.name}
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Roles</f:facet>
+                                    <ui:repeat value="#{user.roles}" var="roles">
+                                        #{roles.name}
+                                    </ui:repeat>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Active Employee</f:facet>
+                                    #{user.enabled}
+                                </h:column>
+                            </h:dataTable>
+                            <div class="d-flex justify-content-between">
+                                <ui:fragment rendered="#{userListBean.page gt 1}" >
+                                    <h:outputLink value="/user" styleClass="btn btn-outline-primary">
+                                        <f:param name="page" value="#{userListBean.page - 1}"/>
+                                        <f:param name="search" value="#{userListBean.search}"/>
+                                        <f:param name="roleName" value="#{userListBean.roleName}"/>
+                                        <f:param name="departmentId" value="#{userListBean.departmentId}"/>
+                                        <f:param name="enabled" value="#{userListBean.enabled}"/>
+                                        Previous
+                                    </h:outputLink>
+                                </ui:fragment>
+
+                                <ui:fragment rendered="#{userListBean.page lt userListBean.totalPageCount}" >
+                                    <h:outputLink value="/user" styleClass="btn btn-outline-primary">
+                                        <f:param name="page" value="#{userListBean.page + 1}"/>
+                                        <f:param name="search" value="#{userListBean.search}"/>
+                                        <f:param name="roleName" value="#{userListBean.roleName}"/>
+                                        <f:param name="departmentId" value="#{userListBean.departmentId}"/>
+                                        <f:param name="enabled" value="#{userListBean.enabled}"/>
+                                        Next
+                                    </h:outputLink>
+                                </ui:fragment>
+                                <span>Page : #{userListBean.page} of #{userListBean.totalPageCount}</span>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </main>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    </h:body>
+</html>
