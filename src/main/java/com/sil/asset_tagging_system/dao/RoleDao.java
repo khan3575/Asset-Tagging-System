@@ -1,14 +1,15 @@
 package com.sil.asset_tagging_system.dao;
 
-import com.sil.asset_tagging_system.model.Role;
-import com.sil.asset_tagging_system.model.enums.RoleName;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
+
+import org.springframework.stereotype.Repository;
+
+import com.sil.asset_tagging_system.model.Role;
+import com.sil.asset_tagging_system.model.enums.RoleName;
 
 @Repository
 public class RoleDao {
