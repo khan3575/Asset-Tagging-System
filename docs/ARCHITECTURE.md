@@ -12,7 +12,7 @@ The database schema and the Java data-access layer moved out of sync during the 
 
 ### 0.1 The application does not start
 
-`spring.jpa.hibernate.ddl-auto=validate` runs at application context startup, before any request can be served. It compares every `@Entity` class against the live schema and refuses to boot if any of them disagree. Four entities currently disagree:
+`spring.jpa.hibernate.ddl-auto=validate` runs at application context startup, before any request can be served. It compares every `@Entity` class against the live schema and refuses to boot if any of them disagree. **Five** entities currently disagree — four on individual columns, one because its entire table is gone:
 
 | Entity | Field | Entity expects column | Schema (`V1__baseline_schema.sql`) has |
 |---|---|---|---|
@@ -25,6 +25,9 @@ The database schema and the Java data-access layer moved out of sync during the 
 | `Approval` | `firstApproverNotes`, `finalApproverNotes`, `rejectionReason` | matching columns | *(removed)* |
 | `Approval` | `requestDate` | `request_date` | `requested_at` |
 | `Approval` | `firstActionDate`, `finalActionDate`, `cancelledAt` | matching columns | *(removed — consolidated into `closed_at`)* |
+| `AssetHistory` | *(the whole entity)* | table `asset_history` | *(table removed entirely — replaced by `activity_log`)* |
+
+**`AssetHistory` was missed in the first pass of this audit and confirmed afterward.** Hibernate validates every registered `@Entity` at startup, not just the ones a request happens to query — so this entity alone would crash the application even if the other four were perfectly fixed. It isn't a column mismatch to patch; the entity itself needs deleting, alongside `AssetHistoryDao` (0.2) and everything that depends on either. The full deletion list — `AssetHistory`, `HistoryAction`, `AssetStatus`, `AssetHistoryDao`, `AuditLogDao`, `AuditLogEntry`, `AssetEventRecorder`, `AuditLogBean` — is in [docs/development-plan.md](development-plan.md) Step 3.5, Phase C, verified via `grep` to have no other callers.
 
 `Role`, `AssetCategory`, `AssetCustody`, and `AssetDocument` were checked and are **not** affected — their entities match the current schema exactly.
 

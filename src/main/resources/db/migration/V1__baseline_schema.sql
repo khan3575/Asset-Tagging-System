@@ -141,8 +141,6 @@ CREATE TABLE approval_actions (
     CONSTRAINT fk_aa_actor    FOREIGN KEY (actor_user_id) REFERENCES users(id),
     CONSTRAINT chk_aa_action  CHECK (action IN ('APPROVED', 'REJECTED', 'CANCELLED')),
 
-    -- The database, not the application, prevents one administrator from
-    -- supplying two signatures on the same request.
     CONSTRAINT uq_aa_one_action_per_actor UNIQUE (approval_id, actor_user_id),
     CONSTRAINT uq_aa_sequence             UNIQUE (approval_id, sequence_no)
 );

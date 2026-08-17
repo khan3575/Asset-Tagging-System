@@ -93,35 +93,199 @@ Read [docs/DESIGN.md](DESIGN.md) §7 for the table shape and the full column lis
 
 ---
 
-## Step 3.5 — Schema realignment *(new, do this next — blocks everything else)*
+## Step 3.5 — Schema realignment *(do this next — blocks everything else)*
 
 ### What
 
-Bring `model/` and `dao/` back in sync with the redesigned schema. This is not new functionality — it is the reason the application currently cannot start at all.
+Bring `model/` and `dao/` back in sync with the redesigned schema. This is not new functionality — it is the reason the application currently cannot start at all. **Scope is strictly "unbreak what the redesign broke."** Step 2 (real `activity_log` DAO) and Step 7 (approval workflow) are separate, later tasks — don't pull their work forward into this one, even though a couple of loose ends below touch the same files.
 
 ### Why
 
-The schema redesign (2026-08-17) renamed or removed columns that four entities and several DAOs still reference by their old names. `ddl-auto=validate` catches this at startup, before a single request can be served. Full verified list, checked column-by-column against `V1__baseline_schema.sql`: [docs/ARCHITECTURE.md](ARCHITECTURE.md) §0, [docs/DAO_REFERENCE.md](DAO_REFERENCE.md).
+The schema redesign (2026-08-17) renamed or removed columns that several entities and DAOs still reference by their old names, and dropped two tables outright. `ddl-auto=validate` catches every mismatch at startup, before a single request can be served — including entities for tables that don't exist at all, not just column-level mismatches. Full field-by-field detail: [docs/ARCHITECTURE.md](ARCHITECTURE.md) §0, [docs/DAO_REFERENCE.md](DAO_REFERENCE.md).
 
-### How
+**One correction (2026-08-17, verified while writing this checklist): there is a fifth broken entity.** `AssetHistory.java` maps to `asset_history`, a table that no longer exists at all — Hibernate validates every registered `@Entity` at startup regardless of whether anything queries it, so this alone crashes the app even once the other four are fixed. `docs/ARCHITECTURE.md` §0's original list didn't catch this; it does now.
 
-1. **`User.java`** — `password` → `password_hash`.
-2. **`Department.java`** — remove `enabled` (`Boolean`); add `closedAt` (`LocalDateTime`, nullable) mapped to `closed_at`.
-3. **`Asset.java`** — `value` → `purchaseValue` (`"purchase_value"`, precision `(12,2)`); `status` → `conditionStatus`, backed by a **new enum** `AssetCondition` (`IN_SERVICE`, `DAMAGED`, `MAINTENANCE`, `UNUSABLE`, `RETIRED` — not the old `AssetStatus`, which mixed condition and custody); remove `enabled` entirely.
-4. **`Approval.java`** — remove `firstApprover`, `finalApprover`, `firstApproverNotes`, `finalApproverNotes`, `rejectionReason`, `firstActionDate`, `finalActionDate`, `cancelledAt`; rename `requestDate` → `requestedAt`; add `closedAt`.
-5. **New entity/DTO**: `ApprovalAction`, mapping `approval_actions` — needed once Step 7's approval workflow starts, not strictly required just to get the app booting, but do it here while everything else in `model/` is already open.
-6. **`AssetDao`** — every `SELECT`/`INSERT`/`UPDATE` needs `value`→`purchase_value`, `status`→`condition_status`. `updateAsset`'s `AssetStatus` parameter becomes `AssetCondition`.
-7. **`UserDao`** — `findByEmailIgnoreCase` and `findUsers` both select `u.password` — rename to `u.password_hash`. This is the highest-leverage single fix: nothing else in the app is reachable until login works.
-8. **`DepartmentDao.findAllDepartments()`** — currently `SELECT id, name, enabled FROM departments` with no filter. Rename to read `closed_at`, and add `WHERE closed_at IS NULL` for the general-lookup case (feeding dropdowns) — a separate historical-lookup path (resolving a user's own department even if it's since closed) should not filter.
-9. **Retire `AuditLogDao` and `AssetHistoryDao` entirely** — both target tables that no longer exist. Don't patch them; they're superseded by Step 2's new DAO.
-10. Update the beans/views that touch the renamed fields: `AssetBean`, `AssetDetailBean`, `AssetFormBean`, `asset-list.xhtml`, `asset-view.xhtml`, `add-asset.xhtml` (all reference `asset.status`/`asset.value` or bind form fields to the old names).
+Also verified precisely so nothing here is guesswork: `add-asset.xhtml` and `asset-view.xhtml` need **zero changes** — neither references any renamed field. Only `asset-list.xhtml` does.
+
+### How — work in this order; each phase should leave the code closer to compiling, not further
+
+**Phase A — new enum, before anything references it**
+
+- [ ] A1. Create `model/enums/AssetCondition.java`:
+  ```java
+  package com.sil.asset_tagging_system.model.enums;
+
+  public enum AssetCondition {
+      IN_SERVICE,
+      DAMAGED,
+      MAINTENANCE,
+      UNUSABLE,
+      RETIRED
+  }
+  ```
+  Not the old `AssetStatus` — that enum mixed condition (`DAMAGED`) with custody (`AVAILABLE`/`ASSIGNED`), which is exactly what the two-axis redesign undoes (see [docs/DESIGN.md](DESIGN.md) §3).
+
+**Phase B — fix the four surviving entities**
+
+- [ ] B1. `model/User.java` — rename the `password` field and its column:
+  ```java
+  // was:
+  @Column(name = "password", nullable = false, length = 255)
+  private String password;
+  // becomes:
+  @Column(name = "password_hash", nullable = false, length = 255)
+  private String passwordHash;
+  ```
+  Renaming the Java field (not just the `@Column` name) means every caller of `getPassword()`/`setPassword()` needs updating too — see Phase E, `CustomUserDetails.getPassword()` is the one that matters.
+
+- [ ] B2. `model/Department.java` — remove `enabled`, add `closedAt`:
+  ```java
+  // remove entirely:
+  @Builder.Default
+  @Column(name = "enabled", nullable = false)
+  private Boolean enabled = true;
+
+  // add:
+  @Column(name = "closed_at")
+  private LocalDateTime closedAt;
+  ```
+  Needs `import java.time.LocalDateTime;` added.
+
+- [ ] B3. `model/Asset.java` — three changes:
+  ```java
+  // was:
+  @Column(name = "\"value\"", nullable = false, precision = 10, scale = 2)
+  private BigDecimal value;
+  // becomes:
+  @Column(name = "purchase_value", nullable = false, precision = 12, scale = 2)
+  private BigDecimal purchaseValue;
+  ```
+  ```java
+  // was:
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false, length = 50)
+  private AssetStatus status = AssetStatus.AVAILABLE;
+  // becomes:
+  @Enumerated(EnumType.STRING)
+  @Column(name = "condition_status", nullable = false, length = 20)
+  private AssetCondition conditionStatus = AssetCondition.IN_SERVICE;
+  ```
+  ```java
+  // remove entirely — assets.enabled no longer exists:
+  @Builder.Default
+  @Column(name = "enabled", nullable = false)
+  private Boolean enabled = true;
+  ```
+  Change the import from `com.sil.asset_tagging_system.model.enums.AssetStatus` to `...enums.AssetCondition`. The class-level `@Table(..., indexes = {...})` also names an index on `columnList = "status"` — either update it to `"condition_status"` or drop it (the real index is already created by Flyway in `V1__baseline_schema.sql`; JPA's `indexes` attribute is only used if `ddl-auto` ever generates schema, which it doesn't here, so this is cosmetic either way — update it for accuracy, not because it's load-bearing).
+
+- [ ] B4. `model/Approval.java` — remove eight fields, rename one, add one:
+  ```java
+  // remove entirely (all eight):
+  private User firstApprover;        // @JoinColumn "first_approver_id"
+  private User finalApprover;        // @JoinColumn "final_approver_id"
+  private String firstApproverNotes; // @Column "first_approver_notes"
+  private String finalApproverNotes; // @Column "final_approver_notes"
+  private String rejectionReason;    // @Column "rejection_reason"
+  private LocalDateTime firstActionDate; // @Column "first_action_date"
+  private LocalDateTime finalActionDate; // @Column "final_action_date"
+  private LocalDateTime cancelledAt;     // @Column "cancelled_at"
+  ```
+  ```java
+  // was:
+  @CreationTimestamp
+  @Column(name = "request_date", updatable = false)
+  private LocalDateTime requestDate;
+  // becomes:
+  @CreationTimestamp
+  @Column(name = "requested_at", updatable = false)
+  private LocalDateTime requestedAt;
+  ```
+  ```java
+  // add:
+  @Column(name = "closed_at")
+  private LocalDateTime closedAt;
+  ```
+  These eight fields are exactly what `approval_actions` (Step 7) replaces — see [docs/DESIGN.md](DESIGN.md) §4 for why. Building the `ApprovalAction` entity/DTO itself is **not** part of this step — nothing needs it to compile or start; it's Step 7's first task once you get there.
+
+**Phase C — delete what's now fully dead, rather than leaving it half-broken**
+
+Every file below either maps to a table that no longer exists, or exists only to serve a file that does. Verified via `grep` that nothing outside this list references any of them — safe to delete outright, not just comment out:
+
+- [ ] C1. `model/AssetHistory.java` (maps to the dropped `asset_history` table)
+- [ ] C2. `model/enums/HistoryAction.java` (used only by C1, `AssetHistoryDao`, and `AssetEventRecorder` — all being deleted)
+- [ ] C3. `model/enums/AssetStatus.java` (fully replaced by `AssetCondition` from Phase A — confirm nothing still imports it after Phase B/D before deleting)
+- [ ] C4. `dao/AssetHistoryDao.java` (targets the dropped `asset_history` table)
+- [ ] C5. `dao/AuditLogDao.java` (targets the dropped `audit_log` table)
+- [ ] C6. `dao/AuditLogEntry.java` (a DTO that exists only for C5)
+- [ ] C7. `service/AssetEventRecorder.java` (depends on C1/C2/C4/C5; nothing currently calls it — confirmed dead code even before this redesign)
+- [ ] C8. `bean/AuditLogBean.java` (depends on C5/C6 — won't compile without them)
+
+**Phase D — fix the three DAOs that stay, but reference renamed columns**
+
+- [ ] D1. `dao/AssetDao.java` — every `SELECT`/`INSERT`/`UPDATE` string needs `value`→`purchase_value`, `status`→`condition_status`. Four methods affected: `findByAssetTagIgnoreCase`, `findById`, `findAll` (all three just need the column names in their `SELECT` list updated), and:
+  ```java
+  // createAsset(...) — was:
+  INSERT INTO assets (asset_tag, name, category_id, purchase_date, value, status, created_by_user_id, enabled)
+  VALUES (:assetTag, :name, :categoryId, :purchaseDate, :value, :status, :createdByUserId, true)
+  // becomes (no `enabled` column at all anymore):
+  INSERT INTO assets (asset_tag, name, category_id, purchase_date, purchase_value, condition_status, created_by_user_id)
+  VALUES (:assetTag, :name, :categoryId, :purchaseDate, :value, :status, :createdByUserId)
+  ```
+  and its hardcoded parameter changes from `.setParameter("status", AssetStatus.AVAILABLE.name())` to `.setParameter("status", AssetCondition.IN_SERVICE.name())` — note `AVAILABLE` becomes `IN_SERVICE`, not a literal find-replace of the word `AssetStatus`, since the *value* changed meaning too (§3 of DESIGN.md).
+  ```java
+  // updateAsset(...) — signature and body both change:
+  // was:
+  public void updateAsset(Long id, AssetStatus status, BigDecimal value)
+  // becomes:
+  public void updateAsset(Long id, AssetCondition status, BigDecimal value)
+  ```
+  and its `SET status = :status, value = :value` becomes `SET condition_status = :status, purchase_value = :value`.
+
+- [ ] D2. `dao/UserDao.java` — exactly one string change, in two places. Both `findByEmailIgnoreCase` and `findUsers` select `u.password` in their column list — rename to `u.password_hash` in both. This is the single highest-leverage fix in this whole checklist: nothing past the login page is reachable until it's done.
+
+- [ ] D3. `dao/DepartmentDao.java` — `findAllDepartments()`:
+  ```java
+  // was:
+  SELECT id, name, enabled
+  FROM departments
+  // becomes:
+  SELECT id, name, closed_at
+  FROM departments
+  WHERE closed_at IS NULL
+  ```
+  The `WHERE` clause is new, not just a rename — without it, closed departments keep appearing in every dropdown (the exact bug named in [docs/DESIGN.md](DESIGN.md) §1's note on `closed_at`). If a *historical* lookup (resolving a user's own department even after it's closed) is ever needed, that's a second, unfiltered method — don't make this one do both jobs.
+
+**Phase E — the two remaining callers of the deleted audit DAO**
+
+`LoginAuditListener` and `AssetFormBean` both call `auditLogDao.log(...)` and won't compile once `AuditLogDao` (C5) is gone. Building the real replacement is Step 2's job, not this one — for now, remove the calls and the field/constructor parameter that injects `AuditLogDao`, leaving a `// TODO(Step 2): write an activity_log row here` comment at each call site so the gap is visible rather than silently forgotten. Also fix `CustomUserDetails.getPassword()` (B1's fallout) — it currently calls `user.getPassword()`, which needs to become `user.getPasswordHash()`.
+
+**Phase F — the one view that references renamed fields**
+
+- [ ] F1. `asset-list.xhtml` — three lines:
+  ```xml
+  <!-- was --> #{asset.value}          <!-- becomes --> #{asset.purchaseValue}
+  <!-- was --> #{asset.status}         <!-- becomes --> #{asset.conditionStatus}
+  <!-- was --> #{asset.enabled}        <!-- remove this column entirely — no equivalent exists anymore -->
+  ```
+  Removing the "Usable" column entirely (rather than swapping it for something else) is correct here — `enabled` no longer exists as a separate fact from condition; a retired asset just shows `RETIRED` in the condition column now.
+
+- [ ] F2. `bean/AssetDetailBean.java` — imports `AssetStatus`, has a `private AssetStatus status;` field, and does `this.status = asset.getStatus();`. Swap the type to `AssetCondition` and the call to `asset.getConditionStatus()`, matching Phase B3's rename.
+
+**Phase G — build and verify, in this order**
+
+1. `./mvnw -q -o compile` — offline compile first; every reference to a deleted/renamed symbol shows up here before you ever touch MySQL.
+2. Recreate the local database (`docs/SETUP.md` §2) if it's not already on a fresh `V1` — `ddl-auto=validate` needs the real schema to check against.
+3. `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` — this is the real test. No `ddl-auto=validate` error means every entity now matches the schema.
+4. Log in through the browser with a seed account (`docs/SETUP.md` §2.1).
+5. Visit `/user`, `/assets`, `/assets/new` — each should render with no SQL error.
+6. Visit `/audit-log` — **expected to render blank or show an EL-resolution issue** (per the gotcha in [docs/jsf-basics-guide.md](jsf-basics-guide.md) §18), since its bean was deleted in Phase C and nothing replaces it yet. That's correct for this step; Step 2 fixes it properly. Don't try to patch it here.
 
 ### Done when
 
 - The application starts cleanly under the `local` profile with no `ddl-auto=validate` error.
 - Login works end-to-end in the browser.
 - `/user`, `/assets`, `/assets/new` all render without a SQL error.
-- `/audit-log` either works against the new Step 2 DAO, or is temporarily hidden if Step 2 isn't done yet — don't leave it pointing at the deleted `AuditLogDao`.
+- `/audit-log` is acknowledged-broken (bean gone, not silently pointing at a deleted DAO) rather than fixed — fixing it for real is Step 2.
 
 ---
 
