@@ -16,16 +16,16 @@ This doc doesn't include full Java implementations. It gives you the shape and t
 
 ## Where things stand right now
 
-- **2026-08-17: full two-axis schema redesign + Flyway adoption**, done in one session. `assets` no longer conflates condition and custody; `approvals`' fixed approver columns became a proper `approval_actions` table; `audit_log` + `asset_history` merged into one `activity_log` table with correlation ids and recordable refusals. Full rationale: [docs/DESIGN.md](DESIGN.md). Schema is now Flyway-managed (`src/main/resources/db/migration/`), not hand-run SQL scripts.
-- **The application does not currently start.** `ddl-auto=validate` rejects four entities (`User`, `Department`, `Asset`, `Approval`) whose fields no longer match the schema, verified column-by-column. This is the single most urgent item — see Step 3.5 below. Not a hypothetical risk; confirmed by reading both the entities and the migration side by side.
+- **2026-08-17: full two-axis schema redesign + Flyway adoption.** `assets` no longer conflates condition and custody; `approvals`' fixed approver columns became a proper `approval_actions` table; `audit_log` + `asset_history` merged into one `activity_log` table with correlation ids and recordable refusals. Full rationale: [docs/DESIGN.md](DESIGN.md). Schema is Flyway-managed (`src/main/resources/db/migration/`), not hand-run SQL scripts.
+- **2026-08-18: the application runs again.** Step 3.5 (schema realignment) is done — see its entry below. Verified for real: clean startup under the `local` profile, no `ddl-auto=validate` error, `/login` returns `200`, `/assets`/`/user` correctly `302`-redirect when unauthenticated.
+- **What's next, in the order this doc recommends:** Step 2 (real `activity_log` DAO — do this before Step 7 adds several new mutations that should be logging from day one), then Step 4 (Employee create/update, small), then Step 7 (the approval workflow — the actual core feature). Step 5 (dashboard content) and Step 6 (raw JS) have no urgency and no fixed order.
 - **Compact status of everything built before the redesign:**
-  - Steps 0 and 1 — done, fully unaffected by the redesign (routing and DI concerns, no schema involvement).
-  - Step 2 (old) — the `audit_log`/`AuditLogDao` mechanism it built was fully working end-to-end as of 2026-08-06. It is now dead code — `audit_log` doesn't exist anymore. Replaced below by a new Step 2 targeting `activity_log`.
-  - Step 3 — `RoleDao`/`DepartmentDao`/`UserDao` done; `CustomUserDetailsService` swapped over; login was confirmed working at the time. Two of these DAOs now need a column-rename fix (Step 3.5) — the *approach* wasn't wrong, the column names underneath it changed.
+  - Steps 0, 1, 3.5 — done.
+  - Step 2 (old) — the `audit_log`/`AuditLogDao` mechanism was fully working end-to-end as of 2026-08-06, then deleted in Step 3.5 Phase C as part of the redesign. Replaced below by a new Step 2 targeting `activity_log` — not started yet.
   - Page chrome (header/sidebar) — done, unaffected.
   - Step 4 — list/detail done for the User directory; create/update never started.
-  - Step 7.1–7.2d (Asset category lookup, asset list, asset create, asset detail skeleton) — done, needs the same column-rename fix as Step 3.
-  - Step 7's approval/transfer design (the old `first_approver_id`/`final_approver_id` state machine and its five-page UI spec) — removed from this document entirely, replaced below with a sketch against the current schema.
+  - Step 7.1–7.2d (Asset category lookup, asset list, asset create, asset detail skeleton) — done, realigned to the new schema in Step 3.5.
+  - Step 7's approval/transfer workflow itself — not started; sketch in Step 7 below, against the current `approval_actions` schema, not the old removed one.
 - **Full current status, kept accurate going forward, lives in the repo's committed docs — treat these as more current than this file if they ever disagree:** [docs/ARCHITECTURE.md](ARCHITECTURE.md) §0/§12, [docs/SITE_MAP.md](SITE_MAP.md), [docs/DAO_REFERENCE.md](DAO_REFERENCE.md).
 
 ---
@@ -68,9 +68,9 @@ Read [docs/DESIGN.md](DESIGN.md) §7 for the table shape and the full column lis
 1. A new `ActivityLogDao` (or similar name) — `log(...)` taking at minimum actor, action, entity type, and the relevant subject id(s); `findRecent(limit, offset)`; `countAll()`. Shape mirrors the old `AuditLogDao` closely enough to reuse its `findRecent`/`countAll` pattern — the main difference is the extra columns and that `correlation_id` needs to come from somewhere (see point 3).
 2. **Do not swallow the write's exception.** The old `AuditLogDao.log()` caught its own exception to protect login from an unrelated audit-write failure — reasonable at the time, but the decision this session (see [docs/ARCHITECTURE.md](ARCHITECTURE.md) §8.3) is that every *other* mutation's log write should join the same transaction as the business action and fail it if the write fails. Keep the swallow-and-log-only behavior for the two `AUTH` events specifically (`LoginAuditListener` has no business transaction to join); remove it everywhere else once other mutations start calling this DAO.
 3. `correlation_id` needs a value from somewhere per request — a servlet filter minting one UUID per request (sketch in DESIGN.md §7.1) is the intended mechanism. Worth building this filter as part of this step rather than deferring it, since retrofitting it once several call sites already exist means updating all of them at once instead of one filter.
-4. Rewire `LoginAuditListener` to call the new DAO instead of the old one.
-5. Rewire `AuditLogBean`/`audit-log.xhtml` to read from the new DAO. Column set on the page will need to grow slightly (`outcome` at minimum is worth surfacing — a `DENIED` row is exactly the kind of thing this panel exists to show).
-6. `AssetEventRecorder` (in `service/`) is the intended single write path for every future asset mutation — needs a full rewrite against `activity_log`, not a port from its current `asset_history`+`audit_log` version. Nothing calls it yet either way.
+4. **Not "rewire," now — restore.** Step 3.5 Phase E already removed `AuditLogDao`'s import/field/constructor-param from `LoginAuditListener` and `AssetFormBean` entirely, and commented out both `.log(...)` calls with a note pointing here. Inject the new DAO into both, uncomment, and update each call site to the new method's shape (it'll need `correlation_id` and probably `outcome` now, which the old signature didn't have).
+5. `AuditLogBean`/`audit-log.xhtml` no longer exist — Phase C deleted them along with `AuditLogDao`. This is a rebuild, not a rewire: a new bean, reading from the new DAO. Column set on the page will need to grow slightly (`outcome` at minimum is worth surfacing — a `DENIED` row is exactly the kind of thing this panel exists to show).
+6. `AssetEventRecorder` was deleted in Phase C too (it depended on the two dead DAOs and was already dead code — nothing called it). If you still want one shared write path for every future asset mutation, rather than each bean calling the DAO directly, that's a fresh class now, not a rewrite of the old one.
 
 ### Done when
 
@@ -95,53 +95,13 @@ Read [docs/DESIGN.md](DESIGN.md) §7 for the table shape and the full column lis
 
 ---
 
-## Step 3.5 — Schema realignment *(in progress — Phases A–E done, F–G remaining)*
+## Step 3.5 — Schema realignment — **DONE, verified 2026-08-18**
 
-### What
+`model`/`dao` brought back in sync with the two-axis schema (Phases A–F: new `AssetCondition` enum, renamed/removed fields on `User`/`Department`/`Asset`/`Approval`, eight dead files deleted, `AssetDao`/`UserDao`/`DepartmentDao` SQL fixed, the two remaining `AuditLogDao` callers stubbed, `asset-list.xhtml`/`AssetDetailBean` updated). One extra bug found and fixed along the way: a MySQL comment-syntax error (`--approvals` needs a space after `--`) in `V1__baseline_schema.sql` that was failing the Flyway migration outright.
 
-Bring `model/` and `dao/` back in sync with the redesigned schema. Not new functionality — this is the reason the application currently cannot start at all. **Scope is strictly "unbreak what the redesign broke."** Step 2 (real `activity_log` DAO) and Step 7 (approval workflow) are separate, later tasks.
+Verified for real, not just compiled: app starts under `local` with no `ddl-auto=validate` error, `GET /login` returns `200`, `GET /assets`/`GET /user` correctly return `302` (security redirect, not a crash) when unauthenticated. Full detail if ever needed: [docs/ARCHITECTURE.md](ARCHITECTURE.md) §0, [docs/DAO_REFERENCE.md](DAO_REFERENCE.md), [docs/DESIGN.md](DESIGN.md) §3–§4, §10.
 
-### Why
-
-Full field-by-field rationale: [docs/ARCHITECTURE.md](ARCHITECTURE.md) §0, [docs/DAO_REFERENCE.md](DAO_REFERENCE.md), [docs/DESIGN.md](DESIGN.md) §3–§4.
-
-### Phases A–E — done, verified 2026-08-17
-
-Each verified with `./mvnw -q -o clean compile` (not just `compile` — an earlier check in this same session gave a false "clean" on stale incremental-build output after files were deleted; `clean compile` is the check that actually catches that).
-
-- **A** — `model/enums/AssetCondition.java` created (`IN_SERVICE`/`DAMAGED`/`MAINTENANCE`/`UNUSABLE`/`RETIRED`), replacing `AssetStatus` for the condition axis.
-- **B** — `User` (`password`→`passwordHash`), `Department` (`enabled`→`closedAt`), `Asset` (`value`→`purchaseValue` at `precision=12`, `status`→`conditionStatus`/`AssetCondition`, `enabled` removed), `Approval` (eight approver/date fields removed, `requestDate`→`requestedAt`, `closedAt` added) — all fixed and matching the schema.
-- **C** — `AssetHistory`, `HistoryAction`, `AssetStatus`, `AssetHistoryDao`, `AuditLogDao`, `AuditLogEntry`, `AssetEventRecorder`, `AuditLogBean` all deleted; confirmed nothing else references them.
-- **D** — `AssetDao` (column renames in all 4 methods, plus a parameter-name bug caught separately — the SQL's `:purchaseValue` didn't match a `.setParameter("purchase_value", ...)` call; native-query param names must match the SQL string exactly, this class of bug doesn't show up in `mvn compile` or `ddl-auto=validate`, only at the moment the method actually runs), `UserDao` (`u.password`→`u.password_hash`, 2 read methods), `DepartmentDao` (`enabled`→`closed_at` with a new `WHERE closed_at IS NULL` filter — a real behavior addition, not just a rename, see [docs/DESIGN.md](DESIGN.md) §10) all fixed.
-- **E** — `LoginAuditListener` and `AssetFormBean`'s `auditLogDao.log(...)` calls both commented out with a note pointing at Step 2; `AuditLogDao` field/import/constructor-param removed from both; `CustomUserDetails.getPassword()`'s body updated to `user.getPasswordHash()` (B's ripple effect, not optional).
-
-**Phase F — the one view that references renamed fields**
-
-- [ ] F1. `asset-list.xhtml` — three lines:
-  ```xml
-  <!-- was --> #{asset.value}          <!-- becomes --> #{asset.purchaseValue}
-  <!-- was --> #{asset.status}         <!-- becomes --> #{asset.conditionStatus}
-  <!-- was --> #{asset.enabled}        <!-- remove this column entirely — no equivalent exists anymore -->
-  ```
-  Removing the "Usable" column entirely (rather than swapping it for something else) is correct here — `enabled` no longer exists as a separate fact from condition; a retired asset just shows `RETIRED` in the condition column now.
-
-- [ ] F2. `bean/AssetDetailBean.java` — imports `AssetStatus`, has a `private AssetStatus status;` field, and does `this.status = asset.getStatus();`. Swap the type to `AssetCondition` and the call to `asset.getConditionStatus()`, matching Phase B3's rename.
-
-**Phase G — build and verify, in this order**
-
-1. `./mvnw -q -o clean compile` — offline compile first, forced clean (not just `compile` — see the note above Phases A–E on why a stale incremental build can report false success). Every reference to a deleted/renamed symbol shows up here before you ever touch MySQL.
-2. Recreate the local database (`docs/SETUP.md` §2) if it's not already on a fresh `V1` — `ddl-auto=validate` needs the real schema to check against.
-3. `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` — this is the real test. No `ddl-auto=validate` error means every entity now matches the schema.
-4. Log in through the browser with a seed account (`docs/SETUP.md` §2.1).
-5. Visit `/user`, `/assets`, `/assets/new` — each should render with no SQL error.
-6. Visit `/audit-log` — **expected to render blank or show an EL-resolution issue** (per the gotcha in [docs/jsf-basics-guide.md](jsf-basics-guide.md) §18), since its bean was deleted in Phase C and nothing replaces it yet. That's correct for this step; Step 2 fixes it properly. Don't try to patch it here.
-
-### Done when
-
-- The application starts cleanly under the `local` profile with no `ddl-auto=validate` error.
-- Login works end-to-end in the browser.
-- `/user`, `/assets`, `/assets/new` all render without a SQL error.
-- `/audit-log` is acknowledged-broken (bean gone, not silently pointing at a deleted DAO) rather than fixed — fixing it for real is Step 2.
+`/audit-log` is the one known, acceptable exception — its bean was deleted in Phase C and nothing replaces it yet. That's Step 2's job, not a regression.
 
 ---
 
