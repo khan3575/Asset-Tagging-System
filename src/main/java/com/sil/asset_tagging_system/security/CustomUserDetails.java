@@ -1,13 +1,13 @@
 package com.sil.asset_tagging_system.security;
 
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 import com.sil.asset_tagging_system.model.User;
 
@@ -36,7 +36,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public @Nullable String getPassword() {
-        return user.getPassword();
+        return user.getPasswordHash();
     }
 
     @Override

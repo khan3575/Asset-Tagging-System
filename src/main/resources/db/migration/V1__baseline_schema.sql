@@ -91,7 +91,7 @@ CREATE TABLE asset_documents (
     CONSTRAINT fk_doc_asset FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE
 );
 
---approvals
+-- approvals
 
 CREATE TABLE approvals (
     id                       BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -126,7 +126,7 @@ CREATE TABLE approvals (
 );
 
 
---approval actions
+-- approval actions
 
 CREATE TABLE approval_actions (
     id             BIGINT PRIMARY KEY AUTO_INCREMENT,

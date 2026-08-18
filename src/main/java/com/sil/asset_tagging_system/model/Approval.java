@@ -1,7 +1,7 @@
 package com.sil.asset_tagging_system.model;
 
-import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
-import com.sil.asset_tagging_system.model.enums.RequestType;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,14 +14,18 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
+import com.sil.asset_tagging_system.model.enums.RequestType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "approvals", indexes = {@Index(name = "idx_approval_asset", columnList = "asset_id"), @Index(name = "idx_approval_requester", columnList = "requester_id"), @Index(name = "idx_approval_status", columnList = "status"), @Index(name = "idx_approval_request_type", columnList = "request_type")})
@@ -104,26 +108,9 @@ public class Approval {
     private Byte requiredApprovalCount = (byte) 2;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-
-    @JoinColumn(
-            name = "first_approver_id"
-    )
-    private User firstApprover;
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
-
-    @JoinColumn(
-            name = "final_approver_id"
-    )
-    private User finalApprover;
-
 
     @Builder.Default
-
     @Enumerated(EnumType.STRING)
-
     @Column(
             name = "status",
             nullable = false,
@@ -139,44 +126,12 @@ public class Approval {
     private String requestReason;
 
 
-    @Column(
-            name = "first_approver_notes",
-            columnDefinition = "TEXT"
-    )
-    private String firstApproverNotes;
-
-
-    @Column(
-            name = "final_approver_notes",
-            columnDefinition = "TEXT"
-    )
-    private String finalApproverNotes;
-
-
-    @Column(
-            name = "rejection_reason",
-            columnDefinition = "TEXT"
-    )
-    private String rejectionReason;
-
-
     @CreationTimestamp
-    @Column(
-            name = "request_date",
-            updatable = false
-    )
-    private LocalDateTime requestDate;
+    @Column( name = "requested_at",updatable = false)
+    private LocalDateTime requestedAt;
 
+    @Column(name = "closed_at")
+    private LocalDateTime closedAt;
 
-    @Column(name = "first_action_date")
-    private LocalDateTime firstActionDate;
-
-
-    @Column(name = "final_action_date")
-    private LocalDateTime finalActionDate;
-
-
-    @Column(name = "cancelled_at")
-    private LocalDateTime cancelledAt;
 
 }

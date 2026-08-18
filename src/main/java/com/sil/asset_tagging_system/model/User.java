@@ -1,5 +1,9 @@
 package com.sil.asset_tagging_system.model;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,17 +16,15 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "users")
@@ -67,11 +69,11 @@ public class User {
 
 
     @Column(
-            name = "password",
+            name = "password_hash",
             nullable = false,
             length = 255
     )
-    private String password;
+    private String passwordHash;
 
 
     @ManyToOne(

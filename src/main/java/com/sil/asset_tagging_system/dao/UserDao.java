@@ -1,15 +1,23 @@
 package com.sil.asset_tagging_system.dao;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+
+import org.springframework.stereotype.Repository;
+
 import com.sil.asset_tagging_system.model.Department;
 import com.sil.asset_tagging_system.model.Role;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.*;
 
 
 
@@ -27,8 +35,8 @@ public class UserDao {
     public Optional<User> findByEmailIgnoreCase(String email)
     {
         String sql = """
-                SELECT u.id , u.first_name, u.last_name, u.email, u.password, u.enabled, u.created_at, d.id as dept_id
-                       ,d.name as dept_name, d.enabled as dept_enabled
+                SELECT u.id , u.first_name, u.last_name, u.email, u.password_hash, u.enabled, u.created_at, d.id as dept_id
+                       ,d.name as dept_name, d.closed_at as dept_closed_at
                 FROM users u
                 JOIN departments d
                 ON u.dept_id = d.id
@@ -45,12 +53,12 @@ public class UserDao {
         Object[] rows = userRows.getFirst();
         Long userId = ((Number) rows[0]).longValue();
         Department dept = Department.builder().id(((Number) rows[7]).longValue())
-                .name((String) rows[8]).enabled((Boolean)rows[9]).build();
+                .name((String) rows[8]).closedAt((LocalDateTime)rows[9]).build();
         User user = User.builder().id(userId)
                 .firstName((String)rows[1])
                 .lastName((String)rows[2])
                 .email((String) rows[3])
-                .password((String) rows[4])
+                .passwordHash((String) rows[4])
                 .department(dept)
                 .enabled((Boolean) rows[5])
                 .createdAt((LocalDateTime)rows[6])
@@ -106,7 +114,9 @@ public class UserDao {
     public Optional<User> findByIdAndRoleName(Long userId, RoleName roleName)
     {
         String sql = """
-                SELECT u.id, u.first_name, u.last_name, u.email, u.password, u.enabled, u.created_at, d.id as dept_id, d.name as dept_name
+                SELECT u.id, u.first_name, u.last_name, u.email, u.password_hash
+                , u.enabled, u.created_at, d.id as dept_id, d.name as dept_name
+                , d.closed_at as closed_at
                 FROM users u
                 JOIN departments d ON u.dept_id = d.id
                 JOIN user_role ur ON ur.user_id = u.id
@@ -123,14 +133,15 @@ public class UserDao {
         }
 
         Object[] rows = rowList.getFirst();
-        Department dept = Department.builder().id(((Number)rows[7]).longValue()).name((String)rows[8]).build();
+        Department dept = Department.builder().id(((Number)rows[7])
+        .longValue()).name((String)rows[8]).closedAt((LocalDateTime)rows[9]).build();
 
         User user = User.builder()
                 .id( ((Number)rows[0]).longValue() )
                 .firstName((String) rows[1])
                 .lastName((String) rows[2])
                 .email((String) rows[3])
-                .password((String) rows[4])
+                .passwordHash((String) rows[4])
                 .department(dept)
                 .enabled((Boolean) rows[5])
                 .createdAt((LocalDateTime) rows[6])
@@ -181,7 +192,7 @@ public class UserDao {
     {
         StringBuilder sql = new StringBuilder("""
                 SELECT DISTINCT u.id, u.first_name, u.last_name, u.email
-                , u.password, u.dept_id, u.enabled, u.created_at, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled
+                , u.password_hash, u.dept_id, u.enabled, u.created_at, d.id as dept_id, d.name as dept_name, d.closed_at as closed_at
                 FROM users u
                 JOIN departments d ON u.dept_id = d.id
                 LEFT JOIN user_role ur ON ur.user_id = u.id
@@ -221,7 +232,7 @@ public class UserDao {
             Department dept =  Department.builder()
                     .id(((Number)rows[8]).longValue())
                     .name((String) rows[9])
-                    .enabled((Boolean) rows[10])
+                    .closedAt((LocalDateTime)rows[10])
                     .build();
 
             Long userId = ((Number)rows[0]).longValue();
@@ -230,7 +241,7 @@ public class UserDao {
                     .firstName((String)rows[1])
                     .lastName((String) rows[2])
                     .email((String) rows[3])
-                    .password((String) rows[4])
+                    .passwordHash((String) rows[4])
                     .department(dept)
                     .enabled((Boolean) rows[6])
                     .createdAt((LocalDateTime) rows[7])
@@ -299,7 +310,7 @@ public class UserDao {
     {
         String sql = """
                 SELECT u.id, u.first_name, u.last_name, u.email,
-                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.enabled as dept_enabled
+                u.enabled, u.created_at, u.dept_id, d.id as dept_id, d.name as dept_name, d.closed_at as dept_closed_at
                 FROM users u
                 JOIN departments d ON u.dept_id = d.id
                 WHERE u.id = :id
@@ -317,7 +328,7 @@ public class UserDao {
         Long userId = ((Number)row[0]).longValue();
 
         Department dept = Department.builder().id(((Number)row[7])
-                .longValue()).name((String)row[8]).enabled((Boolean)row[9]).build();
+                .longValue()).name((String)row[8]).closedAt((LocalDateTime)row[9]).build();
 
 
         User user = User.builder().id(userId)
