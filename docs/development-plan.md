@@ -17,6 +17,7 @@ This doc doesn't include full Java implementations. It gives you the shape and t
 ## Where things stand right now
 
 - **2026-08-17: full two-axis schema redesign + Flyway adoption.** `assets` no longer conflates condition and custody; `approvals`' fixed approver columns became a proper `approval_actions` table; `audit_log` + `asset_history` merged into one `activity_log` table with correlation ids and recordable refusals. Full rationale: [docs/DESIGN.md](DESIGN.md). Schema is Flyway-managed (`src/main/resources/db/migration/`), not hand-run SQL scripts.
+- **2026-08-19: enum pass.** Every enumerated value now has a Java enum, four constants were renamed to match the redesigned schema, and `EntityType` became `ActivityEntityType`. Full list, rationale, and the rules for adding values: [docs/ENUM_REFERENCE.md](ENUM_REFERENCE.md). **This edits `V1__baseline_schema.sql` in place, so the local database must be recreated** ([docs/SETUP.md](SETUP.md) §2) before the app will start.
 - **2026-08-18: the application runs again.** Step 3.5 (schema realignment) is done — see its entry below. Verified for real: clean startup under the `local` profile, no `ddl-auto=validate` error, `/login` returns `200`, `/assets`/`/user` correctly `302`-redirect when unauthenticated.
 - **What's next, in the order this doc recommends:** Step 2 (real `activity_log` DAO — do this before Step 7 adds several new mutations that should be logging from day one), then Step 4 (Employee create/update, small), then Step 7 (the approval workflow — the actual core feature). Step 5 (dashboard content) and Step 6 (raw JS) have no urgency and no fixed order.
 - **Compact status of everything built before the redesign:**
@@ -35,7 +36,7 @@ This doc doesn't include full Java implementations. It gives you the shape and t
 - **Raw SQL via `EntityManager.createNativeQuery`, not JPQL/derived queries.** Hard project requirement (matches the legacy JSF system this is internship practice for), not a style preference. Unaffected by the redesign.
 - **`@Entity` classes are for ORM mapping only, never queried through `JpaRepository`.** This still holds even though Step 3.5 below requires editing four entities' fields — renaming a column mapping is mapping work, not a switch to Spring Data queries.
 - **Every mutating action logs itself, from now on** — via the unified `activity_log` (not the old `audit_log`). See the new Step 2.
-- **Employee first, in full, then replicate.** Already exercised once (User directory before Asset); the same instinct applies again for the approval workflow — get one request type working end-to-end before generalizing to all three (`ASSET_REQUEST`/`TRANSFER_REQUEST`/`RETURN_REQUEST`).
+- **Employee first, in full, then replicate.** Already exercised once (User directory before Asset); the same instinct applies again for the approval workflow — get one request type working end-to-end before generalizing to all three (`ASSIGNMENT`/`TRANSFER`/`RETURN`).
 
 ---
 
@@ -65,12 +66,13 @@ This remains the actual priority of the project — see the standing instruction
 
 Read [docs/DESIGN.md](DESIGN.md) §7 for the table shape and the full column list — not repeated here to avoid the two documents drifting apart again. Concretely:
 
-1. A new `ActivityLogDao` (or similar name) — `log(...)` taking at minimum actor, action, entity type, and the relevant subject id(s); `findRecent(limit, offset)`; `countAll()`. Shape mirrors the old `AuditLogDao` closely enough to reuse its `findRecent`/`countAll` pattern — the main difference is the extra columns and that `correlation_id` needs to come from somewhere (see point 3).
-2. **Do not swallow the write's exception.** The old `AuditLogDao.log()` caught its own exception to protect login from an unrelated audit-write failure — reasonable at the time, but the decision this session (see [docs/ARCHITECTURE.md](ARCHITECTURE.md) §8.3) is that every *other* mutation's log write should join the same transaction as the business action and fail it if the write fails. Keep the swallow-and-log-only behavior for the two `AUTH` events specifically (`LoginAuditListener` has no business transaction to join); remove it everywhere else once other mutations start calling this DAO.
-3. `correlation_id` needs a value from somewhere per request — a servlet filter minting one UUID per request (sketch in DESIGN.md §7.1) is the intended mechanism. Worth building this filter as part of this step rather than deferring it, since retrofitting it once several call sites already exist means updating all of them at once instead of one filter.
-4. **Not "rewire," now — restore.** Step 3.5 Phase E already removed `AuditLogDao`'s import/field/constructor-param from `LoginAuditListener` and `AssetFormBean` entirely, and commented out both `.log(...)` calls with a note pointing here. Inject the new DAO into both, uncomment, and update each call site to the new method's shape (it'll need `correlation_id` and probably `outcome` now, which the old signature didn't have).
-5. `AuditLogBean`/`audit-log.xhtml` no longer exist — Phase C deleted them along with `AuditLogDao`. This is a rebuild, not a rewire: a new bean, reading from the new DAO. Column set on the page will need to grow slightly (`outcome` at minimum is worth surfacing — a `DENIED` row is exactly the kind of thing this panel exists to show).
-6. `AssetEventRecorder` was deleted in Phase C too (it depended on the two dead DAOs and was already dead code — nothing called it). If you still want one shared write path for every future asset mutation, rather than each bean calling the DAO directly, that's a fresh class now, not a rewrite of the old one.
+- [x] 1a. `ActivityLogDao.log(...)` — done and verified (2026-08-18): correct column/parameter count, `UUID_TO_BIN(:correlationId)`, no swallowed exception.
+- [ ] 1b. `ActivityLogDao.findRecent(limit, offset)` and `countAll()` — not started. Shape mirrors the old `AuditLogDao`'s versions, against the wider column set.
+- [x] 2. **Don't swallow the write's exception** — done, as part of 1a. The old `AuditLogDao.log()` caught its own exception to protect login from an unrelated audit-write failure — reasonable at the time, but the decision this session (see [docs/ARCHITECTURE.md](ARCHITECTURE.md) §8.3) is that every *other* mutation's log write should join the same transaction as the business action and fail it if the write fails. Keep the swallow-and-log-only behavior for the two `AUTH` events specifically (`LoginAuditListener` has no business transaction to join).
+- [ ] 3. **Next up.** `correlation_id` needs a value from somewhere per request — a servlet filter minting one UUID per request (sketch in DESIGN.md §7.1) is the intended mechanism. Do this before 4 — `log(...)` already requires a `correlationId` argument, and nothing produces one yet.
+- [ ] 4. **Restore, not rewire.** Step 3.5 Phase E already removed `AuditLogDao`'s import/field/constructor-param from `LoginAuditListener` and `AssetFormBean` entirely, and commented out both `.log(...)` calls with a note pointing here. Inject `ActivityLogDao` into both, uncomment, update each call to the new method's shape (needs `correlation_id`, probably `outcome`, which the old signature didn't have). Depends on 3.
+- [ ] 5. `AuditLogBean`/`audit-log.xhtml` no longer exist — Phase C deleted them along with `AuditLogDao`. This is a rebuild, not a rewire: a new bean, reading from the new DAO. Column set on the page will need to grow slightly (`outcome` at minimum is worth surfacing — a `DENIED` row is exactly the kind of thing this panel exists to show). Depends on 1b.
+- [ ] 6. **Optional, skip for now.** `AssetEventRecorder` was deleted in Phase C too (it depended on the two dead DAOs and was already dead code — nothing called it). If you still want one shared write path for every future asset mutation, that's a fresh class, not a rewrite of the old one.
 
 ### Done when
 
@@ -162,7 +164,7 @@ The previous version of this document had a full page-by-page UI spec and state 
 - `AssetCustodyDao`: `releaseActiveCustody(assetId, endTime)`, `transferCustody(assetId, newCustodianId, approvalId, assignedByUserId)` (releases old, inserts new — order matters, see DESIGN.md §5's note on why).
 - `ApprovalDao`: a `recordAction(approvalId, actorUserId, action, notes)` method writing to `approval_actions`, plus recomputing/writing `approvals.status` in the same call (the one place allowed to write it — see DESIGN.md §4's note on this denormalization). `createTransferRequest` already exists and is correct against the current schema.
 - New pages: `/assets/{id}/transfer` (admin), `/assets/{id}/request` (employee), `/approvals` (queue), `/approvals/{id}` (act). None exist yet — see [docs/SITE_MAP.md](SITE_MAP.md) §2 for the current list of dead links this would resolve.
-- `AssetDao.updateCondition(id, AssetCondition)` — separate from a value edit, same reasoning as the old design (different side effects: moving into `DAMAGED`/`MAINTENANCE` should force-release active custody).
+- `AssetDao.updateCondition(id, AssetCondition)` — separate from a value edit, same reasoning as the old design (different side effects: moving into `DAMAGED`/`UNDER_MAINTENANCE` should force-release active custody).
 
 ### 7.4 — Disable/retire an asset
 
@@ -178,7 +180,7 @@ Set `condition_status = RETIRED` (no separate `enabled` flag anymore — see DES
 
 ### Explicitly deferred
 
-`RETURN_REQUEST` — the schema now supports it cleanly (`requester_id` is nullable specifically for this case, `previous_holder_id` names the person returning the asset — see DESIGN.md §4), but it's not part of the confirmed near-term scope. Build it once `TRANSFER_REQUEST`/`ASSET_REQUEST` are working end-to-end, reusing the same `approval_actions` machinery.
+`RETURN` — the schema now supports it cleanly (`requester_id` is nullable specifically for this case, `previous_holder_id` names the person returning the asset — see DESIGN.md §4), but it's not part of the confirmed near-term scope. Build it once `TRANSFER`/`ASSIGNMENT` are working end-to-end, reusing the same `approval_actions` machinery.
 
 ---
 

@@ -74,7 +74,7 @@ INSERT INTO asset_documents (asset_id, asset_image, invoice_pdf, image_mime_type
 -- second, distinct sign-off required to complete it.
 INSERT INTO approvals (id, asset_id, request_type, initiated_by_user_id, requester_id, previous_holder_id,
                         required_approval_count, status, request_reason, requested_at, closed_at) VALUES
-    (1, 1, 'TRANSFER_REQUEST', 2, 1, 2, 2, 'APPROVED',
+    (1, 1, 'TRANSFER', 2, 1, 2, 2, 'APPROVED',
      'Reassigning MacBook to Sakib for the new project.', '2026-07-08 10:00:00', '2026-07-09 11:00:00');
 
 INSERT INTO approval_actions (approval_id, actor_user_id, action, sequence_no, notes, created_at) VALUES
@@ -87,7 +87,7 @@ INSERT INTO approval_actions (approval_id, actor_user_id, action, sequence_no, n
 -- something real to return.
 INSERT INTO approvals (id, asset_id, request_type, initiated_by_user_id, requester_id, previous_holder_id,
                         required_approval_count, status, request_reason, requested_at) VALUES
-    (2, 2, 'ASSET_REQUEST', 1, 1, NULL, 2, 'FIRST_APPROVED',
+    (2, 2, 'ASSIGNMENT', 1, 1, NULL, 2, 'PARTIALLY_APPROVED',
      'Need external monitor for dual-screen setup.', '2026-07-09 08:15:00');
 
 INSERT INTO approval_actions (approval_id, actor_user_id, action, sequence_no, notes, created_at) VALUES
@@ -99,7 +99,7 @@ INSERT INTO approval_actions (approval_id, actor_user_id, action, sequence_no, n
 -- Only one admin sign-off required, and it is still pending.
 INSERT INTO approvals (id, asset_id, request_type, initiated_by_user_id, requester_id, previous_holder_id,
                         required_approval_count, status, request_reason, requested_at) VALUES
-    (3, 3, 'RETURN_REQUEST', 1, NULL, 1, 1, 'PENDING',
+    (3, 3, 'RETURN', 1, NULL, 1, 1, 'PENDING',
      'Switching to the MacBook full-time, returning the ThinkPad to inventory.', '2026-07-09 09:00:00');
 
 -- -----------------------------------------------------------------------------

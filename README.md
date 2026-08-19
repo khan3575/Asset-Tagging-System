@@ -45,6 +45,7 @@ Complete, step-by-step installation and configuration instructions are provided 
 | [docs/DESIGN.md](docs/DESIGN.md) | Data model design rationale — why the schema is shaped the way it is |
 | [docs/SITE_MAP.md](docs/SITE_MAP.md) | Every route, its view/bean/DAO chain, and current status |
 | [docs/DAO_REFERENCE.md](docs/DAO_REFERENCE.md) | Every DAO method's signature, task, and status against the current schema |
+| [docs/ENUM_REFERENCE.md](docs/ENUM_REFERENCE.md) | Every enumerated value, the column it backs, and where it is enforced |
 | [docs/SETUP.md](docs/SETUP.md) | Environment setup, configuration, running and testing the application |
 
 ## Project Status

@@ -15,8 +15,8 @@ Verified field-by-field: every column it reads or writes (`asset_id`, `request_t
 
 | Method | Task |
 |---|---|
-| `boolean existsOpenTransferRequest(Long assetId)` | True if a `TRANSFER_REQUEST` for this asset is currently `PENDING` or `FIRST_APPROVED`. Called by `AssetDetailBean` to gate whether a new transfer can be started. |
-| `@Transactional Long createTransferRequest(Long assetId, Long initiatedByUserId, Long requesterId, Long previousHolderId)` | Inserts a new `TRANSFER_REQUEST` row (`status = PENDING`) and returns its generated id. `previousHolderId` may be `null` if the asset has no current custodian. **Not called from anywhere in the application** — dead code, but ready to use. |
+| `boolean existsOpenTransferRequest(Long assetId)` | True if a `TRANSFER` request for this asset is currently `PENDING` or `PARTIALLY_APPROVED`. Called by `AssetDetailBean` to gate whether a new transfer can be started. |
+| `@Transactional Long createTransferRequest(Long assetId, Long initiatedByUserId, Long requesterId, Long previousHolderId)` | Inserts a new `TRANSFER` request row (`status = PENDING`) and returns its generated id. `previousHolderId` may be `null` if the asset has no current custodian. **Not called from anywhere in the application** — dead code, but ready to use. |
 
 ## AssetCategoryDao — **Clean**
 

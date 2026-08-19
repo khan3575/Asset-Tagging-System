@@ -184,7 +184,7 @@ These don't render anything themselves — they attach behavior to the `h:` tag 
 // ASSIGNED/RETIRED-equivalent states are side effects of other actions,
 // never a raw dropdown choice — see docs/development-plan.md Step 7.3.
 public AssetCondition[] getSelectableConditions() {
-    return new AssetCondition[] { AssetCondition.IN_SERVICE, AssetCondition.DAMAGED, AssetCondition.MAINTENANCE };
+    return new AssetCondition[] { AssetCondition.IN_SERVICE, AssetCondition.DAMAGED, AssetCondition.UNDER_MAINTENANCE };
 }
 ```
 
@@ -400,7 +400,7 @@ Every `h:` component and `ui:fragment` accepts a `rendered` attribute — a bool
 public boolean isCanApprove() {
     boolean isAdmin = "ROLE_ADMIN".equals(headerBean.getRole());
     boolean isOpen = approval.getStatus() == ApprovalStatus.PENDING
-                   || approval.getStatus() == ApprovalStatus.FIRST_APPROVED;
+                   || approval.getStatus() == ApprovalStatus.PARTIALLY_APPROVED;
     return isAdmin && isOpen;
 }
 ```

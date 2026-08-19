@@ -71,7 +71,7 @@ CREATE TABLE assets (
     CONSTRAINT fk_asset_category   FOREIGN KEY (category_id)        REFERENCES asset_categories(id),
     CONSTRAINT fk_asset_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id),
     CONSTRAINT chk_asset_condition CHECK (condition_status IN
-        ('IN_SERVICE', 'DAMAGED', 'MAINTENANCE', 'UNUSABLE', 'RETIRED')),
+        ('IN_SERVICE', 'DAMAGED', 'UNDER_MAINTENANCE', 'BEYOND_REPAIR', 'RETIRED')),
 
     INDEX idx_asset_condition (condition_status),
     INDEX idx_asset_category  (category_id)
@@ -106,7 +106,7 @@ CREATE TABLE approvals (
     requested_at             DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     closed_at                DATETIME    NULL,
 
-    open_asset_id BIGINT AS (CASE WHEN status IN ('PENDING', 'FIRST_APPROVED')
+    open_asset_id BIGINT AS (CASE WHEN status IN ('PENDING', 'PARTIALLY_APPROVED')
                                    THEN asset_id END) STORED,
 
     CONSTRAINT fk_appr_asset     FOREIGN KEY (asset_id)             REFERENCES assets(id),
@@ -116,9 +116,9 @@ CREATE TABLE approvals (
 
     CONSTRAINT uq_one_open_request_per_asset UNIQUE (open_asset_id),
     CONSTRAINT chk_appr_status CHECK (status IN
-        ('PENDING', 'FIRST_APPROVED', 'APPROVED', 'REJECTED', 'CANCELLED')),
+        ('PENDING', 'PARTIALLY_APPROVED', 'APPROVED', 'REJECTED', 'CANCELLED')),
     CONSTRAINT chk_appr_type CHECK (request_type IN
-        ('ASSET_REQUEST', 'TRANSFER_REQUEST', 'RETURN_REQUEST')),
+        ('ASSIGNMENT', 'TRANSFER', 'RETURN')),
     CONSTRAINT chk_appr_count CHECK (required_approval_count BETWEEN 1 AND 5),
 
     INDEX idx_appr_queue (status, requested_at),

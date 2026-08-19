@@ -34,7 +34,7 @@ The test for "does this belong in a constrained table or in the log" is not impo
 
 ## 3. Assets — the two-axis split
 
-The single most consequential change. `assets.condition_status` describes **the physical state of the object only** — `IN_SERVICE`, `DAMAGED`, `MAINTENANCE`, `UNUSABLE`, `RETIRED`. Whether anyone is holding it is not stored on this table at all; it is derived from `asset_custody`.
+The single most consequential change. `assets.condition_status` describes **the physical state of the object only** — `IN_SERVICE`, `DAMAGED`, `UNDER_MAINTENANCE`, `BEYOND_REPAIR`, `RETIRED`. Whether anyone is holding it is not stored on this table at all; it is derived from `asset_custody`.
 
 `AVAILABLE` and `ASSIGNED` — the two values that described custody in the old schema — are deliberately absent from `condition_status`. Neither was ever a condition. They return as a *computed* value from the `asset_overview` view (Section 6), so existing UI expectations of a single status string are unaffected once the Java layer is updated to read from it.
 
@@ -69,7 +69,7 @@ This resolves D5, D6, and D7 together: the approver count is no longer welded to
 
 `open_asset_id`, a generated column, gives "at most one open request per asset" the same database-enforced guarantee `asset_custody` already had for holders — see Section 5.
 
-`requester_id` was made nullable: a `RETURN_REQUEST` has no incoming holder (the asset returns to inventory, held by nobody), and the old schema's `NOT NULL` forced the returning employee to be recorded as if they were receiving the asset.
+`requester_id` was made nullable: a `RETURN` request has no incoming holder (the asset returns to inventory, held by nobody), and the old schema's `NOT NULL` forced the returning employee to be recorded as if they were receiving the asset.
 
 ## 5. Custody — unchanged, because it was already right
 

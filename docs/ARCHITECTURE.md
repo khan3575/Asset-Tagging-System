@@ -43,7 +43,7 @@ Verified clean against the current schema: `RoleDao`, `AssetCategoryDao`, `Asset
 
 Not a schema problem — the schema is finished and correct. The remaining work is entirely in `model/` and `dao/`:
 
-1. Rename/retype the fields listed in 0.1 on `User`, `Department`, `Asset`, and `Approval`, replace `Asset.status` (`AssetStatus` enum) with a new `AssetCondition` enum matching `IN_SERVICE / DAMAGED / MAINTENANCE / UNUSABLE / RETIRED`, and remove `Approval`'s deleted fields.
+1. Rename/retype the fields listed in 0.1 on `User`, `Department`, `Asset`, and `Approval`, replace `Asset.status` (`AssetStatus` enum) with a new `AssetCondition` enum matching `IN_SERVICE / DAMAGED / UNDER_MAINTENANCE / BEYOND_REPAIR / RETIRED`, and remove `Approval`'s deleted fields.
 2. Rewrite `AssetDao`'s and `UserDao`'s native SQL to use the renamed columns.
 3. Rewrite `DepartmentDao`'s native SQL (`SELECT id, name, enabled FROM departments` → must read `closed_at`).
 4. Replace `AuditLogDao` and `AssetHistoryDao` with a single DAO against `activity_log` (see Section 8.3).
@@ -173,7 +173,7 @@ The following sequence describes the processing of a request to the user directo
 6. `UserDao` executes native SQL against MySQL via `EntityManager` and maps the result set to `User`, `Department`, and `Role` objects. Because a native query cannot join-fetch a `@ManyToMany` association in a single result set, role assignments are retrieved in a second query and assembled in application code.
 7. The view renders using `h:dataTable`, bound to the resulting collection.
 
-Full method-level detail for every DAO is in [docs/DAO_REFERENCE.md](DAO_REFERENCE.md). The complete route table is in [docs/SITE_MAP.md](SITE_MAP.md).
+Full method-level detail for every DAO is in [docs/DAO_REFERENCE.md](DAO_REFERENCE.md). The complete route table is in [docs/SITE_MAP.md](SITE_MAP.md). Every enumerated value and the column it backs is in [docs/ENUM_REFERENCE.md](ENUM_REFERENCE.md).
 
 ## 7. Security Architecture
 
