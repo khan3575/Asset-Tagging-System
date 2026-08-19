@@ -1,8 +1,6 @@
 package com.sil.asset_tagging_system.model.enums;
 
-public enum ApprovalStatus {
-    PENDING,
-    PARTIALLY_APPROVED,
+public enum ApprovalActionType {
     APPROVED,
     REJECTED,
     CANCELLED

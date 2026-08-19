@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.sil.asset_tagging_system.dao.AssetDao;
-import com.sil.asset_tagging_system.dao.AuditLogDao;
 import com.sil.asset_tagging_system.security.CustomUserDetails;
 
 import lombok.Getter;
@@ -29,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AssetFormBean {
 
     private final AssetDao assetDao;
-    private final AuditLogDao auditLogDao;
 
     // form fields, bound from add-asset.xhtml
     private String assetTag;
@@ -39,10 +37,9 @@ public class AssetFormBean {
     private BigDecimal value;
 
     @Inject
-    public AssetFormBean(AssetDao assetDao, AuditLogDao auditLogDao)
+    public AssetFormBean(AssetDao assetDao)
     {
         this.assetDao = assetDao;
-        this.auditLogDao = auditLogDao;
     }
 
     public String save()
@@ -58,8 +55,11 @@ public class AssetFormBean {
 
         Long newAssetId = assetDao.createAsset(assetTag, name, categoryId, purchaseDate, value, currentUserId);
 
-        auditLogDao.log(currentUserId, "CREATE", "Asset", newAssetId,
-                "Created asset " + assetTag, getRemoteAddress());
+       /* auditLogDao.log(currentUserId, "CREATE", "Asset", newAssetId,
+                "Created asset " + assetTag, getRemoteAddress());  
+                
+            commented the old audit log here new audit will replace this part        
+        */
 
         try
         {

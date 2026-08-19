@@ -5,4 +5,8 @@ DB_PASS=enterPassword
 # save the name as  application-local.properties file
 # select the 'local' Spring profile in IntelliJ's run configuration
 
+# Adds db/seed on top of db/migration so the dev seed data (V1000) runs
+# locally only -- never point production at this location.
+spring.flyway.locations=classpath:db/migration,classpath:db/seed
+spring.flyway.clean-disabled=false
 

@@ -1,11 +1,14 @@
 package com.sil.asset_tagging_system.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -35,11 +38,8 @@ public class Department {
             length = 50
     )
     private String name;
-
-    @Builder.Default
     @Column(
-            name = "enabled",
-            nullable = false
-    )
-    private Boolean enabled = true;
+            name = "closed_at"
+        )
+    private LocalDateTime closedAt;
 }

@@ -71,6 +71,19 @@
             <version>6.1.1</version>
             <scope>test</scope>
         </dependency>
+        <!-- Triggers Spring Boot's FlywayAutoConfiguration; flyway-mysql alone does not.
+             In Boot 4.1 that autoconfiguration lives in its own module, pulled in only by
+             this starter, not by spring-boot-autoconfigure generally. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-mysql -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

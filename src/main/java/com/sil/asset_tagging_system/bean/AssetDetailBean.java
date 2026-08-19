@@ -16,7 +16,7 @@ import com.sil.asset_tagging_system.dao.AssetDao;
 import com.sil.asset_tagging_system.dao.UserDao;
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.User;
-import com.sil.asset_tagging_system.model.enums.AssetStatus;
+import com.sil.asset_tagging_system.model.enums.AssetCondition;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.util.FacesUtil;
 import com.sil.asset_tagging_system.util.OptionalUtils;
@@ -36,8 +36,8 @@ public class AssetDetailBean {
 
     private Long id;
     private Asset asset;
-    private AssetStatus status;
-    private BigDecimal valueInput;
+    private AssetCondition conditionStatus;
+    private BigDecimal purchaseValue;
     private User currentHolder;
     private boolean transferPending;
     private List<User> availableHolders;
@@ -69,8 +69,8 @@ public class AssetDetailBean {
             this.asset = OptionalUtils.orThrowDbFetch(assetDao.findById(id), "Asset");
             log.info("Asset is loaded - asset id : "+id);
 
-            this.status = asset.getStatus();
-            this.valueInput = asset.getValue();
+            this.conditionStatus = asset.getConditionStatus();
+            this.purchaseValue = asset.getPurchaseValue();
 
             this.currentHolder = assetCustodyDao.findActiveCustodianId(id)
                     .flatMap(userDao::findById)

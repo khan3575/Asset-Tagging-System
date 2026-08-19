@@ -31,8 +31,9 @@ public class DepartmentDao {
     public List<Department> findAllDepartments()
     {
         String sql = """
-                SELECT id, name, enabled
+                SELECT id, name, closed_at
                 FROM departments
+                WHERE closed_at IS NULL
                 """;
 
         List<Department> list = entityManager.createNativeQuery(sql,Department.class).getResultList();

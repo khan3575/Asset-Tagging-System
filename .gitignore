@@ -42,6 +42,3 @@ application-prod.properties
 ##generated logs (2.7)##
 logs/
 
-##personal working notes (not shared/committed)##
-docs/development-plan.md
-docs/jsf-basics-guide.md

@@ -1,6 +1,9 @@
 package com.sil.asset_tagging_system.model;
 
-import com.sil.asset_tagging_system.model.enums.AssetStatus;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,23 +12,23 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.sil.asset_tagging_system.model.enums.AssetCondition;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "assets", indexes = {@Index(name = "idx_asset_category", columnList = "category_id"), @Index(name = "idx_asset_status", columnList = "status"), @Index(name = "idx_asset_created_by", columnList = "created_by_user_id")})
+@Table(name = "assets")
 @Getter
 @Setter
 @Builder
@@ -79,12 +82,12 @@ public class Asset {
 
     // Note: 'value' is a SQL reserved keyword; JPA dialect-aware quoting is enforced with escaped quotes
     @Column(
-            name = "\"value\"",
+            name = "purchase_value",
             nullable = false,
-            precision = 10,
+            precision = 12,
             scale = 2
     )
-    private BigDecimal value;
+    private BigDecimal purchaseValue;
 
 
     @Builder.Default
@@ -92,11 +95,11 @@ public class Asset {
     @Enumerated(EnumType.STRING)
 
     @Column(
-            name = "status",
+            name = "condition_status",
             nullable = false,
             length = 50
     )
-    private AssetStatus status = AssetStatus.AVAILABLE;
+    private AssetCondition conditionStatus = AssetCondition.IN_SERVICE;
 
 
     @ManyToOne(
@@ -118,10 +121,5 @@ public class Asset {
     )
     private LocalDateTime createdAt;
 
-    @Builder.Default
-    @Column(
-            name = "enabled",
-            nullable = false
-    )
-    private Boolean enabled = true;
+    
 }

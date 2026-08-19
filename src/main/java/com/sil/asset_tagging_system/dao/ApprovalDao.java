@@ -29,8 +29,8 @@ public class ApprovalDao {
                 """;
         return DaoUtils.exists(entityManager, sql, Map.of(
                 "assetId", assetId,
-                "requestType", RequestType.TRANSFER_REQUEST.name(),
-                "openStatuses", List.of(ApprovalStatus.PENDING.name(), ApprovalStatus.FIRST_APPROVED.name())
+                "requestType", RequestType.TRANSFER.name(),
+                "openStatuses", List.of(ApprovalStatus.PENDING.name(), ApprovalStatus.PARTIALLY_APPROVED.name())
         ));
     }
 
@@ -46,7 +46,7 @@ public class ApprovalDao {
                 .setParameter("initiatedByUserId", initiatedByUserId)
                 .setParameter("requesterId", requesterId)
                 .setParameter("previousHolderId", previousHolderId)
-                .setParameter("requestType", RequestType.TRANSFER_REQUEST.name())
+                .setParameter("requestType", RequestType.TRANSFER.name())
                 .setParameter("status", ApprovalStatus.PENDING.name())
                 .executeUpdate();
 
