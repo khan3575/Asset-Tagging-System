@@ -36,7 +36,7 @@ public class LoginAuditListener {
 
         ActivityLog act = ActivityLog.builder()
             .correlationId(CorrelationFilter.CURRENT.get())
-            .sequenceInAction((byte) 1)
+            .sequenceInAction((short) 1)
             .ipAddress(WebUtil.getRemoteAddress(event.getAuthentication()))
             .entityType(ActivityEntityType.AUTH)
             .action(ActivityAction.LOGIN_SUCCEEDED)
@@ -58,7 +58,7 @@ public class LoginAuditListener {
     
         ActivityLog act = ActivityLog.builder()
             .correlationId(CorrelationFilter.CURRENT.get())
-            .sequenceInAction((byte)1)
+            .sequenceInAction((short) 1)
             .ipAddress(WebUtil.getRemoteAddress(event.getAuthentication()))
             .entityType(ActivityEntityType.AUTH)
             .action(ActivityAction.LOGIN_FAILED)

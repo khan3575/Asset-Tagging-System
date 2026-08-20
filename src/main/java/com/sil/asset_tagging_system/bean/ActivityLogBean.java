@@ -14,12 +14,10 @@ import com.sil.asset_tagging_system.util.FacesUtil;
 import com.sil.asset_tagging_system.util.PageParams;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-@Setter
 @Named
 @RequestScoped
 public class ActivityLogBean {
@@ -32,7 +30,7 @@ public class ActivityLogBean {
     private final int pageSize = 20;
 
     @Inject
-    ActivityLogBean(ActivityLogDao activityLogDao)
+    public ActivityLogBean(ActivityLogDao activityLogDao)
     {
         this.activityLogDao = activityLogDao;
     }
@@ -47,10 +45,11 @@ public class ActivityLogBean {
         page = pageParam.page;
         offset = pageParam.offset;
 
-        long totalCount = activityLogDao.countAll();
+        totalCount = activityLogDao.countAll();
         totalPageCount = (int) Math.ceil((double) totalCount/ pageSize);
 
         entries = activityLogDao.findRecent(pageSize, offset);
+        log.info("ActivityLogBean init -- page {} of {}, {} entries total", page, totalPageCount, totalCount);
     }
 
     public Long entityIdOf(ActivityLog entry)

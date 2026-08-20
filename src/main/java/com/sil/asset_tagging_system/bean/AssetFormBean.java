@@ -76,8 +76,4 @@ public class AssetFormBean {
         return (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
     }
 
-    private String getRemoteAddress()
-    {
-        return getRequest().getRemoteAddr();
-    }
 }
