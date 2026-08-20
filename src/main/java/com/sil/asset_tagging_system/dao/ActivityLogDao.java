@@ -34,6 +34,7 @@ public class ActivityLogDao {
                 , outcome, failure_reason, asset_id, approval_id, subject_user_id
                 , previous_holder_id, new_holder_id, previous_condition, new_condition, summary, details
             FROM activity_log
+            ORDER BY occured_at DESC, id DESC
             LIMIT :limit
             OFFSET :offset
             """;

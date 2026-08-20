@@ -43,7 +43,7 @@ public class ActivityLog {
     private UUID correlationId;
 
     @Column(name="sequence_in_action")
-    private Byte sequenceInAction;
+    private Short sequenceInAction;
 
     @Column(name="actor_user_id")
     private Long actorUserId;
