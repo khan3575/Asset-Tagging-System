@@ -1,67 +1,121 @@
 # Asset Tagging System
 
+A web application for tracking company-owned physical assets across their working life:
+registration, physical condition, which employee holds each item, the approval process
+governing a change of holder, and a permanent record of every action taken.
+
 ## Overview
 
-The Asset Tagging System is an internal web application for managing organizational assets. Its scope includes asset registration, custody assignment, multi-step approval workflows, and a complete audit trail of system activity. The application is implemented as a server-rendered Java web application using Jakarta Server Faces (JSF), consistent with the technology stack of the production system this project is designed to prepare for.
+The audit trail is the system's primary purpose rather than a supporting feature. Every
+authentication event and business action is recorded with the actor, their authority at the
+time, the originating IP address, the outcome, and a correlation identifier grouping all
+records produced by a single user action.
+
+### Domain concepts
+
+| Concept | Definition |
+|---|---|
+| Asset | A tracked physical item, identified by a unique asset tag |
+| Condition | The physical state of an asset: `IN_SERVICE`, `DAMAGED`, `UNDER_MAINTENANCE`, `BEYOND_REPAIR`, `RETIRED` |
+| Custody | Which employee holds an asset, and for what period. An asset has at most one active custody record |
+| Approval | A request to change custody, requiring a configurable number of sign-offs |
+| Approval action | One individual sign-off. A given user may act on a given approval only once |
+| Activity log | The immutable record of every action performed in the system |
+
+### Roles
+
+| Role | Capabilities |
+|---|---|
+| `ROLE_ADMIN` | Initiates transfers, approves and rejects requests, views current holders, changes asset condition |
+| `ROLE_EMPLOYEE` | Submits requests for themselves. Cannot see which employee holds a given asset |
+
+### The two-axis model
+
+An asset's **condition** and its **custody** are independent facts, stored separately.
+`assets.condition_status` describes physical state and nothing else; who holds an asset
+lives exclusively in `asset_custody`. A damaged asset can still be held; an in-service
+asset can be unassigned.
+
+Three invariants are enforced by the database rather than application code: at most one
+open approval per asset, at most one active custody record per asset, and at most one
+sign-off per user per approval. The reasoning is in [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Technology Stack
 
-| Category | Technology |
+| Layer | Technology |
 |---|---|
-| Language / Platform | Java 25 |
-| Build Tool | Apache Maven (wrapper included) |
-| Application Framework | Spring Boot 4.1 (WAR packaging) |
-| Presentation Layer | Jakarta Server Faces 4.1 (Mojarra), Facelets |
+| Language | Java 25 |
+| Build | Apache Maven (wrapper included), WAR packaging |
+| Application framework | Spring Boot 4.1 |
+| Presentation | Jakarta Server Faces 4.1 (Mojarra), Facelets |
+| JSF integration | JoinFaces 6.1 |
 | Security | Spring Security |
-| Persistence | Spring Data JPA (entity mapping); data access via `EntityManager` native SQL queries |
-| Schema Management | Flyway, versioned SQL migrations |
-| Database | MySQL |
-| Client-Side Technology | Bootstrap 5, plain JavaScript |
-| Testing | JUnit 5, Spring Boot Test, H2 (in-memory, test profile — cannot host this schema; see docs/ARCHITECTURE.md §2.2) |
-
-Full architectural detail, including the rationale for these choices, is provided in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+| Persistence | Hibernate via `EntityManager`, native SQL exclusively |
+| Schema management | Flyway |
+| Database | MySQL 8 |
+| Styling | Bootstrap 5.3 |
 
 ## System Requirements
 
 - JDK 25
-- MySQL 8.0 or later
-- No Node.js or frontend build tooling is required
+- MySQL 8
+- Git
+
+Maven is not required separately; the repository includes the Maven wrapper.
 
 ## Getting Started
 
-1. Create the database once, by hand — Flyway manages the schema from there. See [docs/SETUP.md](docs/SETUP.md) §2.
-2. Create an `application-local.properties` file with the required database credentials.
-3. Start the application using the Maven wrapper with the `local` profile active; Flyway migrations apply automatically.
+```bash
+# 1. Create an empty database (Flyway builds the schema)
+mysql -u root -p -e "CREATE DATABASE asset_tagging_system
+                     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-Complete, step-by-step installation and configuration instructions are provided in [docs/SETUP.md](docs/SETUP.md).
+# 2. Supply local credentials
+cp src/main/resources/application-local.properties.example \
+   src/main/resources/application-local.properties
+#    then edit DB_NAME, DB_USER and DB_PASS
 
-> **Known issue:** the application does not currently start — several JPA entities do not match the redesigned schema. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#0-current-state--read-this-first) for the complete, verified list and what fixing it involves.
+# 3. Run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+The application starts on `http://localhost:8080`. Development accounts and full
+configuration detail are in [docs/SETUP.md](docs/SETUP.md).
 
 ## Documentation
 
-| Document | Description |
+| Document | Contents |
 |---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, component structure, security model, current known issues |
-| [docs/DESIGN.md](docs/DESIGN.md) | Data model design rationale — why the schema is shaped the way it is |
-| [docs/SITE_MAP.md](docs/SITE_MAP.md) | Every route, its view/bean/DAO chain, and current status |
-| [docs/DAO_REFERENCE.md](docs/DAO_REFERENCE.md) | Every DAO method's signature, task, and status against the current schema |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, request processing, dependency injection, security, audit mechanism, implementation status |
+| [docs/MODULE_GUIDE.md](docs/MODULE_GUIDE.md) | How to add a feature, with conventions and anti-patterns |
+| [docs/DESIGN.md](docs/DESIGN.md) | Data-model rationale — why the schema has the shape it has |
 | [docs/ENUM_REFERENCE.md](docs/ENUM_REFERENCE.md) | Every enumerated value, the column it backs, and where it is enforced |
-| [docs/SETUP.md](docs/SETUP.md) | Environment setup, configuration, running and testing the application |
+| [docs/SETUP.md](docs/SETUP.md) | Environment setup, configuration, running, testing, deployment |
+
+`src/main/resources/db/migration/` is the authoritative definition of the schema. Where any
+document disagrees with the code, the code is correct and the document is to be updated.
 
 ## Project Status
 
 | Module | Status |
 |---|---|
-| Database Schema (two-axis model, unified activity log) | Implemented, Flyway-managed |
-| Authentication and Session Management | Implemented, blocked by schema/code misalignment |
-| Unified Activity Log | Schema implemented; DAO/service layer not started |
-| Application Logging (environment-aware) | Implemented |
-| User Management — Directory and Search | Implemented, blocked by schema/code misalignment |
-| User Management — Create / Update | Planned |
-| Dashboard | Stub view only |
-| Asset Management | Implemented against the old schema, needs updating |
-| Approval Workflow | Schema implemented; no UI or write path |
-| Asset Custody Tracking | Schema implemented; read path only |
-| Role-Based Authorization | Planned |
+| Database schema | Implemented, Flyway-managed |
+| Authentication and session management | Implemented |
+| Activity log — authentication events | Implemented |
+| Activity log — viewing screen | View exists; corrections outstanding |
+| Asset directory — list, search, pagination | Implemented |
+| Asset detail view | Implemented, read-only |
+| Asset registration | Implemented |
+| User directory — list, search, filter, pagination | Implemented |
+| User detail view | Implemented, read-only |
+| User editing | View exists; no working write path |
+| Activity log — business actions | Not implemented |
+| Service layer | Not implemented; transactions currently sit on DAO methods |
+| Approval workflow | Schema implemented; no read or write path |
+| Custody assignment and release | Schema implemented; read path only |
+| Dashboard | Placeholder view |
+| Role-based authorisation | Partial; no method-level rules |
+| Document upload | Out of scope |
 
-A detailed breakdown of implementation status by component is provided in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#12-implementation-status).
+A component-level breakdown is in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#9-implementation-status).

@@ -2,7 +2,7 @@
 
 **Created 2026-08-19.** This document is the authority on every enumerated value in the system: which Java enum backs which database column, which values are legal, and where each set is enforced. It exists because enum values are the one kind of data that is duplicated by necessity — the constant in Java and the string in the database must agree exactly, and nothing in the build checks that they do.
 
-Related: [docs/DESIGN.md](DESIGN.md) for why the schema has the shape it has, [docs/DAO_REFERENCE.md](DAO_REFERENCE.md) for the methods that read and write these columns.
+Related: [docs/DESIGN.md](DESIGN.md) for why the schema has the shape it has, [docs/ARCHITECTURE.md](ARCHITECTURE.md) for how these columns are read and written.
 
 ## 1. Rules
 
