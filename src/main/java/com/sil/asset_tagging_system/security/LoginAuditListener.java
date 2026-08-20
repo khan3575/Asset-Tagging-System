@@ -3,7 +3,6 @@ package com.sil.asset_tagging_system.security;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.sil.asset_tagging_system.dao.ActivityLogDao;
@@ -12,7 +11,7 @@ import com.sil.asset_tagging_system.model.enums.ActivityAction;
 import com.sil.asset_tagging_system.model.enums.ActivityEntityType;
 import com.sil.asset_tagging_system.model.enums.ActivityOutcome;
 import com.sil.asset_tagging_system.model.enums.RoleName;
-import com.sil.asset_tagging_system.util.FacesUtil;
+import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,16 +31,13 @@ public class LoginAuditListener {
         log.info("Login success for email : {} , user_id : {} ", email, userId);
         
        // activityLogDao.log(userId, "LOGIN_SUCCESS", "AUTH", userId, "login : "+email, extractIp(event.getAuthentication()));
-        String roleName = event.getAuthentication().getAuthorities().stream()
-                        .findFirst()
-                        .map(GrantedAuthority::getAuthority)
-                        .orElse(null);
+        String roleName = SecurityUtil.primaryRole(event.getAuthentication());
 
 
         ActivityLog act = ActivityLog.builder()
             .correlationId(CorrelationFilter.CURRENT.get())
             .sequenceInAction((byte) 1)
-            .ipAddress(FacesUtil.getRemoteAddress())
+            .ipAddress(WebUtil.getRemoteAddress(event.getAuthentication()))
             .entityType(ActivityEntityType.AUTH)
             .action(ActivityAction.LOGIN_SUCCEEDED)
             .outcome(ActivityOutcome.SUCCEEDED)
@@ -63,7 +59,7 @@ public class LoginAuditListener {
         ActivityLog act = ActivityLog.builder()
             .correlationId(CorrelationFilter.CURRENT.get())
             .sequenceInAction((byte)1)
-            .ipAddress(FacesUtil.getRemoteAddress())
+            .ipAddress(WebUtil.getRemoteAddress(event.getAuthentication()))
             .entityType(ActivityEntityType.AUTH)
             .action(ActivityAction.LOGIN_FAILED)
             .failureReason(event.getException().getMessage())

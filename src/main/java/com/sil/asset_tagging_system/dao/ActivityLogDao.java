@@ -1,7 +1,6 @@
 package com.sil.asset_tagging_system.dao;
 
 import java.util.List;
-import java.util.UUID;
 
 import jakarta.persistence.EntityManager;
 
@@ -38,35 +37,6 @@ public class ActivityLogDao {
             LIMIT :limit
             OFFSET :offset
             """;
-
-    @Transactional
-    public void log( UUID correlationId, int sequenceInAction, Long actorUserId, String actorRoles
-        , String ipAddress, String action, String entityType, String outcome, String failureReason, Long assetId
-        , Long approvalId, Long subjectUserId, Long previousHolderId, Long newHolderId , String previousCondition
-        , String newCondition, String summary, String details )
-    {   
-        entityManager.createNativeQuery(INSERT_LOG_SQL)
-            .setParameter("correlationId", correlationId.toString())
-            .setParameter("sequenceInAction", sequenceInAction)
-            .setParameter("actorUserId", actorUserId)
-            .setParameter("actorRoles",actorRoles)
-            .setParameter("ipAddress",ipAddress)
-            .setParameter("action",action)
-            .setParameter("entityType",entityType)
-            .setParameter("outcome", outcome)
-            .setParameter("failureReason", failureReason)
-            .setParameter("assetId", assetId)
-            .setParameter("approvalId", approvalId)
-            .setParameter("subjectUserId",subjectUserId)
-            .setParameter("previousHolderId",previousHolderId)
-            .setParameter("newHolderId", newHolderId)
-            .setParameter("previousCondition", previousCondition)
-            .setParameter("newCondition", newCondition)
-            .setParameter("summary", summary)
-            .setParameter("details", details)
-            .executeUpdate();        
-    }
-
 
     @Transactional
     public void log(ActivityLog activityLog)

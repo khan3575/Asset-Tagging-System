@@ -32,7 +32,20 @@ SELECT version, description, success FROM flyway_schema_history;
 
 **The old `sql-schema/*.sql` scripts have been removed from the repository.** They described the pre-redesign schema and were no longer used by anything even before removal — see [docs/ARCHITECTURE.md](ARCHITECTURE.md) §9 and [docs/DESIGN.md](DESIGN.md) for what changed and why. Recoverable from git history (`git log -- sql-schema/`) if ever needed for comparison.
 
-### 2.1 Sample Accounts
+### 2.1 Changing the Schema
+
+Flyway records a checksum of every migration file at the moment it applies it, in `flyway_schema_history`. At each subsequent startup it re-hashes the files on disk and compares. A mismatch means the file was edited after it was applied — that is, the database no longer contains what the migration claims it contains — and Flyway refuses to start.
+
+**An applied migration file is immutable.** To change the schema, add a new versioned migration (`V2__…sql`, `V3__…sql`); Flyway applies what is new and never revisits what has already run. Update the corresponding JPA entity in the same commit, so that `ddl-auto=validate` confirms the two agree at the next startup.
+
+Two exceptions apply:
+
+- **Repeatable migrations** (`R__` prefix, such as `R__asset_overview_view.sql`) are designed to be edited. Flyway re-applies a repeatable migration whenever its checksum changes, after all versioned migrations. Objects that can be dropped and recreated safely — views in particular — belong in these files.
+- **The pre-deployment baseline.** While the schema is not yet deployed anywhere and no data requires preserving, correcting `V1__baseline_schema.sql` in place and recreating the database (Section 2) is preferable to accumulating corrective migrations against a design that was never live. This ceases to be an option permanently once any database exists that cannot be discarded.
+
+**`flyway repair` does not resolve a checksum mismatch caused by an edit.** It rewrites the recorded checksums to match the current files without re-running anything, leaving the database in its previous state while Flyway reports agreement. Its legitimate uses are clearing the history row left by a failed migration, and accepting a change to an applied file that does not alter the schema, such as a corrected comment.
+
+### 2.2 Sample Accounts
 
 Development fixture data — under the `local` profile only, never in a shared or production environment — is provided by `src/main/resources/db/seed/V1000__dev_seed_data.sql`. It provisions three accounts sharing the password `Password123!`, valid only within this seeded dataset and never to be reused elsewhere:
 

@@ -11,10 +11,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import com.sil.asset_tagging_system.dao.AssetDao;
-import com.sil.asset_tagging_system.security.CustomUserDetails;
+import com.sil.asset_tagging_system.security.SecurityUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -51,7 +49,7 @@ public class AssetFormBean {
             return null;
         }
 
-        Long currentUserId = getCurrentUserId();
+        Long currentUserId = SecurityUtil.currentUserId();
 
         Long newAssetId = assetDao.createAsset(assetTag, name, categoryId, purchaseDate, value, currentUserId);
 
@@ -71,12 +69,6 @@ public class AssetFormBean {
             log.error("Failed to redirect after creating asset {}", assetTag, e);
         }
         return null;
-    }
-
-    private Long getCurrentUserId()
-    {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return (principal instanceof CustomUserDetails userDetails) ? userDetails.getUserId() : null;
     }
 
     private HttpServletRequest getRequest()

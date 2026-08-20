@@ -1,0 +1,20 @@
+package com.sil.asset_tagging_system.util;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+
+public final class WebUtil {
+
+    private WebUtil() {
+    }
+
+    public static String getRemoteAddress(Authentication auth) {
+        if (auth == null) {
+            return null;
+        }
+        if (auth.getDetails() instanceof WebAuthenticationDetails details) {
+            return details.getRemoteAddress();
+        }
+        return null;
+    }
+}
