@@ -1,38 +1,12 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:p="jakarta.faces.passthrough"
-      xmlns:ui="jakarta.faces.facelets"
-      xmlns:f="jakarta.faces.core">
+<ui:composition template="/WEB-INF/templates/main.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets">
 
-    <h:head>
-        <title>Dashboard</title>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"/>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-    </h:head>
-    <h:body   styleClass="bg-body text-body">
-        <div class="container">
-<!--            header-->
-            <ui:include src="/WEB-INF/templates/header.xhtml"/>
-            <div class="row">
-                <ui:include src="/WEB-INF/templates/sidebar.xhtml"/>
-                <main class="col-9">
-                    <div class="d-flex flex-column justify-content-between mb-3">
-                        <!-- main content heading goes here -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="gap-2 p-2">
-                                <h2 class="text-primary fw-bold">Dashboard</h2>
-                                <p class="text-secondary text-muted">Welcome welcome</p>
-                            </div>
-                        </div>
+    <ui:define name="title">Dashboard</ui:define>
+    <ui:define name="pageTitle">Dashboard</ui:define>
+    <ui:define name="pageSubtitle">Welcome welcome</ui:define>
 
-                        
-                    </div>
-                </main>
-            </div>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    </h:body>
-</html>
+    <ui:define name="content">
+        <p>Dashboard is defined later.</p>
+    </ui:define>
+</ui:composition>

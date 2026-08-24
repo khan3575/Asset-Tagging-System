@@ -1,0 +1,30 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html">
+    <aside class="col-md-3">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                
+                <h:link styleClass="nav-link" outcome="/dashboard" value="📊 Dashboard" />
+            </li>
+            <li class="nav-item">
+                <h:link styleClass="nav-link" outcome="/assets" value="Assets" />
+            </li>
+            <li class="nav-item">
+                <h:link styleClass="nav-link" outcome="/audit-log" value="📜 Audit Log" /> 
+            </li>
+            <li class="nav-item">
+                <h:link styleClass="nav-link" outcome="/user" value="👥 Users" />
+            </li>
+            <li class="nav-item">
+                <h:link styleClass="nav-link" outcome="/settings" value="⚙️ Settings" />
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#{request.contextPath}/logout">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </li>
+        </ul>
+
+    </aside>
+</ui:composition>

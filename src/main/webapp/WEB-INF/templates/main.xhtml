@@ -1,0 +1,28 @@
+<ui:composition template="/WEB-INF/templates/base.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets">
+
+    <ui:define name="body">
+        <div class="container">
+            <ui:include src="/WEB-INF/fragments/header.xhtml"/>
+
+            <div class="row">
+                <ui:include src="/WEB-INF/fragments/sidebar.xhtml"/>
+
+                <main class="col-9">
+                    <div class="d-flex flex-column justify-content-between mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="gap-2 p-2">
+                                <h2 class="text-primary fw-bold"><ui:insert name="pageTitle"/></h2>
+                                <p class="text-secondary text-muted"><ui:insert name="pageSubtitle"/></p>
+                            </div>
+                            <ui:insert name="pageActions"/>
+                        </div>
+
+                        <ui:insert name="content"/>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>
