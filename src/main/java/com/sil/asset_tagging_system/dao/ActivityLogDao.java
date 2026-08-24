@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.dao;
 
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.persistence.EntityManager;
 
@@ -10,7 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sil.asset_tagging_system.model.ActivityLog;
 
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class ActivityLogDao {
@@ -42,8 +44,14 @@ public class ActivityLogDao {
     @Transactional
     public void log(ActivityLog activityLog)
     {   
+        UUID correlationId = activityLog.getCorrelationId();
+        if(correlationId == null)
+        {
+            log.warn("Activity log written with no correlation id; action {} will not be correlated",activityLog.getAction());
+            correlationId = UUID.randomUUID();
+        }
         entityManager.createNativeQuery(INSERT_LOG_SQL)
-            .setParameter("correlationId", activityLog.getCorrelationId().toString())
+            .setParameter("correlationId", correlationId.toString())
             .setParameter("sequenceInAction", activityLog.getSequenceInAction())
             .setParameter("actorUserId", activityLog.getActorUserId())
             .setParameter("actorRoles", nameOf(activityLog.getActorRoles()))

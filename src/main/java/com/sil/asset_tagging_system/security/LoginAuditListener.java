@@ -45,7 +45,14 @@ public class LoginAuditListener {
             .actorRoles( roleName != null ? RoleName.valueOf(roleName) : null)
             .summary("Login succeeded for " + email)
             .build();
-        activityLogDao.log(act);
+
+        try{
+            activityLogDao.log(act);
+        }
+        catch(Exception e)
+        {
+            log.error("Failed to write LOGIN_SUCCEEDED activity log for user {}",userId, e);
+        }
    }
 
     @EventListener
@@ -66,7 +73,12 @@ public class LoginAuditListener {
             .outcome(ActivityOutcome.FAILED)
             .summary("Login failed attempted email - " + attemptedEmail)
             .build();
-        activityLogDao.log(act);
+        try{
+            activityLogDao.log(act);
+        }
+        catch (Exception e) {
+            log.error("Failed to write LOGIN_FAILED activity log for attempted email {}", attemptedEmail, e);
+        }
     }
 
     
