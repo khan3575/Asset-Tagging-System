@@ -49,9 +49,6 @@ public class SecurityConfig {
                                     // as the controller route that forwards to it.
                                     .requestMatchers("/audit-log", "/audit-log.xhtml").hasRole("ADMIN")
                                     .anyRequest().authenticated()
-                ).sessionManagement(
-                        session -> session.sessionCreationPolicy(
-                                SessionCreationPolicy.IF_REQUIRED)
                 )
                 .logout(
                         logout ->
