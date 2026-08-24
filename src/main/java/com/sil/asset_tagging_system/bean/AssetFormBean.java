@@ -11,8 +11,9 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
 
-import com.sil.asset_tagging_system.dao.AssetDao;
 import com.sil.asset_tagging_system.security.SecurityUtil;
+import com.sil.asset_tagging_system.service.AssetService;
+import com.sil.asset_tagging_system.service.DuplicateAssetTagException;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestScoped
 public class AssetFormBean {
 
-    private final AssetDao assetDao;
+    private final AssetService assetService;
 
     // form fields, bound from add-asset.xhtml
     private String assetTag;
@@ -35,29 +36,24 @@ public class AssetFormBean {
     private BigDecimal value;
 
     @Inject
-    public AssetFormBean(AssetDao assetDao)
+    public AssetFormBean(AssetService assetService)
     {
-        this.assetDao = assetDao;
+        this.assetService = assetService;
     }
 
     public String save()
     {
-        if (assetDao.existsByAssetTagIgnoreCase(assetTag))
+        try
+        {
+            assetService.register(assetTag, name, categoryId, purchaseDate, value,
+                    SecurityUtil.currentUserId());
+        }
+        catch (DuplicateAssetTagException e)
         {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Asset tag already exists", null));
             return null;
         }
-
-        Long currentUserId = SecurityUtil.currentUserId();
-
-        Long newAssetId = assetDao.createAsset(assetTag, name, categoryId, purchaseDate, value, currentUserId);
-
-       /* auditLogDao.log(currentUserId, "CREATE", "Asset", newAssetId,
-                "Created asset " + assetTag, getRemoteAddress());  
-                
-            commented the old audit log here new audit will replace this part        
-        */
 
         try
         {

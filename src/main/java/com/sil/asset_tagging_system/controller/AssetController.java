@@ -28,4 +28,9 @@ public class AssetController {
         request.getRequestDispatcher("/asset-view.xhtml?id="+id).forward(request,response);
     }
 
+    @GetMapping("/scope-test")
+    public void getScope(HttpServletRequest request, HttpServletResponse response) throws Exception
+    {
+        request.getRequestDispatcher("/scope-test.xhtml").forward(request,response);
+    }
 }
