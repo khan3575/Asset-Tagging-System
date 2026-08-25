@@ -8,10 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sil.asset_tagging_system.dao.ActivityLogDao;
 import com.sil.asset_tagging_system.dao.AssetDao;
+import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.model.ActivityLog;
 import com.sil.asset_tagging_system.model.enums.ActivityAction;
 import com.sil.asset_tagging_system.model.enums.ActivityEntityType;
 import com.sil.asset_tagging_system.model.enums.ActivityOutcome;
+import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.security.CorrelationFilter;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,7 @@ public class AssetService {
     private final ActivityLogDao activityLogDao;
     @Transactional
     public Long register(String assetTag, String name, Long categoryId,
-                         LocalDate purchaseDate, BigDecimal value, Long actorUserId) {
+                         LocalDate purchaseDate, BigDecimal value, Long actorUserId, String actorRole, String ipAddress) {
 
         if (assetDao.existsByAssetTagIgnoreCase(assetTag)) {
             log.warn("AssetService.register -> duplicate asset tag '{}' rejected (actor {})",
@@ -35,7 +37,8 @@ public class AssetService {
         }
         Long newAssetId = assetDao.createAsset(assetTag, name, categoryId,
                 purchaseDate, value, actorUserId);
-                
+
+        //activity log needs ip and actor roles
         ActivityLog act = ActivityLog.builder()
                 .correlationId(CorrelationFilter.CURRENT.get())
                 .sequenceInAction((short) 1)
@@ -45,6 +48,8 @@ public class AssetService {
                 .outcome(ActivityOutcome.SUCCEEDED)
                 .assetId(newAssetId)
                 .summary("Registered asset " + assetTag)
+                .ipAddress(ipAddress)
+                .actorRoles((actorRole == null)? null : RoleName.valueOf(actorRole))
                 .build();
         activityLogDao.log(act);
 
