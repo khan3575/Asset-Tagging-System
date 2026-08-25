@@ -5,14 +5,14 @@
 
     <cc:interface>
         <cc:attribute name="label" type="java.lang.String" required="true"/>
-        <cc:attribute name="for"   type="java.lang.String" required="true"/>
+        <cc:attribute name="fieldId" type="java.lang.String" required="true"/>
     </cc:interface>
 
     <cc:implementation>
         <div class="col-12">
-            <h:outputLabel for="#{cc.attrs.for}" value="#{cc.attrs.label}" styleClass="form-label mb-0"/>
+            <h:outputLabel for="#{cc.attrs.fieldId}" value="#{cc.attrs.label}" styleClass="form-label mb-0"/>
             <cc:insertChildren/>
-            <h:message for="#{cc.attrs.for}" styleClass="text-danger small d-block"/>
+            <h:message for="#{cc.attrs.fieldId}" styleClass="text-danger small d-block"/>
         </div>
     </cc:implementation>
 </ui:component>

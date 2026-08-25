@@ -13,26 +13,26 @@
         <ui:define name="content">
             <h:messages globalOnly="true" styleClass="alert alert-danger" layout="table"/>
             <h:form id="add-asset-form" styleClass="row g-3" style="max-width: 600px;">
-                <ats:field label="Asset Tag" for="assetTag">
+                <ats:field label="Asset Tag" fieldId="assetTag">
                     <h:inputText id="assetTag" value="#{assetFormBean.assetTag}" styleClass="form-control" required="true"/>
                 </ats:field>
-                <ats:field label="Name" for="name">
+                <ats:field label="Name" fieldId="name">
                     <h:inputText id="name" value="#{assetFormBean.name}" styleClass="form-control" required="true"/>
                 </ats:field>
-                <ats:field label="Category" for="categoryId">
+                <ats:field label="Category" fieldId="categoryId">
                     <h:selectOneMenu id="categoryId" value="#{assetFormBean.categoryId}" styleClass="form-select" required="true">
                         <f:selectItem itemLabel="-- Select category --" itemValue="#{null}"/>
                         <f:selectItems value="#{lookupBean.assetCategoryList}" var="category"
                                         itemLabel="#{category.name}" itemValue="#{category.id}"/>
                     </h:selectOneMenu>
                 </ats:field>
-                <ats:field label="Purchase Date" for="purchaseDate">
+                <ats:field label="Purchase Date" fieldId="purchaseDate">
                     <h:inputText id="purchaseDate" value="#{assetFormBean.purchaseDate}" styleClass="form-control"
                                 p:type="date" required="true">
                         <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
                     </h:inputText>
                 </ats:field>
-                <ats:field label="Value" for="value">
+                <ats:field label="Value" fieldId="value">
                     <h:inputText id="value" value="#{assetFormBean.value}" styleClass="form-control" required="true"/>
                 </ats:field>
                 <div class="col-12">
