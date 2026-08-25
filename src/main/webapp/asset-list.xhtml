@@ -32,32 +32,32 @@
         </div>
         <div >
             <!-- asset table will be rendered here -->
-            <h:dataTable value="#{assetBean.assetList}" var="asset" styleClass="table table-striped border table-hover clickable-rows">
+            <h:dataTable value="#{assetBean.assetList}" var="row" styleClass="table table-striped border table-hover clickable-rows">
                 <h:column>
                     <f:facet name="header">Asset Tag</f:facet>
-                    <h:outputLink value="/assets/#{asset.id}">
-                        #{asset.assetTag}
+                    <h:outputLink value="/assets/#{row.id}">
+                        #{row.assetTag}
                     </h:outputLink>
                 </h:column>
                 <h:column>
                     <f:facet name="header">Name</f:facet>
-                    #{asset.name}
+                    #{row.name}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Category</f:facet>
-                    #{asset.category.name}
+                    #{row.categoryName}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Purchase Date</f:facet>
-                    #{asset.purchaseDate}
+                    #{row.purchaseDate}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Value</f:facet>
-                    #{asset.purchaseValue}
+                    #{row.purchaseValue}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Status</f:facet>
-                    #{asset.conditionStatus}
+                    #{row.conditionStatus}
                 </h:column>
 
             </h:dataTable>

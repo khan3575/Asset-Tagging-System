@@ -6,6 +6,7 @@ import java.util.UUID;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sil.asset_tagging_system.model.ActivityLog;
 
@@ -40,7 +41,8 @@ public class ActivityLogDao {
             OFFSET :offset
             """;
 
-    
+
+    @Transactional
     public void log(ActivityLog activityLog)
     {   
         UUID correlationId = activityLog.getCorrelationId();

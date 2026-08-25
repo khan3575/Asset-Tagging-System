@@ -2,6 +2,7 @@ package com.sil.asset_tagging_system.dao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
 
+import com.sil.asset_tagging_system.dto.AssetRow;
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
 
@@ -64,12 +66,55 @@ public class AssetDao {
         return entityManager.createNativeQuery(sql, Asset.class).getResultList();
     }
 
+    public List<AssetRow> findPage(String search, int limit, int offset)
+    {
+        // currently asset searching is done (name, category_name, asset_tag)
+        String sql = """
+                SELECT a.id, a.asset_tag, a.name, c.name AS category_name, a.purchase_date, a.purchase_value, a.condition_status
+                FROM assets a
+                JOIN asset_categories c ON a.category_id = c.id
+                WHERE (:search= '' OR LOWER(a.asset_tag) LIKE :search OR LOWER(a.name) LIKE :search OR LOWER(c.name) LIKE :search)
+                ORDER BY a.id
+                LIMIT :limit
+                OFFSET   :offset
+                """;
+        List<Object[]> rows = entityManager.createNativeQuery(sql)
+                            .setParameter("search", "%" + search + "%")
+                            .setParameter("limit", limit)
+                            .setParameter("offset", offset)
+                            .getResultList();
+
+        List<AssetRow> result = new ArrayList<>();
+        for(Object[] row : rows)
+        {
+            result.add(new AssetRow(
+                    ((Number) row[0]).longValue(),
+                    (String) row[1],
+                    (String) row[2],
+                    (String) row[3],
+                    (LocalDate) row[4],
+                    (BigDecimal) row[5],
+                   AssetCondition.valueOf((String)row[6])
+                )
+            );
+        }
+        return result;
+    }
+    public long countAssets(String search) {
+    String sql = """
+            SELECT count(*)
+            FROM assets a
+            JOIN asset_categories c ON a.category_id = c.id
+            WHERE (:search = '' OR LOWER(a.asset_tag) LIKE :search OR LOWER(a.name) LIKE :search OR LOWER(c.name) LIKE :search)
+            """;
+    return ((Number) entityManager.createNativeQuery(sql)
+            .setParameter("search", "%" + search + "%")
+            .getSingleResult()).longValue();
+}
+
     /*
         Create Asset Method
-
     */
-
-    
     public Long createAsset(String assetTag, String name, Long categoryId, LocalDate purchaseDate,
                              BigDecimal purchaseValue, Long createdByUserId) {
         String insertSql = """
