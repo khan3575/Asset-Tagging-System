@@ -9,7 +9,6 @@ import java.util.Optional;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
@@ -70,7 +69,7 @@ public class AssetDao {
 
     */
 
-    @Transactional
+    
     public Long createAsset(String assetTag, String name, Long categoryId, LocalDate purchaseDate,
                              BigDecimal purchaseValue, Long createdByUserId) {
         String insertSql = """
@@ -118,7 +117,7 @@ public class AssetDao {
     /* 
         UPDATE ASSET METHOD
     */
-    @Transactional
+    
     public void updateAsset(Long id, AssetCondition assetCondition, BigDecimal purchaseValue)
     {
         if (assetCondition == null) {
