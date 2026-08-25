@@ -10,9 +10,7 @@
     <ui:define name="pageSubtitle">View, Search and Filter here</ui:define>
 
     <ui:define name="pageActions">
-        <span class="badge bg-primary bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6" >
-            Total records : <strong>#{userListBean.totalCount}</strong>
-        </span>
+        <ats:badge text="Total records : #{userListBean.totalCount}"/>
     </ui:define>
 
     <ui:define name="content">

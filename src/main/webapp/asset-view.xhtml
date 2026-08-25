@@ -1,6 +1,7 @@
 <ui:composition template="/WEB-INF/templates/main.xhtml"
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
+      xmlns:ats="jakarta.faces.composite/ats"
       xmlns:ui="jakarta.faces.facelets"
       xmlns:f="jakarta.faces.core">
 
@@ -10,9 +11,7 @@
     <ui:define name="pageSubtitle">View assets here</ui:define>
 
     <ui:define name="pageActions">
-        <span class="badge bg-primary bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6" >
-                Total records : <strong>#{assetBean.totalCount}</strong>
-         </span>
+        <ats:badge text="Total records : #{assetBean.totalCount}"/>
         <h:outputLink value="/assets/new" styleClass="btn btn-primary">Add Asset</h:outputLink>
     </ui:define>
 

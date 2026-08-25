@@ -1,0 +1,14 @@
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:cc="jakarta.faces.composite"
+              xmlns:ui="jakarta.faces.facelets">
+
+    <cc:interface>
+        <cc:attribute name="text" type="java.lang.String" required="true"/>
+    </cc:interface>
+
+    <cc:implementation>
+        <span class="badge bg-primary bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6">
+            #{cc.attrs.text}
+        </span>
+    </cc:implementation>
+</ui:component>

@@ -2,6 +2,7 @@
         xmlns="http://www.w3.org/1999/xhtml"
         xmlns:h="jakarta.faces.html"
       xmlns:f="jakarta.faces.core"
+      xmlns:ats="jakarta.faces.composite/ats"
       xmlns:ui="jakarta.faces.facelets">
     
     <ui:define name="title">User Details</ui:define>
@@ -9,9 +10,7 @@
     <ui:define name="pageSubtitle">View and edit this user's information</ui:define>
 
     <ui:define name="pageActions">
-        <span class="badge bg-primary bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6">
-            #{userDetailBean.user.firstName} #{userDetailBean.user.lastName}
-        </span>
+        <ats:badge text="#{userDetailBean.user.firstName} #{userDetailBean.user.lastName}"/>
     </ui:define>
 
     <ui:define name="content">
