@@ -1,7 +1,8 @@
 <ui:composition template="/WEB-INF/templates/main.xhtml"
-        xmlns="http://www.w3.org/1999/xhtml"
+      xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
       xmlns:ui="jakarta.faces.facelets"
+      xmlns:ats="jakarta.faces.composite/ats"
       xmlns:f="jakarta.faces.core">
 
     <ui:define name="title">Asset List</ui:define>
@@ -61,24 +62,8 @@
                 </h:column>
 
             </h:dataTable>
-            <div class="d-flex justify-content-between">
-                <ui:fragment rendered="#{assetBean.page gt 1}" >
-                    <h:outputLink value="/assets" styleClass="btn btn-outline-primary">
-                        <f:param name="page" value="#{assetBean.page - 1}"/>
-                        <f:param name="search" value="#{assetBean.search}"/>
-                        Previous
-                    </h:outputLink>
-                </ui:fragment>
-
-                <ui:fragment rendered="#{assetBean.page lt assetBean.totalPageCount}" >
-                    <h:outputLink value="/assets" styleClass="btn btn-outline-primary">
-                        <f:param name="page" value="#{assetBean.page + 1}"/>
-                        <f:param name="search" value="#{assetBean.search}"/>
-                        Next
-                    </h:outputLink>
-                </ui:fragment>
-                <span>Page : #{assetBean.page} of #{assetBean.totalPageCount}</span>
-            </div>
+            <ats:pagination page="#{assetBean.page}" totalPages="#{assetBean.totalPageCount}"
+                url="/assets" search="#{assetBean.search}" />
         </div>
     </ui:define>
 
