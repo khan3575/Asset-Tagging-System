@@ -1,6 +1,8 @@
 package com.sil.asset_tagging_system.bean;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,6 +43,15 @@ public class LookupBean {
     public RoleName[] getRoleOptions()
     {
         return RoleName.values();
+    }
+
+    public Map<String, String> getDepartmentOptionsMap()
+    {
+        Map<String, String> options = new LinkedHashMap<>();
+        for (Department dept : departmentList) {
+            options.put(String.valueOf(dept.getId()), dept.getName());
+        }
+        return options;
     }
 
 }

@@ -43,30 +43,14 @@
 
                         <div class="col-md-3">
                             <label for="department" class="form-label mb-0">Department</label>
-                            <select id="department" name="department" disabled="disabled" class="form-select">
-                                <ui:repeat value="#{lookupBean.departmentList}" var="dept">
-                                    <ui:fragment rendered="#{dept == userDetailBean.user.department}">
-                                        <option value="#{dept.id}" selected="selected">#{dept.name}</option>
-                                    </ui:fragment>
-                                    <ui:fragment rendered="#{dept != userDetailBean.user.department}">
-                                        <option value="#{dept.id}">#{dept.name}</option>
-                                    </ui:fragment>
-                                </ui:repeat>
-                            </select>
+                            <ats:filterSelect selectId="department" options="#{lookupBean.departmentOptionsMap}"
+                                selected="#{userDetailBean.user.department.id}" disabled="true"/>
                         </div>
 
                         <div class="col-md-3">
                             <label for="status" class="form-label mb-0">Status</label>
-                            <select id="status" name="status" disabled="disabled" class="form-select">
-                                <ui:fragment rendered="#{userDetailBean.user.enabled}">
-                                    <option value="true" selected="selected">Active</option>
-                                    <option value="false">Inactive</option>
-                                </ui:fragment>
-                                <ui:fragment rendered="#{!userDetailBean.user.enabled}">
-                                    <option value="true">Active</option>
-                                    <option value="false" selected="selected">Inactive</option>
-                                </ui:fragment>
-                            </select>
+                            <ats:filterSelect selectId="status" options="#{{'true':'Active','false':'Inactive'}}"
+                                selected="#{userDetailBean.user.enabled}" disabled="true"/>
                         </div>
 
                         <div class="col-12">

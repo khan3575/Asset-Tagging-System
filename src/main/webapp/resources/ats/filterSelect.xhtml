@@ -1,0 +1,24 @@
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:cc="jakarta.faces.composite"
+              xmlns:ui="jakarta.faces.facelets"
+              xmlns:c="jakarta.tags.core">
+
+    <cc:interface>
+        <cc:attribute name="selectId"   type="java.lang.String"  required="true"/>
+        <cc:attribute name="options"    type="java.util.Map"     required="true"/>
+        <cc:attribute name="selected"   type="java.lang.String"  required="false"/>
+        <cc:attribute name="disabled"   type="java.lang.Boolean" required="false"/>
+        <cc:attribute name="emptyLabel" type="java.lang.String"  required="false"/>
+    </cc:interface>
+
+    <cc:implementation>
+        <select id="#{cc.attrs.selectId}" name="#{cc.attrs.selectId}" class="form-select" disabled="#{cc.attrs.disabled ? 'disabled' : null}">
+            <ui:fragment rendered="#{cc.attrs.emptyLabel != null}">
+                <option value="" selected="#{empty cc.attrs.selected ? 'selected' : null}">#{cc.attrs.emptyLabel}</option>
+            </ui:fragment>
+            <c:forEach items="#{cc.attrs.options.entrySet()}" var="entry">
+                <option value="#{entry.key}" selected="#{entry.key == cc.attrs.selected ? 'selected' : null}">#{entry.value}</option>
+            </c:forEach>
+        </select>
+    </cc:implementation>
+</ui:component>

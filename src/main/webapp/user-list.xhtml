@@ -23,18 +23,8 @@
                     </div>
                     <div class="col-auto">
                         <label for="roleName" class="form-label mb-0" >Roles</label>
-                        <select id="roleName" name="roleName" class="form-select">
-                            <option value="">All roles</option>
-                            <ui:repeat value="#{userListBean.roleOptions}" var="role">
-                                <ui:fragment rendered="#{role == userListBean.roleName}">
-                                    <option value="#{role}" selected="selected">#{role}</option>
-                                </ui:fragment>
-                                <ui:fragment rendered="#{role != userListBean.roleName}">
-                                    <option value="#{role}">#{role}</option>
-                                </ui:fragment>
-                            </ui:repeat>
-    
-                        </select>
+                        <ats:filterSelect selectId="roleName" options="#{userListBean.roleOptionsMap}"
+                            selected="#{userListBean.roleName}" emptyLabel="All roles"/>
                     </div>
                     <div class="col-auto">
                         <label for="departmentId" class="form-label mb-0">Department id : </label>
@@ -42,11 +32,8 @@
                     </div>
                     <div class="col-auto">
                         <label for="enabled" class="form-label mb-0">Status : </label>
-                        <select id="enabled" name="enabled" class="form-select">
-                            <option value="">Any</option>
-                            <option  value="true">Enabled</option>
-                            <option  value="false">Disabled</option>
-                        </select>
+                        <ats:filterSelect selectId="enabled" options="#{{'true':'Enabled','false':'Disabled'}}"
+                            selected="#{userListBean.enabled}" emptyLabel="Any"/>
                     </div>
                     <div class="col-auto">
                         <button class="btn btn-primary mt-4" type="submit">Search</button>

@@ -82,6 +82,14 @@ public class UserListBean {
     {
         return RoleName.values();
     }
+    public Map<String, String> getRoleOptionsMap()
+    {
+        Map<String, String> options = new LinkedHashMap<>();
+        for (RoleName role : RoleName.values()) {
+            options.put(role.name(), role.name());
+        }
+        return options;
+    }
     public Map<String, String> getExtraParams(){
         Map<String, String> params = new LinkedHashMap<>();
         if(search != null) params.put("search", search);
