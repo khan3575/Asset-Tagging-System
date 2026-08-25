@@ -1,6 +1,5 @@
 package com.sil.asset_tagging_system.bean;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -9,11 +8,10 @@ import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.servlet.http.HttpServletRequest;
 
+import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.AssetService;
-import com.sil.asset_tagging_system.service.DuplicateAssetTagException;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -46,7 +44,7 @@ public class AssetFormBean {
         try
         {
             assetService.register(assetTag, name, categoryId, purchaseDate, value,
-                    SecurityUtil.currentUserId());
+                    SecurityUtil.currentUserId(), SecurityUtil.primaryRole(), null);
         }
         catch (DuplicateAssetTagException e)
         {
@@ -54,22 +52,8 @@ public class AssetFormBean {
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Asset tag already exists", null));
             return null;
         }
-
-        try
-        {
-            FacesContext.getCurrentInstance().getExternalContext()
-                    .redirect(getRequest().getContextPath() + "/assets");
-        }
-        catch (IOException e)
-        {
-            log.error("Failed to redirect after creating asset {}", assetTag, e);
-        }
-        return null;
+        return "asset-list?faces-redirect=true";
     }
 
-    private HttpServletRequest getRequest()
-    {
-        return (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
-    }
 
 }
