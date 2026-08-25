@@ -1,5 +1,6 @@
 package com.sil.asset_tagging_system.bean;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,5 +82,12 @@ public class UserListBean {
     {
         return RoleName.values();
     }
-
+    public Map<String, String> getExtraParams(){
+        Map<String, String> params = new LinkedHashMap<>();
+        if(search != null) params.put("search", search);
+        if(roleName != null) params.put("roleName", roleName.name());
+        if(departmentId != null) params.put("departmentId", String.valueOf(departmentId));
+        if(enabled != null) params.put("enabled", String.valueOf(enabled));
+        return params;
+    }
 }

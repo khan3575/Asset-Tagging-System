@@ -65,4 +65,5 @@ public class ActivityLogBean {
         }
         return null;
     }
+   
 }

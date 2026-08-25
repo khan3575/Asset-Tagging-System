@@ -1,4 +1,5 @@
 <ui:composition   template="/WEB-INF/templates/main.xhtml"
+    xmlns:ats="jakarta.faces.composite/ats"
     xmlns="http://www.w3.org/1999/xhtml"
     xmlns:h="jakarta.faces.html"
     xmlns:f="jakarta.faces.core" 
@@ -35,22 +36,7 @@
                 <h:outputText value="#{entry.outcome}" styleClass="badge #{entry.outcome eq 'SUCCEEDED' ? 'text-bg-success': (entry.outcome eq 'DENIED'? 'text-bg-warning' : 'text-bg-danger')}" />
             </h:column>
         </h:dataTable>
-        <div class="d-flex justify-content-between">
-            <ui:fragment rendered="#{activityLogBean.page gt 1}">
-                <h:outputLink value="/audit-log" styleClass="btn btn-outline-primary">
-                    <f:param name="page" value="#{activityLogBean.page - 1}"/>
-                    Previous
-                </h:outputLink>
-            </ui:fragment>
-    
-            <ui:fragment rendered="#{activityLogBean.page lt activityLogBean.totalPageCount}">
-                <h:outputLink value="/audit-log" styleClass="btn btn-outline-primary">
-                    <f:param name="page" value="#{activityLogBean.page + 1}"/>
-                    Next
-                </h:outputLink>
-            </ui:fragment>
-            <span>Page : #{activityLogBean.page} of #{activityLogBean.totalPageCount}</span>
-        </div>
+        <ats:pagination page="#{activityLogBean.page}" totalPages="#{activityLogBean.totalPageCount}" url="/audit-log" />
     </ui:define>
             
 </ui:composition>

@@ -2,13 +2,14 @@
               xmlns:cc="jakarta.faces.composite"
               xmlns:h="jakarta.faces.html"
               xmlns:ui="jakarta.faces.facelets"
-              xmlns:f="jakarta.faces.core">
+              xmlns:f="jakarta.faces.core"
+              xmlns:c="jakarta.tags.core">
 
     <cc:interface>
         <cc:attribute name="page" type="java.lang.Integer" required="true" />
         <cc:attribute name="totalPages" type="java.lang.Integer" required="true" />
         <cc:attribute name="url" type="java.lang.String" required="true" />
-        <cc:attribute name="search" type="java.lang.String" required="false" />
+        <cc:attribute name="extraParams" type="java.util.Map" required="false" />
     </cc:interface>
 
     <cc:implementation>
@@ -16,7 +17,9 @@
             <h:outputLink value="#{cc.attrs.url}" styleClass="btn btn-outline-primary"
                         rendered="#{cc.attrs.page gt 1}">
                 <f:param name="page" value="#{cc.attrs.page -1}"/>
-                <f:param name="search" value="#{cc.attrs.search}"/>
+                <c:forEach items="#{cc.attrs.extraParams.entrySet()}" var="entry">
+                    <f:param name="#{entry.key}" value="#{entry.value}" />
+                </c:forEach>
                 Previous        
             </h:outputLink>
             <span>Page : #{cc.attrs.page} of #{cc.attrs.totalPages}</span>
@@ -24,7 +27,9 @@
                         rendered="#{cc.attrs.page lt cc.attrs.totalPages}">
                     
                 <f:param name="page" value="#{cc.attrs.page +1 }"/>
-                <f:param name="search" value="#{cc.attrs.search}" />
+                <c:forEach items="#{cc.attrs.extraParams.entrySet()}" var="entry">
+                    <f:param name="#{entry.key}" value="#{entry.value}"/>
+                </c:forEach>
                 Next
             </h:outputLink>
         </div>

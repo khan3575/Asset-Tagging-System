@@ -63,7 +63,9 @@
 
             </h:dataTable>
             <ats:pagination page="#{assetBean.page}" totalPages="#{assetBean.totalPageCount}"
-                url="/assets" search="#{assetBean.search}" />
+                url="/assets">
+                <f:attribute name="extraParams" value="#{{'search':  assetBean.search}}" />
+            </ats:pagination>
         </div>
     </ui:define>
 
