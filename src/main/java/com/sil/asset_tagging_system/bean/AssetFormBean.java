@@ -52,7 +52,7 @@ public class AssetFormBean {
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Asset tag already exists", null));
             return null;
         }
-        return "asset-list?faces-redirect=true";
+        return "/asset/list?faces-redirect=true";
     }
 
 

@@ -60,6 +60,6 @@ public class AssetBean {
     public String search()
     {
         page = 1;
-        return "asset-list?faces-redirect=true&includeViewParams=true";
+        return "/asset/list?faces-redirect=true&includeViewParams=true";
     }
 }

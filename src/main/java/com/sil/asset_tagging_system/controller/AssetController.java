@@ -13,19 +13,19 @@ public class AssetController {
     @GetMapping("/assets")
     public void getAsset(HttpServletRequest request , HttpServletResponse response) throws Exception
     {
-        request.getRequestDispatcher("/asset-list.xhtml").forward(request, response);
+        request.getRequestDispatcher("/asset/list.xhtml").forward(request, response);
     }
 
     @GetMapping("/assets/new")
     public void getAssetForm(HttpServletRequest request , HttpServletResponse response) throws Exception
     {
-        request.getRequestDispatcher("/add-asset.xhtml").forward(request, response);
+        request.getRequestDispatcher("/asset/form.xhtml").forward(request, response);
     }
 
     @GetMapping("/assets/{id}")
     public void getAssetView(HttpServletRequest request, HttpServletResponse response, @PathVariable String id) throws Exception
     {
-        request.getRequestDispatcher("/asset-view.xhtml?id="+id).forward(request,response);
+        request.getRequestDispatcher("/asset/detail.xhtml?id="+id).forward(request,response);
     }
 
     @GetMapping("/scope-test")

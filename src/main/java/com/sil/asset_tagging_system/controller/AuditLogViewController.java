@@ -11,6 +11,6 @@ public class AuditLogViewController {
     @GetMapping("/audit-log")
     public void viewAuditLog(HttpServletRequest request, HttpServletResponse response) throws Exception
     {
-        request.getRequestDispatcher("/audit-log.xhtml").forward(request,response);
+        request.getRequestDispatcher("/activity/log.xhtml").forward(request,response);
     }
 }

@@ -88,7 +88,7 @@ public class UserListBean {
     public String search()
     {
         page = 1;
-        return "user-list?faces-redirect=true&includeViewParams=true";
+        return "/user/list?faces-redirect=true&includeViewParams=true";
     }
 
 }

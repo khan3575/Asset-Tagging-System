@@ -17,7 +17,7 @@
 
     <ui:define name="pageActions">
         <ats:badge text="Total records : #{assetBean.totalCount}"/>
-        <h:outputLink value="/assets/new" styleClass="btn btn-primary">Add Asset</h:outputLink>
+        <h:link outcome="/asset/form" styleClass="btn btn-primary" value="Add Asset"/>
     </ui:define>
     
     <ui:define name="content">
