@@ -23,7 +23,7 @@ public class AssetController {
     }
 
     @GetMapping("/assets/{id}")
-    public void getAssetView(HttpServletRequest request, HttpServletResponse response, @PathVariable Long id) throws Exception
+    public void getAssetView(HttpServletRequest request, HttpServletResponse response, @PathVariable String id) throws Exception
     {
         request.getRequestDispatcher("/asset-view.xhtml?id="+id).forward(request,response);
     }

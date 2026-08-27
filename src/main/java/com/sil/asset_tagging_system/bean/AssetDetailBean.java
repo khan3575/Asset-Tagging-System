@@ -2,10 +2,8 @@ package com.sil.asset_tagging_system.bean;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -18,7 +16,6 @@ import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
 import com.sil.asset_tagging_system.model.enums.RoleName;
-import com.sil.asset_tagging_system.util.FacesUtil;
 import com.sil.asset_tagging_system.util.OptionalUtils;
 
 import lombok.Getter;
@@ -55,35 +52,32 @@ public class AssetDetailBean {
         this.userDao = userDao;
     }
 
-    @PostConstruct
-    public void init()
+    public void load()
     {
-        Map<String, String> params = FacesUtil.getRequestParams();
-        String idParam = params.get("id");
-        if(idParam == null || idParam.isBlank()){
-            log.info("Asset is null : findById()");
-            asset=null;
-        }
-        else{
-            this.id= Long.valueOf(idParam);
-            this.asset = OptionalUtils.orThrowDbFetch(assetDao.findById(id), "Asset");
-            log.info("Asset is loaded - asset id : "+id);
+        
+        
+        this.asset = OptionalUtils.orThrowDbFetch(assetDao.findById(id), "Asset");
+        log.info("Asset is loaded - asset id : "+id);
 
-            this.conditionStatus = asset.getConditionStatus();
-            this.purchaseValue = asset.getPurchaseValue();
+        this.conditionStatus = asset.getConditionStatus();
+        this.purchaseValue = asset.getPurchaseValue();
 
-            this.currentHolder = assetCustodyDao.findActiveCustodianId(id)
-                    .flatMap(userDao::findById)
-                    .orElse(null);
+        this.currentHolder = assetCustodyDao.findActiveCustodianId(id)
+                .flatMap(userDao::findById)
+                .orElse(null);
 
-            List<User> eligibleHolders = userDao.findUsers(RoleName.ROLE_EMPLOYEE, null, null, true, 1000, 0);
-            availableHolders = currentHolder == null
-                    ? eligibleHolders
-                    : eligibleHolders.stream()
-                        .filter(user -> !user.getId().equals(currentHolder.getId()))
-                        .collect(Collectors.toList());
+        List<User> eligibleHolders = userDao.findUsers(RoleName.ROLE_EMPLOYEE, null, null, true, 1000, 0);
+        availableHolders = currentHolder == null
+                ? eligibleHolders
+                : eligibleHolders.stream()
+                    .filter(user -> !user.getId().equals(currentHolder.getId()))
+                    .collect(Collectors.toList());
 
-            transferPending = approvalDao.existsOpenTransferRequest(id);
-        }
+        transferPending = approvalDao.existsOpenTransferRequest(id);
+        
+    }
+    public void setId(Long id)
+    {
+        this.id = id;
     }
 }

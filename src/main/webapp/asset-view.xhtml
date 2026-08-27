@@ -6,6 +6,12 @@
       xmlns:f="jakarta.faces.core">
 
 
+    <f:metadata>
+        <f:viewParam name="id" value="#{assetDetailBean.id}" required="true"
+                requiredMessage="An asset id is required." />
+        <f:viewAction action="#{assetDetailBean.load}"/>
+    </f:metadata>
+
     <ui:define name="title">Asset View</ui:define>
     <ui:define name="pageTitle">Asset Management</ui:define>
     <ui:define name="pageSubtitle">View assets here</ui:define>
