@@ -342,6 +342,39 @@ public class UserDao {
         return Optional.of(user);
     }
 
+
+    public void updateUser(Long id , String firstName, String lastName, Long departmentId, Boolean enabled)
+    {
+        String sql = """
+                UPDATE users
+                SET first_name = :firstName, last_name = :lastName, dept_id = :departmentId, enabled = :enabled
+                WHERE id = :id
+                """;
+        entityManager.createNativeQuery(sql)
+            .setParameter("id", id)
+            .setParameter("firstName", firstName)
+            .setParameter("lastName", lastName)
+            .setParameter("departmentId",departmentId)
+            .setParameter("enabled", enabled)
+            .executeUpdate();
+    }
+
+    public void replaceRoles(Long userId, Set<RoleName> roleNames)
+    {
+        // deleting old roles
+        entityManager.createNativeQuery("DELETE FROM user_role WHERE user_id = :userId")
+            .setParameter("userId", userId)
+            .executeUpdate();
+        // assigning new roles;
+        String insertSql = "INSERT INTO user_role (user_id, role_id) SELECT :userId, id FROM roles WHERE name = :roleName";
+        for (RoleName roleName : roleNames) {
+            entityManager.createNativeQuery(insertSql)
+                    .setParameter("userId", userId)
+                    .setParameter("roleName", roleName.name())
+                    .executeUpdate();
+        }
+
+    }
 }
 
 

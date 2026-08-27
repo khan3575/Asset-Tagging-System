@@ -4,14 +4,13 @@
       xmlns:f="jakarta.faces.core"
       xmlns:ats="jakarta.faces.composite/ats"
       xmlns:ui="jakarta.faces.facelets">
-    
 
     <f:metadata>
         <f:viewParam name="id" value="#{userDetailBean.id}" required="true"
                 requiredMessage="A user id is required."/>
         <f:viewAction action="#{userDetailBean.load}"/>
     </f:metadata>
-      
+
     <ui:define name="title">User Details</ui:define>
     <ui:define name="pageTitle">User Details</ui:define>
     <ui:define name="pageSubtitle">View and edit this user's information</ui:define>
@@ -25,7 +24,7 @@
             <div class="card-header bg-white">
                 <i class="bi bi-person-badge me-2"></i>Profile
             </div>
-            <form method="POST" action="/user/#{userDetailBean.user.id}" onsubmit="return confirmSave();">
+            <h:form id="userDetailForm">
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-2">
@@ -35,12 +34,18 @@
 
                         <div class="col-md-4">
                             <label for="firstName" class="form-label mb-0">First Name</label>
-                            <input id="firstName" name="firstName" value="#{userDetailBean.user.firstName}" readonly="readonly" class="form-control"/>
+                            <h:outputText id="firstNameView" value="#{userDetailBean.user.firstName}"
+                                styleClass="form-control-plaintext" rendered="#{!userDetailBean.editing}"/>
+                            <h:inputText id="firstNameEdit" value="#{userDetailBean.user.firstName}"
+                                styleClass="form-control" rendered="#{userDetailBean.editing}" required="true"/>
                         </div>
 
                         <div class="col-md-4">
                             <label for="lastName" class="form-label mb-0">Last Name</label>
-                            <input id="lastName" name="lastName" value="#{userDetailBean.user.lastName}" readonly="readonly" class="form-control"/>
+                            <h:outputText id="lastNameView" value="#{userDetailBean.user.lastName}"
+                                styleClass="form-control-plaintext" rendered="#{!userDetailBean.editing}"/>
+                            <h:inputText id="lastNameEdit" value="#{userDetailBean.user.lastName}"
+                                styleClass="form-control" rendered="#{userDetailBean.editing}" required="true"/>
                         </div>
 
                         <div class="col-md-6">
@@ -51,52 +56,62 @@
                         <div class="col-md-3">
                             <label for="department" class="form-label mb-0">Department</label>
                             <ats:filterSelect selectId="department" options="#{lookupBean.departmentOptionsMap}"
-                                selected="#{userDetailBean.user.department.id}" disabled="true"/>
+                                selected="#{userDetailBean.user.department.id}" disabled="true"
+                                rendered="#{!userDetailBean.editing}"/>
+                            <h:selectOneMenu id="departmentEdit" value="#{userDetailBean.editorDepartmentId}"
+                                styleClass="form-select" rendered="#{userDetailBean.editing}" required="true">
+                                <f:selectItems value="#{lookupBean.departmentList}" var="dept"
+                                    itemLabel="#{dept.name}" itemValue="#{dept.id}"/>
+                            </h:selectOneMenu>
                         </div>
 
                         <div class="col-md-3">
                             <label for="status" class="form-label mb-0">Status</label>
                             <ats:filterSelect selectId="status" options="#{{'true':'Active','false':'Inactive'}}"
-                                selected="#{userDetailBean.user.enabled}" disabled="true"/>
+                                selected="#{userDetailBean.user.enabled}" disabled="true"
+                                rendered="#{!userDetailBean.editing}"/>
+                            <h:selectOneMenu id="statusEdit" value="#{userDetailBean.user.enabled}"
+                                styleClass="form-select" rendered="#{userDetailBean.editing}">
+                                <f:selectItem itemLabel="Active" itemValue="#{true}"/>
+                                <f:selectItem itemLabel="Inactive" itemValue="#{false}"/>
+                            </h:selectOneMenu>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label mb-1 d-block">Roles</label>
                             <div class="border rounded p-2 bg-light">
-                                <ui:repeat value="#{lookupBean.roleOptions}" var="role">
-                                    <ui:fragment rendered="#{userDetailBean.hasRole(role)}">
+                                <ui:fragment rendered="#{!userDetailBean.editing}">
+                                    <ui:repeat value="#{lookupBean.roleOptions}" var="role">
                                         <div class="form-check form-check-inline">
-                                            <input type="checkbox" class="form-check-input role-checkbox" id="role_#{role}" name="roles" value="#{role}" disabled="disabled" checked="checked"/>
-                                            <label class="form-check-label" for="role_#{role}">#{role}</label>
+                                            <input type="checkbox" class="form-check-input" disabled="disabled"
+                                                checked="#{userDetailBean.hasRole(role) ? 'checked' : null}"/>
+                                            <label class="form-check-label">#{role}</label>
                                         </div>
-                                    </ui:fragment>
-                                    <ui:fragment rendered="#{!userDetailBean.hasRole(role)}">
-                                        <div class="form-check form-check-inline">
-                                            <input type="checkbox" class="form-check-input role-checkbox" id="role_#{role}" name="roles" value="#{role}" disabled="disabled"/>
-                                            <label class="form-check-label" for="role_#{role}">#{role}</label>
-                                        </div>
-                                    </ui:fragment>
-                                </ui:repeat>
+                                    </ui:repeat>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{userDetailBean.editing}">
+                                    <div class="form-check form-check-inline">
+                                        <h:selectBooleanCheckbox id="roleAdmin" value="#{userDetailBean.editorIsAdmin}" styleClass="form-check-input"/>
+                                        <h:outputLabel for="roleAdmin" value="ROLE_ADMIN" styleClass="form-check-label"/>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <h:selectBooleanCheckbox id="roleEmployee" value="#{userDetailBean.editorIsEmployee}" styleClass="form-check-input"/>
+                                        <h:outputLabel for="roleEmployee" value="ROLE_EMPLOYEE" styleClass="form-check-label"/>
+                                    </div>
+                                </ui:fragment>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer bg-white d-flex gap-2">
-                    <button type="button" id="editBtn" class="btn btn-primary" onclick="enableEdit()">
-                        <i class="bi bi-pencil-square me-1"></i>Edit
-                    </button>
-                    <button type="submit" id="saveBtn" class="btn btn-success" style="display:none;">
-                        <i class="bi bi-check-lg me-1"></i>Save
-                    </button>
-                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary" style="display:none;" onclick="cancelEdit()">
-                        <i class="bi bi-x-lg me-1"></i>Cancel
-                    </button>
+                    <h:commandButton value="Edit" action="#{userDetailBean.edit}"
+                        styleClass="btn btn-primary" rendered="#{!userDetailBean.editing}"/>
+                    <h:commandButton value="Save" action="#{userDetailBean.save}"
+                        styleClass="btn btn-success" rendered="#{userDetailBean.editing}"/>
+                    <h:commandButton value="Cancel" action="#{userDetailBean.cancel}"
+                        styleClass="btn btn-outline-secondary" rendered="#{userDetailBean.editing}" immediate="true"/>
                 </div>
-            </form>
+            </h:form>
         </div>
-    </ui:define>
-                
-    <ui:define name="scripts">
-        <h:outputScript name="user-detail.js" library="js" />
     </ui:define>
 </ui:composition>

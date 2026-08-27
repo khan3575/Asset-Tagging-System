@@ -73,27 +73,43 @@ leaves an asset that no audit trail records.
 
 ## 3. Request Processing
 
-`FacesServlet` serves views directly at extensionless URLs. There is no forwarding
-controller layer: the directory path of a view file is its URL.
+**Correction, 2026-08-27**: the paragraph and properties below describe an aspirational
+extensionless-only design that does **not** match the current codebase, and the two named
+properties aren't set anywhere in `application.properties` — they were probably confused
+with OmniFaces's `joinfaces.omnifaces.faces-views-scan-paths`/`faces-views-extension-action`
+(present in `application.properties`, but commented out). What's actually true, verified
+empirically this session:
 
-| View file | URL |
-|---|---|
-| `webapp/dashboard.xhtml` | `/dashboard` |
-| `webapp/asset/list.xhtml` | `/asset/list` |
-| `webapp/asset/detail.xhtml` | `/asset/detail?id=3` |
-| `webapp/activity/log.xhtml` | `/activity/log` |
+- Spring MVC `@Controller` classes (`AssetController`, `UserController`, `DashboardController`,
+  `AuditLogViewController`, `LoginViewController`) exist and are load-bearing — they're what
+  makes `/assets`, `/assets/{id}`, `/assets/new`, `/user`, `/user/{id}` etc. resolve at all.
+  Each does a plain `RequestDispatcher.forward(...)` to the real `.xhtml` file, converting a
+  path segment into a query parameter along the way (`/assets/{id}` → forward to
+  `/asset-view.xhtml?id={id}`).
+- This bridge is not incidental scaffolding waiting to be deleted — **JSF has no
+  path-variable mechanism of its own**. `f:viewParam` only reads query-string parameters.
+  Any URL with an `{id}`-style path segment (as opposed to a flat, parameterless page like
+  `/dashboard` or `/audit-log`) structurally needs something to translate that segment into
+  a query parameter before JSF can read it via `f:viewParam` — in this codebase, that's
+  these controllers. Removing them would break every parameterized detail page.
+- **A real bug in this bridge, found and fixed 2026-08-27**: both controllers originally
+  declared `@PathVariable Long id`, which made Spring MVC convert the path segment to `Long`
+  *before* forwarding — so a bad id (`/assets/abc`) threw Spring's own
+  `MethodArgumentTypeMismatchException` (a raw 400 stack trace) instead of ever reaching
+  `f:viewParam`'s validation. Fixed to `@PathVariable String id`, passing the raw string
+  through unconverted so JSF's own converter does the real validation. See
+  [development-plan.md](development-plan.md)'s 2026-08-27 entry for the verification.
+- Stage 8 of the Refactoring Roadmap ("URL migration") is a narrower, different problem —
+  the sidebar's `h:link outcome=` values not matching real filenames — not about removing
+  this controller layer.
 
-This is configured by two properties:
-
-```properties
-joinfaces.faces.automatic-extensionless-mapping=true
-joinfaces.faces.disable-facesservlet-to-xhtml=true
-```
+The one part of the original paragraph that *is* accurate and current:
 
 Values arriving in the URL are declared with `f:viewParam` inside `f:metadata`, never
 parsed from the request parameter map by hand. `f:viewParam` performs type conversion and
 validation; `f:viewAction` then runs after binding is complete, unlike `@PostConstruct`,
-which runs before it.
+which runs before it. (`FacesUtil.getRequestParams()`, the old hand-parsing helper, has
+been deleted — every list/detail page uses `f:viewParam`/`f:viewAction` now.)
 
 ## 4. Dependency Injection
 
@@ -211,20 +227,22 @@ prevent users from signing in.
 | Database schema | Implemented, Flyway-managed |
 | Authentication and session management | Implemented |
 | Activity log — authentication events | Implemented |
-| Activity log — viewing screen | View exists; corrections outstanding |
-| Asset directory — list, search, pagination | Implemented |
+| Activity log — viewing screen | Implemented, `f:viewParam`-driven |
+| Asset directory — list, search, pagination | Implemented, DB-side pagination (no N+1) |
 | Asset detail view | Implemented, read-only |
-| Asset registration | Implemented |
-| User directory — list, search, filter, pagination | Implemented |
+| Asset registration | Implemented, transactional, logs `ASSET_REGISTERED` |
+| User directory — list, search, filter, pagination | Implemented, `f:viewParam`-driven |
 | User detail view | Implemented, read-only |
-| User editing | View exists; no working write path |
-| Activity log — business actions | Not implemented |
-| Service layer | Not implemented; transactions currently sit on DAO methods |
+| User editing | In progress (roadmap T7.1) — service/DAO layer exists, `@ViewScoped` edit-state machine and form not yet built; see [development-plan.md](development-plan.md) |
+| Activity log — business actions | Implemented for asset registration; not yet for user edits (pending T7.1) |
+| Service layer | `AssetService`, `UserService` implemented; `@Transactional` boundary on both |
 | Approval workflow | Schema implemented; no read or write path |
 | Custody assignment and release | Schema implemented; read path only |
 | Dashboard | Placeholder view |
 | Role-based authorisation | Partial; no method-level rules |
 | Document upload | Out of scope |
+| Composite components (`resources/ats/`) | Implemented — `pagination`, `badge`, `field`, `filterSelect` |
+| Query-string parameter handling | `f:viewParam`/`f:viewAction` on all list/detail pages; `FacesUtil` deleted |
 
 The codebase is being brought to the architecture described above incrementally. Sections
 2 through 8 describe the standard that new work must meet;
