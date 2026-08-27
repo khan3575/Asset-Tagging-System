@@ -24,31 +24,37 @@
 
     <ui:define name="content">
         <div>
-            <form>
+            <h:form id="searchForm">
                 <div class="row">
                     <div class="col-auto">
-                        <label for="search" class="form-label mb-0">Search</label>
-                        <input type="text" name="search" id="search" value="#{userListBean.search}" class="form-control mb-2"/>
+                        <h:outputLabel for="search" value="Search" styleClass="form-label mb-0"/>
+                        <h:inputText id="search" value="#{userListBean.search}" styleClass="form-control mb-2"/>
                     </div>
                     <div class="col-auto">
-                        <label for="roleName" class="form-label mb-0" >Roles</label>
-                        <ats:filterSelect selectId="roleName" options="#{userListBean.roleOptionsMap}"
-                            selected="#{userListBean.roleName}" emptyLabel="All roles"/>
+                        <h:outputLabel for="roleName" value="Roles" styleClass="form-label mb-0"/>
+                        <h:selectOneMenu id="roleName" value="#{userListBean.roleName}" styleClass="form-select">
+                            <f:selectItem itemLabel="All roles" itemValue="#{null}"/>
+                            <f:selectItems value="#{userListBean.roleOptions}" var="role" itemLabel="#{role}" itemValue="#{role}"/>
+                        </h:selectOneMenu>
                     </div>
                     <div class="col-auto">
-                        <label for="departmentId" class="form-label mb-0">Department id : </label>
-                        <input type="text" name="departmentId" id="departmentId" value="#{userListBean.departmentId}" class="form-control mb-2"/>
+                        <h:outputLabel for="departmentId" value="Department id : " styleClass="form-label mb-0"/>
+                        <h:inputText id="departmentId" value="#{userListBean.departmentId}" styleClass="form-control mb-2"/>
                     </div>
                     <div class="col-auto">
-                        <label for="enabled" class="form-label mb-0">Status : </label>
-                        <ats:filterSelect selectId="enabled" options="#{{'true':'Enabled','false':'Disabled'}}"
-                            selected="#{userListBean.enabled}" emptyLabel="Any"/>
+                        <h:outputLabel for="enabled" value="Status : " styleClass="form-label mb-0"/>
+                        <h:selectOneMenu id="enabled" value="#{userListBean.enabled}" styleClass="form-select">
+                            <f:selectItem itemLabel="Any" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="Enabled" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="Disabled" itemValue="#{false}"/>
+                        </h:selectOneMenu>
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-primary mt-4" type="submit">Search</button>
+                        <h:commandButton value="Search" action="#{userListBean.search}" styleClass="btn btn-primary mt-4"/>
                     </div>
                 </div>
-            </form>
+            </h:form>
+
         </div>
         <div >
             <!-- user tables will be rendered here -->

@@ -56,4 +56,10 @@ public class AssetBean {
         totalCount = (int) assetService.countAssets(search);
         totalPageCount = (int) Math.ceil((double)totalCount / pageSize);
     }
+
+    public String search()
+    {
+        page = 1;
+        return "asset-list?faces-redirect=true&includeViewParams=true";
+    }
 }

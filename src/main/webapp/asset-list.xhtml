@@ -22,17 +22,17 @@
     
     <ui:define name="content">
         <div>
-            <form>
+            <h:form id="searchForm">
                 <div class="row">
-                    <div class="col-auto">
-                        <label for="search" class="form-label mb-0">Search</label>
-                        <input type="text" name="search" id="search" value="#{assetBean.search}" class="form-control mb-2"/>
+                    <div class="col-10">
+                        <h:outputLabel for="search" value="Search" styleClass="form-label mb-0 text-muted"/>
+                        <h:inputText id="search" value="#{assetBean.search}" styleClass="form-control mb-2"/>
                     </div>
-                    <div class="col-auto">
-                        <button class="btn btn-primary mt-4" type="submit">Search</button>
+                    <div class="col-2">
+                        <h:commandButton value="Search" action="#{assetBean.search}" styleClass="btn btn-primary mt-4"/>
                     </div>
                 </div>
-            </form>
+            </h:form>
         </div>
         <div >
             <!-- asset table will be rendered here -->

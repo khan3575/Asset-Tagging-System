@@ -84,4 +84,11 @@ public class UserListBean {
         if(enabled != null) params.put("enabled", String.valueOf(enabled));
         return params;
     }
+    
+    public String search()
+    {
+        page = 1;
+        return "user-list?faces-redirect=true&includeViewParams=true";
+    }
+
 }
