@@ -43,11 +43,17 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/login", "/login.xhtml", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
-                                    // FacesServlet is mapped to *.xhtml, so the view file is a
-                                    // reachable URL in its own right and has to carry the same rule
-                                    // as the controller route that forwards to it.
-                                    .requestMatchers("/audit-log", "/audit-log.xhtml").hasRole("ADMIN")
+                        auth -> auth
+                                    // Must be the first matcher: FacesServlet no longer owns *.xhtml
+                                    // once automatic-extensionless-mapping is on, so a direct .xhtml
+                                    // request would otherwise fall through to the default servlet and
+                                    // be served as raw Facelets source. /resources/** is the physical
+                                    // webapp/resources folder (composite component sources included),
+                                    // sealed for the same reason.
+                                    .requestMatchers("/**/*.xhtml", "/*.xhtml").denyAll()
+                                    .requestMatchers("/resources/**").denyAll()
+                                    .requestMatchers("/login", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
+                                    .requestMatchers("/activity/**").hasRole("ADMIN")
                                     .anyRequest().authenticated()
                 )
                 .logout(

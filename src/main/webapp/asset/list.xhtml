@@ -39,9 +39,10 @@
             <h:dataTable value="#{assetBean.assetList}" var="row" styleClass="table table-striped border table-hover clickable-rows">
                 <h:column>
                     <f:facet name="header">Asset Tag</f:facet>
-                    <h:outputLink value="/assets/#{row.id}">
+                    <h:link outcome="/asset/detail">
+                        <f:param name="id" value="#{row.id}"/>
                         #{row.assetTag}
-                    </h:outputLink>
+                    </h:link>
                 </h:column>
                 <h:column>
                     <f:facet name="header">Name</f:facet>
@@ -66,7 +67,7 @@
 
             </h:dataTable>
             <ats:pagination page="#{assetBean.page}" totalPages="#{assetBean.totalPageCount}"
-                url="/assets">
+                url="/asset/list">
                 <f:attribute name="extraParams" value="#{{'search':  assetBean.search}}" />
             </ats:pagination>
         </div>

@@ -61,9 +61,10 @@
             <h:dataTable value="#{userListBean.users}" var="user" styleClass="table table-striped border table-hover clickable-rows">
                 <h:column>
                     <f:facet name="header">ID</f:facet>
-                    <a href="#{request.contextPath}/user/#{user.id}" class="text-decoration-none text-body d-block">
+                    <h:link outcome="/user/detail" styleClass="text-decoration-none text-body d-block">
+                        <f:param name="id" value="#{user.id}"/>
                         #{user.id}
-                    </a>
+                    </h:link>
                 </h:column>
                 <h:column>
                     <f:facet name="header">Full name</f:facet>
@@ -89,7 +90,7 @@
                 </h:column>
             </h:dataTable>
             <ats:pagination page="#{userListBean.page}" totalPages="#{userListBean.totalPageCount}"
-                url="/user" extraParams="#{userListBean.extraParams}" />
+                url="/user/list" extraParams="#{userListBean.extraParams}" />
 
         </div>
     </ui:define>
