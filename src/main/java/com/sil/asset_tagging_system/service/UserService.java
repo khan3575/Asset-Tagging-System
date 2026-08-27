@@ -33,7 +33,7 @@ public class UserService {
         userDao.replaceRoles(id,roles);
 
         ActivityLog act = ActivityLog.builder()
-                .correlationId(CorrelationFilter.CURRENT.get())
+                .correlationId(CorrelationFilter.getCurrentCorrelationId())
                 .sequenceInAction((short) 1)
                 .actorUserId(actorUserId)
                 .entityType(ActivityEntityType.USER)

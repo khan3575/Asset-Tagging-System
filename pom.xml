@@ -64,13 +64,7 @@
             <artifactId>spring-boot-starter-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>6.1.1</version>
-            <scope>test</scope>
-        </dependency>
+        
         <!-- Triggers Spring Boot's FlywayAutoConfiguration; flyway-mysql alone does not.
              In Boot 4.1 that autoconfiguration lives in its own module, pulled in only by
              this starter, not by spring-boot-autoconfigure generally. -->
@@ -105,6 +99,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -130,14 +125,7 @@
             <artifactId>mojarra4-spring-boot-starter</artifactId>
             <version>6.1.0</version>
             <scope>compile</scope>
-        </dependency>
-
-
-        <!-- Source: https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper -->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-jasper</artifactId>    
-        </dependency>
+        </dependency> 
         <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-tomcat -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

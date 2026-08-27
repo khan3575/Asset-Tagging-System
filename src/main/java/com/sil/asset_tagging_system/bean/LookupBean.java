@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -19,7 +19,7 @@ import lombok.Getter;
 
 @Getter
 @Named
-@ApplicationScoped
+@RequestScoped
 public class LookupBean {
     private final DepartmentDao departmentDao;
     private final AssetCategoryDao assetCategoryDao;

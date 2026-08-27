@@ -35,7 +35,7 @@ public class LoginAuditListener {
 
 
         ActivityLog act = ActivityLog.builder()
-            .correlationId(CorrelationFilter.CURRENT.get())
+            .correlationId(CorrelationFilter.getCurrentCorrelationId())
             .sequenceInAction((short) 1)
             .ipAddress(WebUtil.getRemoteAddress(event.getAuthentication()))
             .entityType(ActivityEntityType.AUTH)
@@ -64,7 +64,7 @@ public class LoginAuditListener {
        // auditLogDao.log(null, "LOGIN_FAILURE", "AUTH", null, "Failed login attempt : "+attemptedEmail, extractIp(event.getAuthentication()));
     
         ActivityLog act = ActivityLog.builder()
-            .correlationId(CorrelationFilter.CURRENT.get())
+            .correlationId(CorrelationFilter.getCurrentCorrelationId())
             .sequenceInAction((short) 1)
             .ipAddress(WebUtil.getRemoteAddress(event.getAuthentication()))
             .entityType(ActivityEntityType.AUTH)

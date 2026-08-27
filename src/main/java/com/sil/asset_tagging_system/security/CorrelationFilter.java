@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorrelationFilter implements Filter {
     
-    public static final ThreadLocal<UUID> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<UUID> CURRENT = new ThreadLocal<>();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException
@@ -30,5 +30,10 @@ public class CorrelationFilter implements Filter {
         finally{
             CURRENT.remove();
         }
+    }
+
+    public static UUID getCurrentCorrelationId()
+    {
+        return CURRENT.get();
     }
 }

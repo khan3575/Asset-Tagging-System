@@ -18,7 +18,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
-import com.sil.asset_tagging_system.security.RestAccessDeniedHandler;
+import com.sil.asset_tagging_system.security.BrowserAccessDeniedHandler;
 
 
 @Configuration
@@ -26,7 +26,7 @@ import com.sil.asset_tagging_system.security.RestAccessDeniedHandler;
 @EnableMethodSecurity
 public class SecurityConfig {
     @Autowired
-    private RestAccessDeniedHandler restAccessDeniedHandler;
+    private BrowserAccessDeniedHandler browserAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception
@@ -68,7 +68,7 @@ public class SecurityConfig {
                     .failureUrl("/login?error").permitAll()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .exceptionHandling(handling-> handling.accessDeniedHandler(restAccessDeniedHandler)
+                .exceptionHandling(handling-> handling.accessDeniedHandler(browserAccessDeniedHandler)
                 )
                 .sessionManagement(session -> session
                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

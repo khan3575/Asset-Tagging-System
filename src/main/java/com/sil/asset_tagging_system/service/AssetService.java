@@ -42,7 +42,7 @@ public class AssetService {
 
         //activity log needs ip and actor roles
         ActivityLog act = ActivityLog.builder()
-                .correlationId(CorrelationFilter.CURRENT.get())
+                .correlationId(CorrelationFilter.getCurrentCorrelationId())
                 .sequenceInAction((short) 1)
                 .actorUserId(actorUserId)
                 .entityType(ActivityEntityType.ASSET)
