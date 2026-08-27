@@ -23,6 +23,7 @@
 
     <ui:define name="content">
         <h:form id="update-asset-view" styleClass="row g-3" style="max-width:600;">
+            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
             <div class="col-6">
                 <h:outputLabel for="assetTag" value="Asset Tag" styleClass="form-label mb-0" />
                 <h:inputText name="assetTag" id="assetTag" value="#{assetDetailBean.asset.assetTag}" styleClass="form-control" disabled="disabled" />

@@ -13,6 +13,7 @@
         <ui:define name="content">
             <h:messages globalOnly="true" styleClass="alert alert-danger" layout="table"/>
             <h:form id="add-asset-form" styleClass="row g-3" style="max-width: 600px;">
+                <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
                 <ats:field label="Asset Tag" fieldId="assetTag">
                     <h:inputText id="assetTag" value="#{assetFormBean.assetTag}" styleClass="form-control" required="true"/>
                 </ats:field>

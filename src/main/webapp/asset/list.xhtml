@@ -23,6 +23,7 @@
     <ui:define name="content">
         <div>
             <h:form id="searchForm">
+                <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
                 <div class="row">
                     <div class="col-10">
                         <h:outputLabel for="search" value="Search" styleClass="form-label mb-0 text-muted"/>

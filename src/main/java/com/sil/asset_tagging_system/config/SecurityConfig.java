@@ -31,17 +31,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception
     {
-        //normal csrf
-        // http.csrf(csrf -> csrf.disable())
-
         /* Note : if formLogin and httpBasic isnt mentioned into the filterchain be defaulted
         * unauthorized request are send 403 error code. that is for bidden
         *
         * here is added formLogin and httpBasic to ensure other developers find that we wanted
         * the unauthorized request return 403.
         * */
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+        // CSRF is left at Spring Security's default (enabled). Every h:form/<form> in
+        // webapp/ carries a hidden #{requestScope._csrf.parameterName}/.token field to
+        // match -- JSF has no built-in CSRF integration the way Thymeleaf/JSP form tags do.
+        http.cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         auth -> auth
                                     // Must be the first matcher: FacesServlet no longer owns *.xhtml
