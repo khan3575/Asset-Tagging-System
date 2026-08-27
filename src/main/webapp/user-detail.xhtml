@@ -5,6 +5,13 @@
       xmlns:ats="jakarta.faces.composite/ats"
       xmlns:ui="jakarta.faces.facelets">
     
+
+    <f:metadata>
+        <f:viewParam name="id" value="#{userDetailBean.id}" required="true"
+                requiredMessage="A user id is required."/>
+        <f:viewAction action="#{userDetailBean.load}"/>
+    </f:metadata>
+      
     <ui:define name="title">User Details</ui:define>
     <ui:define name="pageTitle">User Details</ui:define>
     <ui:define name="pageSubtitle">View and edit this user's information</ui:define>
