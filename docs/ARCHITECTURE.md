@@ -73,37 +73,28 @@ leaves an asset that no audit trail records.
 
 ## 3. Request Processing
 
-**Correction, 2026-08-27**: the paragraph and properties below describe an aspirational
-extensionless-only design that does **not** match the current codebase, and the two named
-properties aren't set anywhere in `application.properties` — they were probably confused
-with OmniFaces's `joinfaces.omnifaces.faces-views-scan-paths`/`faces-views-extension-action`
-(present in `application.properties`, but commented out). What's actually true, verified
-empirically this session:
+**Current as of 2026-08-27 (Refactoring Roadmap Stage 8, complete).** There is no
+controller layer. `FacesServlet` answers every view URL directly:
 
-- Spring MVC `@Controller` classes (`AssetController`, `UserController`, `DashboardController`,
-  `AuditLogViewController`, `LoginViewController`) exist and are load-bearing — they're what
-  makes `/assets`, `/assets/{id}`, `/assets/new`, `/user`, `/user/{id}` etc. resolve at all.
-  Each does a plain `RequestDispatcher.forward(...)` to the real `.xhtml` file, converting a
-  path segment into a query parameter along the way (`/assets/{id}` → forward to
-  `/asset-view.xhtml?id={id}`).
-- This bridge is not incidental scaffolding waiting to be deleted — **JSF has no
-  path-variable mechanism of its own**. `f:viewParam` only reads query-string parameters.
-  Any URL with an `{id}`-style path segment (as opposed to a flat, parameterless page like
-  `/dashboard` or `/audit-log`) structurally needs something to translate that segment into
-  a query parameter before JSF can read it via `f:viewParam` — in this codebase, that's
-  these controllers. Removing them would break every parameterized detail page.
-- **A real bug in this bridge, found and fixed 2026-08-27**: both controllers originally
-  declared `@PathVariable Long id`, which made Spring MVC convert the path segment to `Long`
-  *before* forwarding — so a bad id (`/assets/abc`) threw Spring's own
-  `MethodArgumentTypeMismatchException` (a raw 400 stack trace) instead of ever reaching
-  `f:viewParam`'s validation. Fixed to `@PathVariable String id`, passing the raw string
-  through unconverted so JSF's own converter does the real validation. See
-  [development-plan.md](development-plan.md)'s 2026-08-27 entry for the verification.
-- Stage 8 of the Refactoring Roadmap ("URL migration") is a narrower, different problem —
-  the sidebar's `h:link outcome=` values not matching real filenames — not about removing
-  this controller layer.
-
-The one part of the original paragraph that *is* accurate and current:
+- `joinfaces.faces.automatic-extensionless-mapping=true` makes `FacesServlet` register an
+  exact servlet-path mapping for every physical `.xhtml` file it discovers, under the
+  view's extensionless name (`webapp/asset/list.xhtml` → `/asset/list`). The webapp
+  directory tree *is* the URL scheme; nothing bridges it.
+- `joinfaces.faces.disable-facesservlet-to-xhtml=true` removes `FacesServlet`'s old
+  `*.xhtml` wildcard mapping, so the extension is no longer a working URL at all.
+- Every URL is now a flat, parameterless page or a query-string one — `/asset/detail?id=1`,
+  not `/assets/1`. `f:viewParam` reads the id directly; no translation layer exists or is
+  needed, since JSF's lack of a path-variable mechanism is no longer a constraint the
+  routing has to work around.
+- The five Spring MVC `@Controller` classes that previously bridged path-variable URLs into
+  query-string ones (`AssetController`, `UserController`, `DashboardController`,
+  `AuditLogViewController`, `LoginViewController`) are **deleted**. The one piece of
+  behavior still needed — redirecting `GET /` to `/dashboard` — moved to
+  `config/WebConfig.java`'s `addViewControllers(...)`.
+- §7.1 covers the security rule this depends on: `.xhtml` and `/resources/**` are sealed at
+  the `SecurityConfig` layer, first in the filter chain, in the same change that enabled
+  the two properties above (Constraint C1 in the roadmap — splitting them across two
+  changes means `.xhtml` templates serve as raw static source in between).
 
 Values arriving in the URL are declared with `f:viewParam` inside `f:metadata`, never
 parsed from the request parameter map by hand. `f:viewParam` performs type conversion and
@@ -233,8 +224,8 @@ prevent users from signing in.
 | Asset registration | Implemented, transactional, logs `ASSET_REGISTERED` |
 | User directory — list, search, filter, pagination | Implemented, `f:viewParam`-driven |
 | User detail view | Implemented, read-only |
-| User editing | In progress (roadmap T7.1) — service/DAO layer exists, `@ViewScoped` edit-state machine and form not yet built; see [development-plan.md](development-plan.md) |
-| Activity log — business actions | Implemented for asset registration; not yet for user edits (pending T7.1) |
+| User editing | Implemented — `@ViewScoped` edit-state machine, `h:selectOneMenu`/`h:selectBooleanCheckbox` form |
+| Activity log — business actions | Implemented for asset registration and user edits (`ASSET_REGISTERED`, `USER_UPDATED`), both transactional and verified atomic by fault injection |
 | Service layer | `AssetService`, `UserService` implemented; `@Transactional` boundary on both |
 | Approval workflow | Schema implemented; no read or write path |
 | Custody assignment and release | Schema implemented; read path only |
