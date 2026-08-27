@@ -5,6 +5,12 @@
       xmlns:ats="jakarta.faces.composite/ats"
       xmlns:f="jakarta.faces.core">
 
+    <f:metadata>
+        <f:viewParam name="search" value="#{assetBean.search}"/>
+        <f:viewParam name="page" value="#{assetBean.page}"/>
+        <f:viewAction action="#{assetBean.load}" />
+    </f:metadata>
+    
     <ui:define name="title">Asset List</ui:define>
     <ui:define name="pageTitle">Asset Management</ui:define>
     <ui:define name="pageSubtitle">View and Search assets here</ui:define>

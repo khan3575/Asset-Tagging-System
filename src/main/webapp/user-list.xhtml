@@ -5,6 +5,15 @@
       xmlns:ui="jakarta.faces.facelets"
       xmlns:f="jakarta.faces.core">
 
+    <f:metadata>
+        <f:viewParam name="search" value="#{userListBean.search}"/>
+        <f:viewParam name="page" value="#{userListBean.page}"/>
+        <f:viewParam name="roleName" value="#{userListBean.roleName}"/>
+        <f:viewParam name="departmentId" value="#{userListBean.departmentId}"/>
+        <f:viewParam name="enabled" value="#{userListBean.enabled}"/>
+        <f:viewAction action="#{userListBean.load}" />
+    </f:metadata>
+
     <ui:define name="title">User List</ui:define>
     <ui:define name="pageTitle">User Management</ui:define>
     <ui:define name="pageSubtitle">View, Search and Filter here</ui:define>

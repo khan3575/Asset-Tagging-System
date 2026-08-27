@@ -5,6 +5,12 @@
     xmlns:f="jakarta.faces.core" 
     xmlns:ui="jakarta.faces.facelets">
 
+    <f:metadata>
+        <f:viewParam name="page" value="#{activityLogBean.page}"/>
+        <f:viewAction action="#{activityLogBean.load}"/>
+    </f:metadata>
+
+
     <ui:define name="title">Activity Log</ui:define>
     <ui:define name="pageTitle">Activity Log</ui:define>
     <ui:define name="content">
