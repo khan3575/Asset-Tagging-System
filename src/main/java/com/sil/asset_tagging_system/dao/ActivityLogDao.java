@@ -82,7 +82,7 @@ public class ActivityLogDao {
         return (value == null) ? null : value.name();
     }
 
-
+    @SuppressWarnings("unchecked")
     public List<ActivityLog> findRecent(int limit, int offset){
         List<ActivityLog> resultList = entityManager.createNativeQuery(FIND_RECENT_LOG, ActivityLog.class)
                                         .setParameter("offset", offset)
