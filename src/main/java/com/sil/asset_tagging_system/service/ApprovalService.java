@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sil.asset_tagging_system.dao.ApprovalDao;
 import com.sil.asset_tagging_system.dao.ApprovalDao.ApprovalSnapshot;
 import com.sil.asset_tagging_system.dao.AssetCustodyDao;
+import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.enums.ApprovalActionType;
 import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
 import com.sil.asset_tagging_system.model.enums.RoleName;
@@ -37,6 +38,10 @@ public class ApprovalService {
     // if employee request transfer then approve count 0 two admin approval needed.
     @Transactional
     public Long initiateTransfer(Long assetId, Long initiatedByUserId, Long requesterId,Long previousHolderId, String initiatorRole) {
+        if(approvalDao.existsOpenTransferRequest(assetId))
+        {
+            throw new BusinessRuleException("A transfer is already pending for this asset");
+        }
         Long approvalId = approvalDao.createTransferRequest(assetId, initiatedByUserId, requesterId, previousHolderId);
 
         if (RoleName.ROLE_ADMIN.name().equals(initiatorRole)) {
