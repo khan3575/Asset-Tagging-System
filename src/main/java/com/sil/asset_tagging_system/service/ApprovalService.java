@@ -9,10 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sil.asset_tagging_system.dao.ApprovalDao;
 import com.sil.asset_tagging_system.dao.ApprovalDao.ApprovalSnapshot;
 import com.sil.asset_tagging_system.dao.AssetCustodyDao;
+import com.sil.asset_tagging_system.dto.ApprovalRow;
 import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.enums.ApprovalActionType;
 import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
 import com.sil.asset_tagging_system.model.enums.RoleName;
+import com.sil.asset_tagging_system.util.OptionalUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,4 +85,17 @@ public class ApprovalService {
         assetCustodyDao.transferCustody(snapshot.assetId(), snapshot.requesterId(), approvalId, actorUserId, LocalDateTime.now());
         log.info("ApprovalService.recordAction -> approval {} fully approved by actor {}, custody transferred to user {}", approvalId, actorUserId, snapshot.requesterId());
     }
+
+    public ApprovalRow getApprovalDetail(Long approvalId) {
+        return OptionalUtils.orThrowDbFetch(approvalDao.findApprovalDetail(approvalId), "Approval");
+    }
+
+    public long countApprovedActions(Long approvalId) {
+        return approvalDao.countApprovedActions(approvalId);
+    }
+
+    public boolean hasActorRecordedAction(Long approvalId, Long actorUserId) {
+        return approvalDao.hasActorRecordedAction(approvalId, actorUserId);
+    }
+
 }

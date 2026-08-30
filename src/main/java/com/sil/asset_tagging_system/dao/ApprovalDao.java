@@ -1,12 +1,15 @@
 package com.sil.asset_tagging_system.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
 
+import com.sil.asset_tagging_system.dto.ApprovalRow;
 import com.sil.asset_tagging_system.model.enums.ApprovalActionType;
 import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
 import com.sil.asset_tagging_system.model.enums.RequestType;
@@ -140,4 +143,50 @@ public class ApprovalDao {
     }
 
     public record ApprovalSnapshot(Long assetId, Long requesterId, byte requiredApprovalCount) {}
+
+    @SuppressWarnings("unchecked")
+    public Optional<ApprovalRow> findApprovalDetail(Long approvalId)
+    {
+        String sql = """
+            SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
+            , u.last_name, a.status, a.required_approval_count, a.requested_at
+            FROM approvals a
+            JOIN assets ast ON a.asset_id = ast.id
+            JOIN users u ON a.requester_id = u.id
+            WHERE a.id = :approvalId
+            """;
+
+        return entityManager.createNativeQuery(sql)
+            .setParameter("approvalId", approvalId)
+            .getResultStream()
+            .findFirst()
+            .map(result -> {
+                Object[] row = (Object[]) result;
+                return new ApprovalRow(
+                    ((Number) row[0]).longValue(),
+                    (String) row[1],
+                    (String) row[2],
+                    ((Number) row[3]).longValue(),
+                    (String) row[4],
+                    (String) row[5],
+                    (String) row[6],
+                    ((Number) row[7]).byteValue(),
+                    ((LocalDateTime)row[8])
+                );
+            });
+    }
+
+    public Boolean hasActorRecordedAction(long approvalId, long actorUserId)
+    {
+        String sql = """
+                SELECT COUNT(*)
+                FROM approval_actions
+                WHERE approval_id = :approvalId
+                AND actor_user_id = :actorUserId
+                """;
+        return DaoUtils.exists(entityManager, sql, Map.of(
+                "approvalId", approvalId,
+                "actorUserId", actorUserId
+        ));
+    }
 }
