@@ -91,19 +91,21 @@ public class ApprovalDao {
                 .getSingleResult()).longValue();
     }
 
-    // Everything ApprovalService needs to decide "has this transfer collected enough
-    // signatures yet, and if so, who does the asset move to" -- one row, one round trip.
     public ApprovalSnapshot findApprovalSnapshot(long approvalId)
     {
+        // check approval count
         String sql = """
                 SELECT asset_id, requester_id, required_approval_count
                 FROM approvals
                 WHERE id = :approvalId
                 """;
+        
         Object[] row = (Object[]) entityManager.createNativeQuery(sql)
                 .setParameter("approvalId", approvalId)
                 .getSingleResult();
 
+
+        
         return new ApprovalSnapshot(
                 ((Number) row[0]).longValue(),
                 ((Number) row[1]).longValue(),

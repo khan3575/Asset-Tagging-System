@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -50,6 +51,11 @@ public class UserService {
     public User getUser(Long id)
     {
         return OptionalUtils.orThrowDbFetch(userDao.findById(id), "User");
+    }
+
+    public Optional<User> findUser(Long id)
+    {
+        return userDao.findById(id);
     }
 
     public List<User> findUsers(RoleName roleName, String search, Long departmentId, Boolean enabled, int limit, int offset)

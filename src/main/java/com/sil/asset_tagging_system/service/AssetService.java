@@ -12,11 +12,13 @@ import com.sil.asset_tagging_system.dao.AssetDao;
 import com.sil.asset_tagging_system.dto.AssetRow;
 import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.model.ActivityLog;
+import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.enums.ActivityAction;
 import com.sil.asset_tagging_system.model.enums.ActivityEntityType;
 import com.sil.asset_tagging_system.model.enums.ActivityOutcome;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.security.CorrelationFilter;
+import com.sil.asset_tagging_system.util.OptionalUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class AssetService {
 
     private final AssetDao assetDao;
     private final ActivityLogDao activityLogDao;
+    
     @Transactional
     public Long register(String assetTag, String name, Long categoryId,
                          LocalDate purchaseDate, BigDecimal value, Long actorUserId, String actorRole, String ipAddress) {
@@ -58,6 +61,11 @@ public class AssetService {
         log.info("AssetService.register -> asset '{}' created id {} by actor {}",
                 assetTag, newAssetId, actorUserId);
         return newAssetId;
+    }
+
+    public Asset getAsset(Long id)
+    {
+        return OptionalUtils.orThrowDbFetch(assetDao.findById(id), "Asset");
     }
 
     public List<AssetRow> findPage(String search , int limit, int offset)

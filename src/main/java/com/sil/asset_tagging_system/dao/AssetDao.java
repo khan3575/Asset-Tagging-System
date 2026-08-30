@@ -66,6 +66,7 @@ public class AssetDao {
         return entityManager.createNativeQuery(sql, Asset.class).getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<AssetRow> findPage(String search, int limit, int offset)
     {
         // currently asset searching is done (name, category_name, asset_tag)

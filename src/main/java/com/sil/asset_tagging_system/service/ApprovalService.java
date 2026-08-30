@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,13 @@ public class ApprovalService {
     public boolean hasOpenTransferRequest(Long assetId) {
         return approvalDao.existsOpenTransferRequest(assetId);
     }
+
+    // custody dao and approval doa both managed by approval service.
+    // i didnt create custody service yet.
+    public Optional<Long> findActiveCustodianId(Long assetId) {
+        return assetCustodyDao.findActiveCustodianId(assetId);
+    }
+    
     // if admin created transfer then approve already counts 1
     // if employee request transfer then approve count 0 two admin approval needed.
     @Transactional
