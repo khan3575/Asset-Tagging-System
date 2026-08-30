@@ -1,6 +1,5 @@
 package com.sil.asset_tagging_system.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +24,14 @@ import com.sil.asset_tagging_system.security.BrowserAccessDeniedHandler;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    @Autowired
-    private BrowserAccessDeniedHandler browserAccessDeniedHandler;
+    
+    private final BrowserAccessDeniedHandler browserAccessDeniedHandler;
+    
+    
+    public SecurityConfig(BrowserAccessDeniedHandler browserAccessDeniedHandler)
+    {
+        this.browserAccessDeniedHandler = browserAccessDeniedHandler;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception
