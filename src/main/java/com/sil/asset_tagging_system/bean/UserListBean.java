@@ -11,9 +11,9 @@ import jakarta.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sil.asset_tagging_system.dao.UserDao;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
+import com.sil.asset_tagging_system.service.UserService;
 import com.sil.asset_tagging_system.util.PageParams;
 
 import lombok.Getter;
@@ -25,7 +25,7 @@ import lombok.Setter;
 public class UserListBean {
     private final Logger log = LoggerFactory.getLogger(UserListBean.class);
 
-    private final UserDao userDao;
+    private final UserService userService;
     private List<User> users;
     private Long totalCount;
     private Integer totalPageCount;
@@ -44,22 +44,22 @@ public class UserListBean {
     private Integer offset;
 
     @Inject
-    public UserListBean(UserDao userDao)
+    public UserListBean(UserService userService)
     {
-        this.userDao = userDao;
+        this.userService = userService;
     }
 
-    
+
     public void load()
     {
-        
+
         page = PageParams.clamp(page);
         offset = PageParams.offset(page,pageSize);
 
         log.info("UserListBean init -- Search {}", search);
 
-       users = userDao.findUsers(roleName, search, departmentId, enabled, pageSize, offset);
-       totalCount = userDao.countUsers(roleName, search, departmentId, enabled);
+       users = userService.findUsers(roleName, search, departmentId, enabled, pageSize, offset);
+       totalCount = userService.countUsers(roleName, search, departmentId, enabled);
         
        totalPageCount = (int) Math.ceil( (double) totalCount / pageSize);
     }

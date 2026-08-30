@@ -6,8 +6,8 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import com.sil.asset_tagging_system.dao.ActivityLogDao;
 import com.sil.asset_tagging_system.model.ActivityLog;
+import com.sil.asset_tagging_system.service.ActivityLogService;
 import com.sil.asset_tagging_system.util.PageParams;
 
 import lombok.Getter;
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Named
 @RequestScoped
 public class ActivityLogBean {
-    private final ActivityLogDao activityLogDao;
+    private final ActivityLogService activityLogService;
     private List<ActivityLog> entries;
     private long totalCount;
     private int totalPageCount;
@@ -30,21 +30,21 @@ public class ActivityLogBean {
     private final int pageSize = 20;
 
     @Inject
-    public ActivityLogBean(ActivityLogDao activityLogDao)
+    public ActivityLogBean(ActivityLogService activityLogService)
     {
-        this.activityLogDao = activityLogDao;
+        this.activityLogService = activityLogService;
     }
 
-    
+
     public void load()
     {
         page = PageParams.clamp(page);
         offset = PageParams.offset(page,pageSize);
 
-        totalCount = activityLogDao.countAll();
+        totalCount = activityLogService.countAll();
         totalPageCount = (int) Math.ceil((double) totalCount/ pageSize);
 
-        entries = activityLogDao.findRecent(pageSize, offset);
+        entries = activityLogService.findRecent(pageSize, offset);
         log.info("ActivityLogBean init -- page {} of {}, {} entries total", page, totalPageCount, totalCount);
     }
 

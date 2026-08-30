@@ -9,11 +9,10 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import com.sil.asset_tagging_system.dao.AssetCategoryDao;
-import com.sil.asset_tagging_system.dao.DepartmentDao;
 import com.sil.asset_tagging_system.model.AssetCategory;
 import com.sil.asset_tagging_system.model.Department;
 import com.sil.asset_tagging_system.model.enums.RoleName;
+import com.sil.asset_tagging_system.service.LookupService;
 
 import lombok.Getter;
 
@@ -21,23 +20,21 @@ import lombok.Getter;
 @Named
 @RequestScoped
 public class LookupBean {
-    private final DepartmentDao departmentDao;
-    private final AssetCategoryDao assetCategoryDao;
+    private final LookupService lookupService;
     private List<Department> departmentList;
     private List<AssetCategory> assetCategoryList;
 
     @Inject
-    public LookupBean(DepartmentDao departmentDao, AssetCategoryDao assetCategoryDao)
+    public LookupBean(LookupService lookupService)
     {
-        this.departmentDao = departmentDao;
-        this.assetCategoryDao = assetCategoryDao;
+        this.lookupService = lookupService;
     }
 
     @PostConstruct
     public void init()
     {
-        departmentList = departmentDao.findAllDepartments();
-        assetCategoryList = assetCategoryDao.findAll();
+        departmentList = lookupService.findAllDepartments();
+        assetCategoryList = lookupService.findAllAssetCategories();
     }
 
     public RoleName[] getRoleOptions()
