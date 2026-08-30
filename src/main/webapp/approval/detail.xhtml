@@ -1,0 +1,42 @@
+<ui:composition template="/WEB-INF/templates/main.xhtml"
+        xmlns:ats="jakarta.faces.composite/ats"
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:h="jakarta.faces.html"
+        xmlns:f="jakarta.faces.core">
+
+    <f:metadata>
+        <f:viewParam name="id" value="#{approvalDetailBean.id}" required="true"
+            requiredMessage="An approval id is required." />
+        <f:viewAction action="#{approvalDetailBean.load}" />
+    </f:metadata>
+
+    <ui:define name="title">Approval Detail</ui:define>
+    <ui:define name="pageTitle">Approval Detail</ui:define>
+    <ui:define name="pageSubtitle">Review or act on this request</ui:define>
+
+    <ui:define name="content">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <p><strong>Asset:</strong> #{approvalDetailBean.detail.assetTag} - #{approvalDetailBean.detail.assetName}</p>
+                <p><strong>Requester:</strong> #{approvalDetailBean.detail.requesterFirstName} #{approvalDetailBean.detail.requesterLastName}</p>
+                <p><strong>Status:</strong> #{approvalDetailBean.detail.status}</p>
+                <ats:badge text="#{approvalDetailBean.approvedCount} of #{approvalDetailBean.detail.requiredApprovalCount} approved"/>
+            </div>
+        </div>
+
+        <h:form id="approval-action-form" 
+        rendered="#{headerBean.role == 'ROLE_ADMIN' and !approvalDetailBean.alreadyActed and (approvalDetailBean.detail.status == 'PENDING' or approvalDetailBean.detail.status == 'PARTIALLY_APPROVED')}"
+         styleClass="row g-3 card" style="max-width:600px;">
+
+            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+
+            <h:outputLabel for="notes" value="Notes (Optional)" styleClass="form-label mb-0" />
+            <h:inputTextarea id="notes" value="#{approvalDetailBean.notes}" styleClass="form-control" />
+
+            <h:commandButton value="Approve" action="#{approvalDetailBean.approve}" styleClass="btn btn-success mt-2 me-2" />
+            <h:commandButton value="Reject" action="#{approvalDetailBean.reject}" styleClass="btn btn-outline-danger mt-2" />
+        </h:form>
+    </ui:define>
+
+</ui:composition>   

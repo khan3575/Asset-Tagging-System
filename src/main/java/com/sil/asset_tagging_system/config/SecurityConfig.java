@@ -58,6 +58,7 @@ public class SecurityConfig {
                                     .requestMatchers("/resources/**").denyAll()
                                     .requestMatchers("/login", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
                                     .requestMatchers("/activity/**").hasRole("ADMIN")
+                                    .requestMatchers("/approval/**").hasRole("ADMIN")
                                     .anyRequest().authenticated()
                 )
                 .logout(

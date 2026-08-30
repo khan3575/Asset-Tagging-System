@@ -58,7 +58,13 @@ public class ApprovalService {
     // if one rejected then it immediately cancels the transfer process.
     @Transactional
     public void recordAction(long approvalId, long actorUserId, ApprovalActionType action, String notes) {
-        
+
+        ApprovalRow current = getApprovalDetail(approvalId);
+        if (!ApprovalStatus.PENDING.name().equals(current.status())
+                && !ApprovalStatus.PARTIALLY_APPROVED.name().equals(current.status())) {
+            throw new BusinessRuleException("This approval has already been closed");
+        }
+
         approvalDao.recordAction(approvalId, actorUserId, action, notes);
         // checking if employee cancled or admin rejected ?
         if (action == ApprovalActionType.REJECTED || action == ApprovalActionType.CANCELLED) {
