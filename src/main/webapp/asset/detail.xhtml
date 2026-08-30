@@ -39,5 +39,40 @@
                 <h:inputText name="categoryName" id="categoryName" value="#{assetDetailBean.asset.category.name}" styleClass="form-control" disabled="disabled" />
             </div>
         </h:form>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <i class="bi bi-person-check me-2"></i>Custody
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>Current Holder:</strong>
+                    <ui:fragment rendered="#{assetDetailBean.currentHolder != null}">
+                        #{assetDetailBean.currentHolder.firstName} #{assetDetailBean.currentHolder.lastName}
+                    </ui:fragment>
+                    <ui:fragment rendered="#{assetDetailBean.currentHolder == null}">
+                        Unassigned
+                    </ui:fragment>
+                </p>
+
+                <ats:badge text="Transfer Pending" rendered="#{assetDetailBean.transferPending}"/>
+
+                <h:form id="transfer-form" styleClass="row g-3 mt-2"
+                        rendered="#{headerBean.role == 'ROLE_ADMIN' and !assetDetailBean.transferPending}">
+                    <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+                    <div class="col-6">
+                        <h:outputLabel for="selectedHolder" value="Transfer To" styleClass="form-label mb-0" />
+                        <h:selectOneMenu id="selectedHolder" value="#{assetDetailBean.selectedHolderId}" styleClass="form-select" required="true">
+                            <f:selectItem itemLabel="-- select employee --" itemValue="#{null}" noSelectionOption="true"/>
+                            <f:selectItems value="#{assetDetailBean.availableHolders}" var="holder"
+                                itemLabel="#{holder.firstName} #{holder.lastName}" itemValue="#{holder.id}"/>
+                        </h:selectOneMenu>
+                    </div>
+                    <div class="col-12">
+                        <h:commandButton value="Initiate Transfer" action="#{assetDetailBean.transfer}" styleClass="btn btn-primary"/>
+                    </div>
+                </h:form>
+            </div>
+        </div>
     </ui:define>
 </ui:composition>
