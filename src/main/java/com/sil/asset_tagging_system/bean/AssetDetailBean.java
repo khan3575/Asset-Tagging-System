@@ -1,5 +1,6 @@
 package com.sil.asset_tagging_system.bean;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,10 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Named
 @ViewScoped
-public class AssetDetailBean {
-    private final AssetService assetService;
-    private final UserService userService;
-    private final ApprovalService approvalService;
+public class AssetDetailBean implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private final transient AssetService assetService;
+    private final transient UserService userService;
+    private final transient ApprovalService approvalService;
 
     private Long id;
     private Asset asset;

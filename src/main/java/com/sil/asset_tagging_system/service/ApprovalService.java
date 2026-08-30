@@ -46,7 +46,10 @@ public class ApprovalService {
         }
         Long approvalId = approvalDao.createTransferRequest(assetId, initiatedByUserId, requesterId, previousHolderId);
 
-        if (RoleName.ROLE_ADMIN.name().equals(initiatorRole)) {
+        // An admin requesting the asset for themselves is still a self-approval risk --
+        // skip the auto-approve in that case and leave it at zero signatures, same as
+        // an employee's own self-request.
+        if (RoleName.ROLE_ADMIN.name().equals(initiatorRole) && !initiatedByUserId.equals(requesterId)) {
             recordAction(approvalId, initiatedByUserId, ApprovalActionType.APPROVED, "Auto-approved on initiation");
         }
         return approvalId;
@@ -63,6 +66,12 @@ public class ApprovalService {
         if (!ApprovalStatus.PENDING.name().equals(current.status())
                 && !ApprovalStatus.PARTIALLY_APPROVED.name().equals(current.status())) {
             throw new BusinessRuleException("This approval has already been closed");
+        }
+
+        if (action == ApprovalActionType.APPROVED
+                && current.requesterId() != null
+                && current.requesterId() == actorUserId) {
+            throw new BusinessRuleException("You may not approve your own request");
         }
 
         approvalDao.recordAction(approvalId, actorUserId, action, notes);

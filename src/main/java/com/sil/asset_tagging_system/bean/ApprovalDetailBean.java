@@ -1,5 +1,7 @@
 package com.sil.asset_tagging_system.bean;
 
+import java.io.Serializable;
+
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
@@ -18,8 +20,10 @@ import lombok.Setter;
 @Getter
 @Named
 @ViewScoped
-public class ApprovalDetailBean {
-    private final ApprovalService approvalService;
+public class ApprovalDetailBean implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private final transient ApprovalService approvalService;
 
     @Setter
     private Long id;

@@ -147,12 +147,15 @@ public class ApprovalDao {
     @SuppressWarnings("unchecked")
     public Optional<ApprovalRow> findApprovalDetail(Long approvalId)
     {
+        // LEFT JOIN on users -- a RETURN request has no incoming holder, so
+        // requester_id is legitimately NULL (see DESIGN.md SS4). An inner join here
+        // would silently drop those rows instead of returning them with a null requester.
         String sql = """
             SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
             , u.last_name, a.status, a.required_approval_count, a.requested_at
             FROM approvals a
             JOIN assets ast ON a.asset_id = ast.id
-            JOIN users u ON a.requester_id = u.id
+            LEFT JOIN users u ON a.requester_id = u.id
             WHERE a.id = :approvalId
             """;
 
@@ -166,7 +169,7 @@ public class ApprovalDao {
                     ((Number) row[0]).longValue(),
                     (String) row[1],
                     (String) row[2],
-                    ((Number) row[3]).longValue(),
+                    row[3] != null ? ((Number) row[3]).longValue() : null,
                     (String) row[4],
                     (String) row[5],
                     (String) row[6],
