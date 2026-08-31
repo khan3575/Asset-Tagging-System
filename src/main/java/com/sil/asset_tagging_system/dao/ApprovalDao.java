@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
 
@@ -192,4 +193,55 @@ public class ApprovalDao {
                 "actorUserId", actorUserId
         ));
     }
+    
+    @SuppressWarnings("unchecked")
+    public List<ApprovalRow> findOpenApprovals(int limit,int offset)
+    {
+        String sql = """
+            SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
+            , u.last_name, a.status, a.required_approval_count, a.requested_at
+            FROM approvals a
+            JOIN assets ast ON a.asset_id = ast.id
+            LEFT JOIN users u ON a.requester_id = u.id
+            WHERE a.status IN ('PENDING', 'PARTIALLY_APPROVED')
+            ORDER BY a.requested_at ASC
+            LIMIT :limit OFFSET :offset
+            """;
+        List<ApprovalRow> results = (List<ApprovalRow>) entityManager.createNativeQuery(sql)
+                .setParameter("limit", limit)
+                .setParameter("offset", offset)
+                .getResultStream() // Returns Stream<Object>
+                 .map(result -> {
+                        Object[] row = (Object[]) result;
+                        return new ApprovalRow(
+                                ((Number) row[0]).longValue(),
+                                (String) row[1],
+                                (String) row[2],
+                                row[3] != null ? ((Number) row[3]).longValue() : null,
+                                (String) row[4],
+                                (String) row[5],
+                                (String) row[6],
+                                ((Number) row[7]).byteValue(),
+                                ((java.time.LocalDateTime) row[8])
+                        );
+                        })
+                        .collect(Collectors.toList());
+        return results;
+    }
+
+    public long countOpenApprovals()
+    {
+        String sql = """
+            SELECT COUNT(*)
+            FROM approvals a
+            WHERE a.status IN (:status)
+            """;
+
+        List<String> statusList = List.of(ApprovalStatus.PENDING.name(), ApprovalStatus.PARTIALLY_APPROVED.name());
+        long count = ((Number)entityManager.createNativeQuery(sql)
+                .setParameter("status",statusList).getSingleResult()).longValue();
+        return count;
+    }
+
+
 }
