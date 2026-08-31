@@ -69,7 +69,24 @@
                         </h:selectOneMenu>
                     </div>
                     <div class="col-12">
-                        <h:commandButton value="Initiate Transfer" action="#{assetDetailBean.transfer}" styleClass="btn btn-primary"/>
+                        <h:commandButton value="Initiate Transfer" action="#{assetDetailBean.transfer}" styleClass="btn btn-primary" 
+                            onclick="if(!confirm('Are you sure you want to transfer this asset?')) {this.form.reset(); return false; }"/>
+                    </div>
+                </h:form>
+
+                <h:form id="condition-form" styleClass="row g-3 mt-2" rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                    <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}"/>
+
+                    <div class="col-6">
+                        <h:outputLabel for="condition-form-drop-down" value="Asset Condition" styleClass="form-label mb-0" />
+                        <h:selectOneMenu id="condition-form-drop-down" value="#{assetDetailBean.conditionStatus}" styleClass="form-select" required="true">
+                            <f:selectItems value="#{assetDetailBean.conditionStatusList}" var="status" itemLabel="#{status}" itemValue="#{status}" />
+                        </h:selectOneMenu>
+                    </div>
+                    <div class="col-12">
+                        <h:commandButton value="Update Condition" action="#{assetDetailBean.changeCondition}" styleClass="btn btn-primary"
+                         
+                        onclick="if(!confirm('Are you sure you want to update the Asset Condition?')){this.form.reset(); return false;}" />
                     </div>
                 </h:form>
             </div>

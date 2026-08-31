@@ -2,6 +2,7 @@ package com.sil.asset_tagging_system.bean;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.ApprovalService;
 import com.sil.asset_tagging_system.service.AssetService;
 import com.sil.asset_tagging_system.service.UserService;
+import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -38,12 +40,13 @@ public class AssetDetailBean implements Serializable {
 
     private Long id;
     private Asset asset;
+    @Setter
     private AssetCondition conditionStatus;
     private BigDecimal purchaseValue;
     private User currentHolder;
     private boolean transferPending;
     private List<User> availableHolders;
-
+    private List<AssetCondition> conditionStatusList;
     @Setter
     private Long selectedHolderId;
 
@@ -81,6 +84,8 @@ public class AssetDetailBean implements Serializable {
 
         transferPending = approvalService.hasOpenTransferRequest(id);
 
+        conditionStatusList = List.of(AssetCondition.values());
+
     }
     public void setId(Long id)
     {
@@ -103,6 +108,26 @@ public class AssetDetailBean implements Serializable {
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
             return null;
         }
+        return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
+    }
+
+    public String changeCondition()
+    {
+        Long actorUserId = SecurityUtil.currentUserId();
+        String primaryRole = SecurityUtil.primaryRole();
+        String ipAddress = WebUtil.getRemoteAddress();
+
+        try{
+            log.info("AssetDetailBean.changeCondition initiated condition change {}, {}, {}", asset.getId(), actorUserId, conditionStatus);
+            assetService.updateCondition(asset.getId(), actorUserId, ipAddress, primaryRole, LocalDateTime.now(), conditionStatus);
+        }
+        catch(IllegalArgumentException e)
+        {
+            log.warn("changeCondition error", e);
+            FacesContext.getCurrentInstance().addMessage(null,new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            return null;
+        }
+
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
     }
 }
