@@ -28,9 +28,9 @@ public class AssetBean {
     private int offset;
 
     @Setter
-    private Integer page;
-    private int totalPageCount;
-    private int totalCount;
+    private Integer currentPage;
+    private int totalPages;
+    private int totalRecords;
     private final int pageSize = 10;
 
     public AssetBean(AssetService assetService)
@@ -41,8 +41,8 @@ public class AssetBean {
     public void load()
     {
 
-        page = PageParams.clamp(page);
-        offset = PageParams.offset(page, pageSize);
+        currentPage = PageParams.clamp(currentPage);
+        offset = PageParams.offset(currentPage, pageSize);
         if(search == null)
         {
             search = "";
@@ -53,13 +53,13 @@ public class AssetBean {
         log.info("AssetBean initiated - search {}", search);
         
         assetList = assetService.findPage(search, pageSize, offset);
-        totalCount = (int) assetService.countAssets(search);
-        totalPageCount = (int) Math.ceil((double)totalCount / pageSize);
+        totalRecords = (int) assetService.countAssets(search);
+        totalPages = (int) Math.ceil((double)totalRecords / pageSize);
     }
 
     public String search()
     {
-        page = 1;
+        currentPage = 1;
         return "/asset/list?faces-redirect=true&includeViewParams=true";
     }
 }

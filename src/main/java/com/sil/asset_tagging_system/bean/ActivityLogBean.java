@@ -21,10 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ActivityLogBean {
     private final ActivityLogService activityLogService;
     private List<ActivityLog> entries;
-    private long totalCount;
-    private int totalPageCount;
+    private long totalRecords;
+    private int totalPages;
     @Setter
-    private int page;
+    private int currentPage;
     @Setter
     private int offset;
     private final int pageSize = 20;
@@ -38,14 +38,14 @@ public class ActivityLogBean {
 
     public void load()
     {
-        page = PageParams.clamp(page);
-        offset = PageParams.offset(page,pageSize);
+        currentPage = PageParams.clamp(currentPage);
+        offset = PageParams.offset(currentPage,pageSize);
 
-        totalCount = activityLogService.countAll();
-        totalPageCount = (int) Math.ceil((double) totalCount/ pageSize);
+        totalRecords = activityLogService.countAll();
+        totalPages = (int) Math.ceil((double) totalRecords/ pageSize);
 
         entries = activityLogService.findRecent(pageSize, offset);
-        log.info("ActivityLogBean init -- page {} of {}, {} entries total", page, totalPageCount, totalCount);
+        log.info("ActivityLogBean init -- page {} of {}, {} entries total", currentPage, totalPages, totalRecords);
     }
 
     public Long entityIdOf(ActivityLog entry)

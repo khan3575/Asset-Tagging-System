@@ -27,11 +27,11 @@ public class UserListBean {
 
     private final UserService userService;
     private List<User> users;
-    private Long totalCount;
-    private Integer totalPageCount;
+    private Long totalRecords;
+    private Integer totalPages;
 
     @Setter
-    private Integer page;
+    private Integer currentPage;
     @Setter
     private String search;
     @Setter
@@ -53,15 +53,15 @@ public class UserListBean {
     public void load()
     {
 
-        page = PageParams.clamp(page);
-        offset = PageParams.offset(page,pageSize);
+        currentPage = PageParams.clamp(currentPage);
+        offset = PageParams.offset(currentPage,pageSize);
 
         log.info("UserListBean init -- Search {}", search);
 
        users = userService.findUsers(roleName, search, departmentId, enabled, pageSize, offset);
-       totalCount = userService.countUsers(roleName, search, departmentId, enabled);
-        
-       totalPageCount = (int) Math.ceil( (double) totalCount / pageSize);
+       totalRecords = userService.countUsers(roleName, search, departmentId, enabled);
+
+       totalPages = (int) Math.ceil( (double) totalRecords / pageSize);
     }
 
     public RoleName[] getRoleOptions()
@@ -87,7 +87,7 @@ public class UserListBean {
     
     public String search()
     {
-        page = 1;
+        currentPage = 1;
         return "/user/list?faces-redirect=true&includeViewParams=true";
     }
 

@@ -7,7 +7,7 @@
 
     <f:metadata>
         <f:viewParam name="search" value="#{assetBean.search}"/>
-        <f:viewParam name="page" value="#{assetBean.page}"/>
+        <f:viewParam name="page" value="#{assetBean.currentPage}"/>
         <f:viewAction action="#{assetBean.load}" />
     </f:metadata>
     
@@ -16,7 +16,7 @@
     <ui:define name="pageSubtitle">View and Search assets here</ui:define>
 
     <ui:define name="pageActions">
-        <ats:badge text="Total records : #{assetBean.totalCount}"/>
+        <ats:badge text="Total records : #{assetBean.totalRecords}"/>
         <h:link outcome="/asset/form" styleClass="btn btn-primary" value="Add Asset"/>
     </ui:define>
     
@@ -67,7 +67,7 @@
                 </h:column>
 
             </h:dataTable>
-            <ats:pagination page="#{assetBean.page}" totalPages="#{assetBean.totalPageCount}"
+            <ats:pagination page="#{assetBean.currentPage}" totalPages="#{assetBean.totalPages}"
                 url="/asset/list">
                 <f:attribute name="extraParams" value="#{{'search':  assetBean.search}}" />
             </ats:pagination>
