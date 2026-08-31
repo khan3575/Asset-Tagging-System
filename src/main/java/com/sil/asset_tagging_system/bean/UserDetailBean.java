@@ -11,6 +11,7 @@ import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.UserService;
+import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -46,7 +47,7 @@ public class UserDetailBean {
     public void update(Long id, String firstName, String lastName, Long departmentId, Boolean enabled, Set<RoleName> roleNames)
     {
         userService.updateUser(id, firstName, lastName, departmentId, enabled, roleNames,
-                SecurityUtil.currentUserId(), SecurityUtil.primaryRole(), null);
+                SecurityUtil.currentUserId(), SecurityUtil.primaryRole(), WebUtil.getRemoteAddress());
     }
 
     public boolean hasRole(RoleName roleName)

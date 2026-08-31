@@ -99,7 +99,8 @@ public class AssetDetailBean implements Serializable {
 
         try{
             log.info("AssetDetailBean.transfer initiated transfer {}, {}, {}", asset.getId(), actorUserId, selectedHolderId);
-            approvalService.initiateTransfer(asset.getId(), actorUserId, selectedHolderId, previousHolderId, primaryRole);
+            approvalService.initiateTransfer(asset.getId(), actorUserId, selectedHolderId, previousHolderId,
+                    primaryRole, WebUtil.getRemoteAddress());
         }
         catch(BusinessRuleException e)
         {

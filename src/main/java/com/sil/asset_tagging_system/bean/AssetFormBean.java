@@ -12,6 +12,7 @@ import jakarta.inject.Named;
 import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.AssetService;
+import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -44,7 +45,7 @@ public class AssetFormBean {
         try
         {
             assetService.register(assetTag, name, categoryId, purchaseDate, value,
-                    SecurityUtil.currentUserId(), SecurityUtil.primaryRole(), null);
+                    SecurityUtil.currentUserId(), SecurityUtil.primaryRole(), WebUtil.getRemoteAddress());
         }
         catch (DuplicateAssetTagException e)
         {
