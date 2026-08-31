@@ -25,8 +25,8 @@
             </div>
         </div>
 
-        <h:form id="approval-action-form" 
-        rendered="#{headerBean.role == 'ROLE_ADMIN' and !approvalDetailBean.alreadyActed and (approvalDetailBean.detail.status == 'PENDING' or approvalDetailBean.detail.status == 'PARTIALLY_APPROVED')}"
+        <h:form id="approval-action-form"
+        rendered="#{headerBean.role == 'ROLE_ADMIN' and !approvalDetailBean.alreadyActed and !approvalDetailBean.requestedBySelf and (approvalDetailBean.detail.status == 'PENDING' or approvalDetailBean.detail.status == 'PARTIALLY_APPROVED')}"
          styleClass="row g-3 card" style="max-width:600px;">
 
             <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />

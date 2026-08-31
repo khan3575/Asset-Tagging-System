@@ -32,6 +32,7 @@ public class ApprovalDetailBean implements Serializable {
     private ApprovalRow detail;
     private long approvedCount;
     private boolean alreadyActed;
+    private boolean requestedBySelf;
 
     @Setter
     private String notes;
@@ -47,6 +48,7 @@ public class ApprovalDetailBean implements Serializable {
         detail = approvalService.getApprovalDetail(id);
         approvedCount = approvalService.countApprovedActions(id);
         alreadyActed = approvalService.hasActorRecordedAction(id, SecurityUtil.currentUserId());
+        requestedBySelf = detail.requesterId() != null && detail.requesterId().equals(SecurityUtil.currentUserId());
     }
 
     public String approve() { return act(ApprovalActionType.APPROVED); }
