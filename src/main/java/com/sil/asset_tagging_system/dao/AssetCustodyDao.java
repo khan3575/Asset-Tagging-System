@@ -64,9 +64,13 @@ public class AssetCustodyDao {
             .executeUpdate();
     }
     
-    public void transferCustody(long assetId, long newCustodianId, long approvalId,long assignedByUserId, LocalDateTime endTime)
+    // newCustodianId is null for a RETURN request -- the asset goes back to
+    // unassigned, so custody is released without a replacement row being created.
+    public void transferCustody(long assetId, Long newCustodianId, long approvalId, long assignedByUserId, LocalDateTime endTime)
     {
         releaseActiveCustody(assetId, endTime);
-        initiateNewCustody(assetId, newCustodianId, approvalId, assignedByUserId);
+        if (newCustodianId != null) {
+            initiateNewCustody(assetId, newCustodianId, approvalId, assignedByUserId);
+        }
     }
 }

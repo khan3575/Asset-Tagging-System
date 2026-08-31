@@ -99,7 +99,11 @@ public class ApprovalService {
         // else fully approved.
         approvalDao.closeApproval(approvalId, ApprovalStatus.APPROVED);
         assetCustodyDao.transferCustody(snapshot.assetId(), snapshot.requesterId(), approvalId, actorUserId, LocalDateTime.now());
-        log.info("ApprovalService.recordAction -> approval {} fully approved by actor {}, custody transferred to user {}", approvalId, actorUserId, snapshot.requesterId());
+        if (snapshot.requesterId() != null) {
+            log.info("ApprovalService.recordAction -> approval {} fully approved by actor {}, custody transferred to user {}", approvalId, actorUserId, snapshot.requesterId());
+        } else {
+            log.info("ApprovalService.recordAction -> approval {} fully approved by actor {}, custody released (return)", approvalId, actorUserId);
+        }
     }
 
     public ApprovalRow getApprovalDetail(Long approvalId) {

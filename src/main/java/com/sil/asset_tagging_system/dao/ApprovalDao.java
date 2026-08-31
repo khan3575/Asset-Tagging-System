@@ -108,11 +108,11 @@ public class ApprovalDao {
                 .setParameter("approvalId", approvalId)
                 .getSingleResult();
 
-
-        
+        // requester_id is legitimately NULL for a RETURN request -- see the same
+        // null guard on findApprovalDetail.
         return new ApprovalSnapshot(
                 ((Number) row[0]).longValue(),
-                ((Number) row[1]).longValue(),
+                row[1] != null ? ((Number) row[1]).longValue() : null,
                 ((Number) row[2]).byteValue()
         );
     }

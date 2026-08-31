@@ -1,0 +1,49 @@
+<ui:composition template="/WEB-INF/templates/main.xhtml"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:ats="jakarta.faces.composite/ats"
+      xmlns:f="jakarta.faces.core">
+
+    <f:metadata>
+        <f:viewParam name="currentPage" value="#{approvalListBean.currentPage}"/>
+        <f:viewAction action="#{approvalListBean.load}" />
+    </f:metadata>
+
+    <ui:define name="title">Approvals</ui:define>
+    <ui:define name="pageTitle">Approvals</ui:define>
+    <ui:define name="pageSubtitle">Open transfer and asset requests awaiting a decision</ui:define>
+
+    <ui:define name="pageActions">
+        <ats:badge text="Total records : #{approvalListBean.totalRecords}"/>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:dataTable value="#{approvalListBean.approvalList}" var="row" styleClass="table table-striped border table-hover clickable-rows">
+            <h:column>
+                <f:facet name="header">Asset</f:facet>
+                <h:link outcome="/approval/detail">
+                    <f:param name="id" value="#{row.id}"/>
+                    #{row.assetTag} - #{row.assetName}
+                </h:link>
+            </h:column>
+            <h:column>
+                <f:facet name="header">Requester</f:facet>
+                #{row.requesterFirstName} #{row.requesterLastName}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Status</f:facet>
+                #{row.status}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Requested At</f:facet>
+                <h:outputText value="#{row.requestedAt}">
+                    <f:convertDateTime type="localDateTime" pattern="dd MMM yyyy, HH:mm" />
+                </h:outputText>
+            </h:column>
+        </h:dataTable>
+        <ats:pagination currentPage="#{approvalListBean.currentPage}" totalPages="#{approvalListBean.totalPages}"
+            url="/approval/list"/>
+    </ui:define>
+
+</ui:composition>

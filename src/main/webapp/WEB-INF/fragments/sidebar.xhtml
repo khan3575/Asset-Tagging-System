@@ -16,6 +16,9 @@
             <li class="nav-item">
                 <h:link styleClass="nav-link" outcome="/user/list" value="Users" />
             </li>
+            <li class="nav-item" rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                <h:link styleClass="nav-link" outcome="/approval/list" value="Approvals" />
+            </li>
             <li class="nav-item">
                 <h:link styleClass="nav-link" outcome="/settings" value="Settings" />
             </li>
