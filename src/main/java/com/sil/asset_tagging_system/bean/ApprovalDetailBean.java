@@ -16,7 +16,8 @@ import com.sil.asset_tagging_system.service.ApprovalService;
 
 import lombok.Getter;
 import lombok.Setter;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Getter
 @Named
 @ViewScoped
