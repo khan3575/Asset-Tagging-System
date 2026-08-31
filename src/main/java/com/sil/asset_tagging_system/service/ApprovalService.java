@@ -1,6 +1,7 @@
 package com.sil.asset_tagging_system.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -113,5 +114,14 @@ public class ApprovalService {
         return approvalDao.hasActorRecordedAction(approvalId, actorUserId);
     }
 
+    public List<ApprovalRow> findOpenApprovals(int limit, int offset)
+    {
+        return approvalDao.findOpenApprovals(limit , offset);
+    }
+
+    public long countOpenApprovals()
+    {
+       return approvalDao.countOpenApprovals();
+    }
 
 }
