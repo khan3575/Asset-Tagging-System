@@ -13,6 +13,7 @@ import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.enums.ApprovalActionType;
 import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.ApprovalService;
+import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -57,7 +58,8 @@ public class ApprovalDetailBean implements Serializable {
     private String act(ApprovalActionType action) {
         Long actorUserId = SecurityUtil.currentUserId();
         try {
-            approvalService.recordAction(id, actorUserId, action, notes);
+            approvalService.recordAction(id, actorUserId, action, notes,
+                    SecurityUtil.primaryRole(), WebUtil.getRemoteAddress());
         } catch (BusinessRuleException e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
