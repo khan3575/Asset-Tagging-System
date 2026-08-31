@@ -99,21 +99,23 @@ public class ApprovalDao {
     {
         // check approval count
         String sql = """
-                SELECT asset_id, requester_id, required_approval_count
+                SELECT asset_id, requester_id, required_approval_count, previous_holder_id
                 FROM approvals
                 WHERE id = :approvalId
                 """;
-        
+
         Object[] row = (Object[]) entityManager.createNativeQuery(sql)
                 .setParameter("approvalId", approvalId)
                 .getSingleResult();
 
         // requester_id is legitimately NULL for a RETURN request -- see the same
-        // null guard on findApprovalDetail.
+        // null guard on findApprovalDetail. previous_holder_id is NULL when the asset
+        // had no custodian when the request was raised.
         return new ApprovalSnapshot(
                 ((Number) row[0]).longValue(),
                 row[1] != null ? ((Number) row[1]).longValue() : null,
-                ((Number) row[2]).byteValue()
+                ((Number) row[2]).byteValue(),
+                row[3] != null ? ((Number) row[3]).longValue() : null
         );
     }
 
@@ -143,7 +145,7 @@ public class ApprovalDao {
                 .executeUpdate();
     }
 
-    public record ApprovalSnapshot(Long assetId, Long requesterId, byte requiredApprovalCount) {}
+    public record ApprovalSnapshot(Long assetId, Long requesterId, byte requiredApprovalCount, Long previousHolderId) {}
 
     @SuppressWarnings("unchecked")
     public Optional<ApprovalRow> findApprovalDetail(Long approvalId)
