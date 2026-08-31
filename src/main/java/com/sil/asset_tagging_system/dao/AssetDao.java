@@ -12,6 +12,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
 import com.sil.asset_tagging_system.dto.AssetRow;
+import com.sil.asset_tagging_system.exception.UnauthorizedOperationException;
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
 
@@ -180,6 +181,24 @@ public class AssetDao {
         .executeUpdate();
     }
 
+    public void updateCondition(Long id, AssetCondition assetCondition)
+    {
+        String sql = """
+                        UPDATE assets SET condition_status = :conditionStatus
+                        WHERE id = :id
+                        """;
+        if(assetCondition == null)
+        {
+            log.warn("asset condition is null throwing exception");
+            throw new UnauthorizedOperationException("asset condition cant be null");
+        }
+
+        log.info("AssetDao.updateCondition -> executing the query");
+        entityManager.createNativeQuery(sql)
+            .setParameter("conditionStatus",assetCondition.name())
+            .setParameter("id", id)
+            .executeUpdate();
+    }
     
 
 }
