@@ -6,7 +6,7 @@
     xmlns:ui="jakarta.faces.facelets">
 
     <f:metadata>
-        <f:viewParam name="page" value="#{activityLogBean.currentPage}"/>
+        <f:viewParam name="currentPage" value="#{activityLogBean.currentPage}"/>
         <f:viewAction action="#{activityLogBean.load}"/>
     </f:metadata>
 
@@ -42,7 +42,7 @@
                 <h:outputText value="#{entry.outcome}" styleClass="badge #{entry.outcome eq 'SUCCEEDED' ? 'text-bg-success': (entry.outcome eq 'DENIED'? 'text-bg-warning' : 'text-bg-danger')}" />
             </h:column>
         </h:dataTable>
-        <ats:pagination page="#{activityLogBean.currentPage}" totalPages="#{activityLogBean.totalPages}" url="/activity/log" />
+        <ats:pagination currentPage="#{activityLogBean.currentPage}" totalPages="#{activityLogBean.totalPages}" url="/activity/log" />
     </ui:define>
             
 </ui:composition>

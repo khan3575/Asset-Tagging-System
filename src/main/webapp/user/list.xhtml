@@ -7,7 +7,7 @@
 
     <f:metadata>
         <f:viewParam name="search" value="#{userListBean.search}"/>
-        <f:viewParam name="page" value="#{userListBean.currentPage}"/>
+        <f:viewParam name="currentPage" value="#{userListBean.currentPage}"/>
         <f:viewParam name="roleName" value="#{userListBean.roleName}"/>
         <f:viewParam name="departmentId" value="#{userListBean.departmentId}"/>
         <f:viewParam name="enabled" value="#{userListBean.enabled}"/>
@@ -90,7 +90,7 @@
                     #{user.enabled}
                 </h:column>
             </h:dataTable>
-            <ats:pagination page="#{userListBean.currentPage}" totalPages="#{userListBean.totalPages}"
+            <ats:pagination currentPage="#{userListBean.currentPage}" totalPages="#{userListBean.totalPages}"
                 url="/user/list" extraParams="#{userListBean.extraParams}" />
 
         </div>
