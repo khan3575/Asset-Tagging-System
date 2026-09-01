@@ -225,6 +225,38 @@ public class ApprovalDao {
                         .collect(Collectors.toList());
         return results;
     }
+        @SuppressWarnings("unchecked")
+    public List<ApprovalRow> findOpenRequestsFor(Long userId)
+    {
+        String sql = """
+            SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
+            , u.last_name, a.status, a.required_approval_count, a.requested_at
+            FROM approvals a
+            JOIN assets ast ON a.asset_id = ast.id
+            LEFT JOIN users u ON a.requester_id = u.id
+            WHERE a.status IN ('PENDING', 'PARTIALLY_APPROVED')
+            AND (a.requester_id = :userId OR a.initiated_by_user_id = :userId)
+            ORDER BY a.requested_at DESC
+            """;
+
+        return (List<ApprovalRow>) entityManager.createNativeQuery(sql)
+                .setParameter("userId", userId)
+                .getResultStream()
+                .map(result -> {
+                    Object[] row = (Object[]) result;
+                    return new ApprovalRow(
+                            ((Number) row[0]).longValue(),
+                            (String) row[1],
+                            (String) row[2],
+                            row[3] != null ? ((Number) row[3]).longValue() : null,
+                            (String) row[4],
+                            (String) row[5],
+                            (String) row[6],
+                            ((Number) row[7]).byteValue(),
+                            ((LocalDateTime) row[8]));
+                })
+                .collect(Collectors.toList());
+    }
 
     public long countOpenApprovals()
     {

@@ -7,11 +7,13 @@ public enum ActivityAction {
     LOGIN_FAILED,
     LOGOUT,
     ACCESS_DENIED,
+    PASSWORD_CHANGED,
 
     // assets
     ASSET_REGISTERED,
     ASSET_UPDATED,
     ASSET_CONDITION_CHANGED,
+    ASSET_DOCUMENT_UPLOADED,
 
     // custody
     CUSTODY_ASSIGNED,
@@ -28,6 +30,7 @@ public enum ActivityAction {
     USER_CREATED,
     USER_UPDATED,
     USER_DISABLED,
+    USER_ENABLED,
     DEPARTMENT_CREATED,
     DEPARTMENT_CLOSED
 }

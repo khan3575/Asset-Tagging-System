@@ -335,6 +335,23 @@ public class UserDao {
     }
 
 
+    public Long createUser(String firstName, String lastName, String email, String passwordHash, Long departmentId)
+    {
+        String sql = """
+                INSERT INTO users (first_name, last_name, email, password_hash, dept_id, enabled)
+                VALUES (:firstName, :lastName, :email, :passwordHash, :departmentId, 1)
+                """;
+        entityManager.createNativeQuery(sql)
+                .setParameter("firstName", firstName)
+                .setParameter("lastName", lastName)
+                .setParameter("email", email)
+                .setParameter("passwordHash", passwordHash)
+                .setParameter("departmentId", departmentId)
+                .executeUpdate();
+
+        return DaoUtils.getLastInsertId(entityManager);
+    }
+
     public void updateUser(Long id , String firstName, String lastName, Long departmentId, Boolean enabled)
     {
         String sql = """
@@ -349,6 +366,33 @@ public class UserDao {
             .setParameter("departmentId",departmentId)
             .setParameter("enabled", enabled)
             .executeUpdate();
+    }
+
+    public Optional<String> findPasswordHash(Long userId)
+    {
+        String sql = """
+                SELECT password_hash
+                FROM users
+                WHERE id = :userId
+                """;
+        return entityManager.createNativeQuery(sql)
+                .setParameter("userId", userId)
+                .getResultStream()
+                .map(String.class::cast)
+                .findFirst();
+    }
+
+    public void updatePassword(Long userId, String passwordHash)
+    {
+        String sql = """
+                UPDATE users
+                SET password_hash = :passwordHash
+                WHERE id = :userId
+                """;
+        entityManager.createNativeQuery(sql)
+                .setParameter("passwordHash", passwordHash)
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 
     public void replaceRoles(Long userId, Set<RoleName> roleNames)
