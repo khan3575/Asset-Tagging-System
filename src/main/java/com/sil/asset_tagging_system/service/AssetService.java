@@ -3,6 +3,7 @@ package com.sil.asset_tagging_system.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +71,79 @@ public class AssetService {
         return newAssetId;
     }
 
-    /** Returns the first rule broken, or null when the input is acceptable. */
+    @Transactional
+    public void updateAsset(Long assetId, String assetTag, String name, Long categoryId,
+                            LocalDate purchaseDate, BigDecimal purchaseValue, Actor actor)
+    {
+        Asset before = getAsset(assetId);
+
+        String violation = validateForRegistration(assetTag, name, categoryId, purchaseDate, purchaseValue);
+        if (violation == null && assetDao.existsByAssetTagIgnoreCaseAndIdNot(assetTag, assetId)) {
+            violation = "Asset tag already exists: " + assetTag;
+        }
+        if (violation != null) {
+            auditTrail.record(ActivityAction.ASSET_UPDATED, ActivityEntityType.ASSET)
+                    .by(actor)
+                    .asset(assetId)
+                    .refused(violation)
+                    .summary("Update refused for asset " + before.getAssetTag() + " -- " + violation)
+                    .save();
+            throw new BusinessRuleException(violation);
+        }
+
+        assetDao.updateAsset(assetId, assetTag, name, categoryId, purchaseDate, purchaseValue);
+
+        String changes = describeChanges(before, assetTag, name, categoryId, purchaseDate, purchaseValue);
+        auditTrail.record(ActivityAction.ASSET_UPDATED, ActivityEntityType.ASSET)
+                .by(actor)
+                .asset(assetId)
+                .summary(changes == null
+                        ? "Asset " + assetTag + " saved with no changes"
+                        : "Updated asset " + assetTag)
+                .details(changes)
+                .save();
+
+        log.info("AssetService.updateAsset -> asset {} updated by actor {}", assetId, actor.userId());
+    }
+    
+    private String describeChanges(Asset before, String assetTag, String name, Long categoryId,
+                                   LocalDate purchaseDate, BigDecimal purchaseValue)
+    {
+        StringBuilder json = new StringBuilder();
+        appendChange(json, "assetTag", before.getAssetTag(), assetTag);
+        appendChange(json, "name", before.getName(), name);
+        appendChange(json, "categoryId",
+                before.getCategory() == null ? null : String.valueOf(before.getCategory().getId()),
+                String.valueOf(categoryId));
+        appendChange(json, "purchaseDate", String.valueOf(before.getPurchaseDate()), String.valueOf(purchaseDate));
+        boolean valueMoved = (before.getPurchaseValue() == null) != (purchaseValue == null)
+                || (before.getPurchaseValue() != null && purchaseValue != null
+                    && before.getPurchaseValue().compareTo(purchaseValue) != 0);
+        if (valueMoved) {
+            appendChange(json, "purchaseValue",
+                    String.valueOf(before.getPurchaseValue()), String.valueOf(purchaseValue));
+        }
+
+        return json.isEmpty() ? null : "{\"changed\":{" + json + "}}";
+    }
+
+    private void appendChange(StringBuilder json, String field, String before, String after)
+    {
+        if (java.util.Objects.equals(before, after)) {
+            return;
+        }
+        if (!json.isEmpty()) {
+            json.append(",");
+        }
+        json.append("\"").append(field).append("\":{\"from\":\"").append(escape(before))
+            .append("\",\"to\":\"").append(escape(after)).append("\"}");
+    }
+
+    private static String escape(String value)
+    {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
     private String validateForRegistration(String assetTag, String name, Long categoryId,
                                            LocalDate purchaseDate, BigDecimal value)
     {
@@ -101,6 +174,16 @@ public class AssetService {
     {
         return assetDao.findPage(search, limit, offset);
     }
+    public Map<AssetCondition, Long> countByCondition()
+    {
+        return assetDao.countByCondition();
+    }
+
+    public List<AssetRow> findAssetsHeldBy(Long custodianId)
+    {
+        return assetCustodyDao.findAssetsHeldBy(custodianId);
+    }
+
     public long countAssets(String search)
     {
         return assetDao.countAssets(search);
