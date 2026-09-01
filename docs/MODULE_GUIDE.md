@@ -81,12 +81,11 @@ checks and generated keys.
 public class ApprovalService {
 
     private final ApprovalDao approvalDao;
-    private final ActivityLogDao activityLogDao;
+    private final AuditTrail auditTrail;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void decide(DecideApprovalCommand command, Long actorUserId,
-                       String actorRole, String ipAddress) {
+    public void decide(DecideApprovalCommand command, Actor actor) {
 
         // 1. Load current state and validate the transition is legal
         // 2. Insert the approval_actions row
@@ -96,14 +95,51 @@ public class ApprovalService {
 }
 ```
 
-Four requirements, each with a reason:
+Five requirements, each with a reason:
 
 | Requirement | Reason |
 |---|---|
 | `@Transactional` on this method | The whole action is atomic. A failure at step 4 rolls back steps 2 and 3 |
 | The activity-log write is inside it | The governing audit rule: if the log write fails, the action fails |
-| No `jakarta.faces` import | Keeps the service callable from a job, a test, or an event listener |
+| Rows are written through `AuditTrail`, never `ActivityLogDao` directly | It owns the correlation id, the default sequence, the outcome, the role parse, and — the part that matters — the choice between the transactional and the `REQUIRES_NEW` write path. A call site that makes that choice by hand can get it backwards, and getting it backwards silently loses the row |
+| The actor arrives as one `Actor` parameter | `(userId, role, ipAddress)` always travel together. Passed separately they had already drifted into two different orderings of the same `(Long, String, String)` triple across two services — an argument swap the compiler cannot catch |
+| No `jakarta.faces` import | Keeps the service callable from a job, a test, or an event listener. This is also why the service receives an `Actor` rather than calling `Actor.current()` itself |
 | Validation before mutation | Business rules belong here, not in the bean and not in the DAO |
+
+A service that both mutates and refuses reads like this. Note that `refused(...)` is what
+selects the `REQUIRES_NEW` path — the call site states intent, not plumbing:
+
+```java
+if (approvalDao.existsOpenTransferRequest(assetId)) {
+    auditTrail.record(REQUEST_SUBMITTED, APPROVAL)
+            .by(actor)
+            .asset(assetId)
+            .refused("A transfer is already pending for this asset")   // DENIED + REQUIRES_NEW
+            .summary("Transfer request refused -- one is already pending for asset " + assetId)
+            .save();
+    throw new BusinessRuleException("A transfer is already pending for this asset");
+}
+
+// ... perform the mutation ...
+
+auditTrail.record(REQUEST_SUBMITTED, APPROVAL)   // outcome defaults to SUCCEEDED
+        .by(actor)
+        .asset(assetId)
+        .approval(approvalId)
+        .holder(previousHolderId, requesterId)
+        .summary("Transfer requested for asset " + assetId)
+        .save();                                  // joins this transaction
+```
+
+Populate the columns the action owns rather than only `summary`: a condition change sets
+`.condition(previous, next)`, a custody move sets `.holder(previous, next)`, and an action
+producing more than one row sets `.sequence(2)` on the second under the shared correlation
+id. Those columns are what make the audit screen answerable; a row carrying only a prose
+summary cannot be filtered or compared.
+
+The authentication paths are the exception to all of the above. They have no business
+transaction to join and must never break a sign-in, so they add `.bestEffort()`, which
+swallows a logging failure rather than propagating it.
 
 ## 5. Write the backing beans
 
@@ -129,10 +165,10 @@ public class ApprovalQueueView {
     private ApprovalService approvalService;
 
     private List<ApprovalRow> rows;
-    private Integer page;
+    private Integer currentPage;
 
     public void load() {
-        rows = approvalService.findQueue(page, PAGE_SIZE);
+        rows = approvalService.findQueue(currentPage, PAGE_SIZE);
     }
 }
 ```
@@ -201,7 +237,7 @@ Each page templates from `main.xhtml` and defines only its own content. It decla
             </h:column>
         </h:dataTable>
 
-        <ats:pagination page="#{approvalQueueView.page}"
+        <ats:pagination currentPage="#{approvalQueueView.currentPage}"
                         totalPages="#{approvalQueueView.totalPages}"
                         outcome="/approval/queue"/>
     </ui:define>
@@ -262,13 +298,20 @@ raised themselves — belong on the service method as `@PreAuthorize`, as shown 
 | Link resolves | A row link reaches `/approval/detail?id=…` |
 | Bad parameter | `?id=abc` shows a validation message, not a stack trace |
 | Form posts correctly | The rendered `action` attribute equals the page URL |
-| Authorisation | An employee account is refused; an administrator is admitted |
+| Authorisation | An employee account is refused; an administrator is admitted, and the refusal appears as an `ACCESS_DENIED` row |
 | Atomicity | The `approval_actions` row and the `activity_log` row appear together, or not at all |
+| Refusal durability | A refused action leaves a `DENIED` row **and** no mutation |
 | Query count | With `show-sql=true`, the queue issues two statements, not one per row |
 
 The atomicity check is worth performing deliberately: temporarily break the activity-log
 SQL and confirm that **no** approval action is recorded. If one is, the transaction
 boundary is in the wrong place.
+
+The refusal check is its mirror image and is just as easy to get wrong in the opposite
+direction: trigger the refusal, then confirm both that the `DENIED` row exists and that the
+mutation did not happen. A `DENIED` row that never appears means the write joined the
+rolled-back transaction — the entry was saved without `.refused(...)`, which is what
+selects the `REQUIRES_NEW` path.
 
 ## 10. Conventions Reference
 
@@ -288,9 +331,12 @@ boundary is in the wrong place.
 | Cancel buttons | `immediate="true"`, so they work while validation is failing |
 | Conditional display | `rendered="#{...}"`; never JavaScript toggling `disabled` |
 | Transactions | `@Transactional` on service methods only |
+| Activity-log writes | `AuditTrail` only; `ActivityLogDao` is not called directly outside it |
+| Actor identity into a service | One `Actor` parameter, built by the bean via `Actor.current()` |
 | Data returned to views | DTO records; never JPA entities |
 | SQL | Native SQL in DAOs only, one statement per method |
 | Pagination | `LIMIT`/`OFFSET` in SQL, with a matching `COUNT(*)` |
+| Pagination bean fields | `currentPage`, `totalPages`, `totalRecords`, `pageSize`, `offset` — standardized project-wide 2026-08-31; not `page`/`totalPageCount`/`totalCount` (those read as near-duplicates at a glance) |
 | `jakarta.faces` imports | Permitted in `bean/` only |
 | Document tags | Always `h:head` and `h:body`, never plain `<head>`/`<body>` |
 
@@ -306,3 +352,6 @@ boundary is in the wrong place.
 | Returning a JPA entity to a view | Lazy loading during render produces one query per row | A DTO record |
 | Business rules in the backing bean | Outside any transaction, unreachable from other callers | The service |
 | `@Transactional` on a DAO method | A transaction spans one statement rather than one action | The service method |
+| Building an `ActivityLog` by hand at a call site | Every site then re-decides `log` vs `logRefusal`; getting it backwards loses the row silently | `AuditTrail` |
+| A service calling `Actor.current()` or `SecurityUtil` | Binds the service to a live web request, so it can no longer run from a job, a test, or an event listener | The bean resolves the `Actor` and passes it in |
+| `==` between two boxed `Long` ids | Compares references. It appears to work below 128, where the `Long` cache returns one instance, then fails silently above it | `.equals(...)`, or `Objects.equals(...)` when either side may be null |

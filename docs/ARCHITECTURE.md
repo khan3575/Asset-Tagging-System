@@ -51,7 +51,7 @@ MySQL
 | Layer | May | May not |
 |---|---|---|
 | View | Bind values, render conditionally | Contain logic beyond a boolean test |
-| Bean | Hold view state, call one service, return navigation outcomes | Call a DAO, open a transaction, contain business rules |
+| Bean | Hold view state, call one service, resolve the current `Actor`, return navigation outcomes | Call a DAO, open a transaction, contain business rules |
 | Service | Enforce rules, call several DAOs, open transactions | Import anything from `jakarta.faces` |
 | DAO | Execute one SQL statement, map results | Contain business rules, open transactions |
 
@@ -204,12 +204,54 @@ and timestamp, each row carries:
 | `details` | JSON for the genuinely variable remainder. Display only; no business logic may read from this column |
 
 `CorrelationFilter` assigns a UUID per HTTP request. Authentication events are recorded by
-`LoginAuditListener`; business events are recorded by the service performing them.
+`LoginAuditListener` and `BrowserAccessDeniedHandler`; business events are recorded by the
+service performing them.
+
+Every row is built through `AuditTrail`, which is the only component that calls
+`ActivityLogDao` to write. Callers supply what is specific to their action and nothing
+else; the correlation id, the default sequence, the outcome, the role parse, and the
+choice of write path are decided in one place:
+
+```java
+auditTrail.record(ASSET_CONDITION_CHANGED, ASSET)
+        .by(actor)
+        .asset(assetId)
+        .condition(previousCondition, newCondition)
+        .summary("...")
+        .save();
+```
+
+The actor arrives as an `Actor` record — `(userId, role, ipAddress)` — resolved in the web
+layer by `Actor.current()` and passed into the service. Services never resolve it
+themselves, which is what keeps them callable outside a request; the constraint is
+self-enforcing, since `Actor.current()` reads `FacesContext` and throws outside one.
 
 **The governing rule:** an activity-log write joins the transaction of the action it
-records. If the log write fails, the action fails. Authentication events are the sole
-exception, because they have no business transaction to join and a logging fault must not
-prevent users from signing in.
+records. If the log write fails, the action fails.
+
+Two categories are excluded, each for a distinct reason.
+
+**Authentication events** have no business transaction to join, and a logging fault must
+not prevent users from signing in. `LoginAuditListener` and `BrowserAccessDeniedHandler`
+therefore wrap their writes in `try`/`catch` and proceed regardless of the outcome.
+
+**Refusals** — any row whose `outcome` is `DENIED` or `FAILED` — must not join the
+transaction, because that transaction is about to be rolled back deliberately. A service
+that refuses an action writes the audit row and then throws a `BusinessRuleException`,
+which extends `RuntimeException` and so triggers Spring's default rollback. A row written
+through the ordinary path would be discarded along with the action it was recording,
+leaving the refusal invisible — the precise outcome the `DENIED` value exists to prevent.
+Refusals are therefore written through `ActivityLogDao.logRefusal(...)`, annotated
+`@Transactional(propagation = Propagation.REQUIRES_NEW)`, so the evidence commits
+independently of the rollback that follows it.
+
+Call sites do not choose between the two paths. Marking an entry `.refused(reason)` or
+`.failed(reason)` sets the outcome *and* selects `logRefusal`, so the two cannot be set
+inconsistently; `.bestEffort()` additionally swallows a logging failure, and is used only
+on the authentication paths described above.
+
+The distinction is not stylistic. A successful action and its log entry must succeed or
+fail together; a refused action and its log entry must not.
 
 ## 9. Implementation Status
 
@@ -217,18 +259,20 @@ prevent users from signing in.
 |---|---|
 | Database schema | Implemented, Flyway-managed |
 | Authentication and session management | Implemented |
-| Activity log — authentication events | Implemented |
-| Activity log — viewing screen | Implemented, `f:viewParam`-driven |
+| Activity log — authentication events | Implemented — `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, `LOGOUT`, `ACCESS_DENIED` |
+| Activity log — viewing screen | Implemented — joined actor/subject/holder names, before-and-after values, refusal reasons, correlation grouping, and filters on entity, action, outcome, date range and free text |
 | Asset directory — list, search, pagination | Implemented, DB-side pagination (no N+1) |
-| Asset detail view | Implemented, read-only |
+| Asset detail view | Implemented — read fields plus admin-only transfer-initiation and condition-change forms |
 | Asset registration | Implemented, transactional, logs `ASSET_REGISTERED` |
+| Asset condition change | Implemented, transactional, force-releases active custody for `DAMAGED`/`UNDER_MAINTENANCE`, logs `ASSET_CONDITION_CHANGED` |
 | User directory — list, search, filter, pagination | Implemented, `f:viewParam`-driven |
 | User detail view | Implemented, read-only |
 | User editing | Implemented — `@ViewScoped` edit-state machine, `h:selectOneMenu`/`h:selectBooleanCheckbox` form |
-| Activity log — business actions | Implemented for asset registration and user edits (`ASSET_REGISTERED`, `USER_UPDATED`), both transactional and verified atomic by fault injection |
-| Service layer | `AssetService`, `UserService` implemented; `@Transactional` boundary on both |
-| Approval workflow | Schema implemented; no read or write path |
-| Custody assignment and release | Schema implemented; read path only |
+| Activity log — business actions | Implemented across every mutation path: asset registration and condition change, user edit and disable, transfer request, each approval signature, rejection and cancellation, and custody transfer and release |
+| Activity log — refusals | Implemented — duplicate asset tag, pending-transfer conflict, self-approval, closed-approval, and authorisation failure are all recorded as `DENIED` rows through the `REQUIRES_NEW` path described in §8 |
+| Service layer | `AssetService`, `UserService`, `ApprovalService` implemented; `@Transactional` boundary on all three |
+| Approval workflow | Implemented — admin-initiated transfer, `/approval/list` queue, `/approval/detail` decide page, self-approval blocked structurally and in the UI, every step audited. Employee self-request and `RETURN`-request creation still have no UI. |
+| Custody assignment and release | Implemented — transfer, force-release on condition change, and `RETURN` (release with no replacement holder). **Known defect:** `custody_start` is written by the MySQL column default in server-local time while `custody_end` is written from Java through a `serverTimezone=UTC` connection, so releasing custody that began less than six hours earlier violates `chk_custody_dates`. See the 2026-08-31 entry in [docs/development-plan.md](development-plan.md). |
 | Dashboard | Placeholder view |
 | Role-based authorisation | Partial; no method-level rules |
 | Document upload | Out of scope |

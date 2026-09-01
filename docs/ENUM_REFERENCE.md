@@ -48,7 +48,7 @@ Current values, grouped by area:
 
 | Area | Values |
 |---|---|
-| Authentication | `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, `LOGOUT` |
+| Authentication | `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, `LOGOUT`, `ACCESS_DENIED` |
 | Assets | `ASSET_REGISTERED`, `ASSET_UPDATED`, `ASSET_CONDITION_CHANGED` |
 | Custody | `CUSTODY_ASSIGNED`, `CUSTODY_TRANSFERRED`, `CUSTODY_RELEASED` |
 | Approvals | `REQUEST_SUBMITTED`, `REQUEST_APPROVED`, `REQUEST_REJECTED`, `REQUEST_CANCELLED` |
@@ -56,7 +56,9 @@ Current values, grouped by area:
 
 Adding a value requires only a new constant. Two constraints apply: the name must fit within 40 characters, and an existing name must never be changed, because rows already written carry the old spelling and the log is a historical record.
 
-Not every value listed above is written by code yet; the set anticipates the workflows described in [docs/development-plan.md](development-plan.md). Values that appear in `db/seed/V1000__dev_seed_data.sql` are included so that seeded rows and application-written rows use one vocabulary.
+As of 2026-08-31 every value is written by application code except `ASSET_UPDATED`, `USER_CREATED`, `DEPARTMENT_CREATED` and `DEPARTMENT_CLOSED`, whose workflows do not exist yet; the set continues to anticipate the workflows described in [docs/development-plan.md](development-plan.md). Values that appear in `db/seed/V1000__dev_seed_data.sql` are included so that seeded rows and application-written rows use one vocabulary.
+
+`ACCESS_DENIED` was added on 2026-08-31 for authorisation failures reaching `BrowserAccessDeniedHandler`. It required no migration, which is the concrete payoff of the no-`CHECK` decision described above.
 
 ## 4. The 2026-08-19 refactor
 
