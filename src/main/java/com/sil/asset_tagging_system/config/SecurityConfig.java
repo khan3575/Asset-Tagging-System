@@ -30,8 +30,6 @@ public class SecurityConfig {
     private final BrowserAccessDeniedHandler browserAccessDeniedHandler;
     private final LoginAuditListener loginAuditListener;
 
-    // BrowserAccessDeniedHandler and LoginAuditListener both use  activityDao which need entityManager
-    // but spring security is build during servlet-context init so we have to lazy load the BrowserAccessDeniedHandler and LoginAuditHandler
     public SecurityConfig(@Lazy BrowserAccessDeniedHandler browserAccessDeniedHandler,
                           @Lazy LoginAuditListener loginAuditListener)
     {
@@ -49,6 +47,7 @@ public class SecurityConfig {
                                     .requestMatchers("/**/*.xhtml", "/*.xhtml").denyAll()
                                     .requestMatchers("/resources/**").denyAll()
                                     .requestMatchers("/login", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
+                                    .requestMatchers("/user/form").hasRole("ADMIN")
                                     .requestMatchers("/activity/**").hasRole("ADMIN")
                                     .requestMatchers("/approval/**").hasRole("ADMIN")
                                     .anyRequest().authenticated()
