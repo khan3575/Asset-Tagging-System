@@ -50,5 +50,4 @@ public class AssetCategoryDao {
             """;
     return entityManager.createNativeQuery(sql, AssetCategory.class).getResultList();
 }
-
 }
