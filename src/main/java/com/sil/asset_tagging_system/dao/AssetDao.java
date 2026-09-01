@@ -3,6 +3,7 @@ package com.sil.asset_tagging_system.dao;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -160,25 +161,42 @@ public class AssetDao {
         return DaoUtils.exists(entityManager, sql, Map.of("assetTag", assetTag, "id", id));
     }
 
-
-    /* 
-        UPDATE ASSET METHOD
-    */
-    
-    public void updateAsset(Long id, AssetCondition assetCondition, BigDecimal purchaseValue)
+    public void updateAsset(Long id, String assetTag, String name, Long categoryId,
+                            LocalDate purchaseDate, BigDecimal purchaseValue)
     {
-        if (assetCondition == null) {
-            throw new IllegalArgumentException("ConditionStaus must not be null");
-        }
         String sql = """
-                        UPDATE assets SET condition_status = :conditionStatus, purchase_value = :purchaseValue
-                        WHERE id = :id
-                        """;
+                UPDATE assets
+                SET asset_tag = :assetTag, name = :name, category_id = :categoryId
+                  , purchase_date = :purchaseDate, purchase_value = :purchaseValue
+                WHERE id = :id
+                """;
         entityManager.createNativeQuery(sql)
-        .setParameter("conditionStatus", assetCondition.name())
-        .setParameter("purchaseValue", purchaseValue)
-        .setParameter("id", id)
-        .executeUpdate();
+                .setParameter("assetTag", assetTag)
+                .setParameter("name", name)
+                .setParameter("categoryId", categoryId)
+                .setParameter("purchaseDate", purchaseDate)
+                .setParameter("purchaseValue", purchaseValue)
+                .setParameter("id", id)
+                .executeUpdate();
+    }
+
+    public Map<AssetCondition, Long> countByCondition()
+    {
+        String sql = """
+                SELECT condition_status, COUNT(*)
+                FROM assets
+                GROUP BY condition_status
+                """;
+        List<Object[]> rows = entityManager.createNativeQuery(sql).getResultList();
+
+        Map<AssetCondition, Long> counts = new LinkedHashMap<>();
+        for (AssetCondition condition : AssetCondition.values()) {
+            counts.put(condition, 0L);
+        }
+        for (Object[] row : rows) {
+            counts.put(AssetCondition.valueOf((String) row[0]), ((Number) row[1]).longValue());
+        }
+        return counts;
     }
 
     public void updateCondition(Long id, AssetCondition assetCondition)
