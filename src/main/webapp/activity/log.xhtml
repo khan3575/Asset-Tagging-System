@@ -2,47 +2,157 @@
     xmlns:ats="jakarta.faces.composite/ats"
     xmlns="http://www.w3.org/1999/xhtml"
     xmlns:h="jakarta.faces.html"
-    xmlns:f="jakarta.faces.core" 
+    xmlns:f="jakarta.faces.core"
+    xmlns:a="jakarta.faces.passthrough"
     xmlns:ui="jakarta.faces.facelets">
 
     <f:metadata>
         <f:viewParam name="currentPage" value="#{activityLogBean.currentPage}"/>
+        <f:viewParam name="entityType" value="#{activityLogBean.entityType}"/>
+        <f:viewParam name="action" value="#{activityLogBean.action}"/>
+        <f:viewParam name="outcome" value="#{activityLogBean.outcome}"/>
+        <f:viewParam name="search" value="#{activityLogBean.search}"/>
+        <f:viewParam name="from" value="#{activityLogBean.from}"/>
+        <f:viewParam name="to" value="#{activityLogBean.to}"/>
         <f:viewAction action="#{activityLogBean.load}"/>
     </f:metadata>
 
-
     <ui:define name="title">Activity Log</ui:define>
     <ui:define name="pageTitle">Activity Log</ui:define>
+    <ui:define name="pageSubtitle">Who did what, to which record, from where</ui:define>
+
+    <ui:define name="pageActions">
+        <ats:badge text="Total records : #{activityLogBean.totalRecords}"/>
+    </ui:define>
+
     <ui:define name="content">
-        <h:dataTable value="#{activityLogBean.entries}" var="entry" styleClass="table table-striped">
+
+        <h:form id="filterForm" styleClass="card card-body bg-light border mb-3">
+            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+            <div class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <h:outputLabel for="entityType" value="Entity" styleClass="form-label mb-0 small text-muted"/>
+                    <h:selectOneMenu id="entityType" value="#{activityLogBean.entityType}" styleClass="form-select form-select-sm">
+                        <f:selectItem itemLabel="All entities" itemValue="#{null}"/>
+                        <f:selectItems value="#{activityLogBean.entityTypeOptions}" var="et" itemLabel="#{et}" itemValue="#{et}"/>
+                    </h:selectOneMenu>
+                </div>
+                <div class="col-auto">
+                    <h:outputLabel for="action" value="Action" styleClass="form-label mb-0 small text-muted"/>
+                    <h:selectOneMenu id="action" value="#{activityLogBean.action}" styleClass="form-select form-select-sm">
+                        <f:selectItem itemLabel="All actions" itemValue="#{null}"/>
+                        <f:selectItems value="#{activityLogBean.actionOptions}" var="ac" itemLabel="#{ac}" itemValue="#{ac}"/>
+                    </h:selectOneMenu>
+                </div>
+                <div class="col-auto">
+                    <h:outputLabel for="outcome" value="Outcome" styleClass="form-label mb-0 small text-muted"/>
+                    <h:selectOneMenu id="outcome" value="#{activityLogBean.outcome}" styleClass="form-select form-select-sm">
+                        <f:selectItem itemLabel="Any outcome" itemValue="#{null}"/>
+                        <f:selectItems value="#{activityLogBean.outcomeOptions}" var="oc" itemLabel="#{oc}" itemValue="#{oc}"/>
+                    </h:selectOneMenu>
+                </div>
+                <div class="col-auto">
+                    <h:outputLabel for="from" value="From" styleClass="form-label mb-0 small text-muted"/>
+                    <h:inputText id="from" value="#{activityLogBean.from}" styleClass="form-control form-control-sm" a:type="date">
+                        <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
+                    </h:inputText>
+                </div>
+                <div class="col-auto">
+                    <h:outputLabel for="to" value="To" styleClass="form-label mb-0 small text-muted"/>
+                    <h:inputText id="to" value="#{activityLogBean.to}" styleClass="form-control form-control-sm" a:type="date">
+                        <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
+                    </h:inputText>
+                </div>
+                <div class="col">
+                    <h:outputLabel for="search" value="Search summary / IP" styleClass="form-label mb-0 small text-muted"/>
+                    <h:inputText id="search" value="#{activityLogBean.search}" styleClass="form-control form-control-sm"/>
+                </div>
+                <div class="col-auto">
+                    <h:commandButton value="Filter" action="#{activityLogBean.applyFilters}" styleClass="btn btn-sm btn-primary"/>
+                    <h:commandButton value="Clear" action="#{activityLogBean.clearFilters}" immediate="true" styleClass="btn btn-sm btn-outline-secondary ms-1"/>
+                </div>
+            </div>
+        </h:form>
+
+        <h:panelGroup layout="block" styleClass="alert alert-secondary"
+                      rendered="#{empty activityLogBean.entries}">
+            No activity matches these filters.
+        </h:panelGroup>
+
+        <div class="table-responsive" >
+        <h:dataTable value="#{activityLogBean.entries}" var="entry"
+                     rendered="#{not empty activityLogBean.entries}"
+                     styleClass="table table-sm table-hover align-middle border"
+                     rowClasses="#{''}">
             <h:column>
                 <f:facet name="header">When</f:facet>
-                <h:outputText value="#{entry.occurredAt}">
-                    <f:convertDateTime type="localDateTime" pattern="dd MMM yyyy, HH:mm" />
+                <h:outputText value="#{entry.occurredAt}" styleClass="text-nowrap small">
+                    <f:convertDateTime type="localDateTime" pattern="dd MMM yyyy, HH:mm:ss" />
                 </h:outputText>
             </h:column>
+
             <h:column>
-                <f:facet name="header">Actor User Id</f:facet>
-                #{entry.actorUserId}
+                <f:facet name="header">Actor</f:facet>
+                <div class="small">
+                    <strong>#{entry.actorLabel}</strong>
+                    <h:panelGroup rendered="#{not empty entry.actorRoles}">
+                        <span class="badge text-bg-light border ms-1">#{entry.actorRoles}</span>
+                    </h:panelGroup>
+                </div>
+                <h:panelGroup rendered="#{not empty entry.ipAddress}">
+                    <span class="text-muted font-monospace" style="font-size:.75rem;">#{entry.ipAddress}</span>
+                </h:panelGroup>
             </h:column>
+
             <h:column>
                 <f:facet name="header">Action</f:facet>
-                #{entry.action}
+                <span class="font-monospace" style="font-size:.78rem;">#{entry.action}</span>
+                <div class="text-muted" style="font-size:.72rem;">#{entry.entityType}</div>
             </h:column>
+
             <h:column>
-                <f:facet name="header">Entity</f:facet>
-                #{entry.entityType} ##{activityLogBean.entityIdOf(entry)}
+                <f:facet name="header">Target</f:facet>
+                <span class="small">#{entry.target}</span>
             </h:column>
+
             <h:column>
-                <f:facet name="header">Description</f:facet>
-                #{entry.summary}
+                <f:facet name="header">Change</f:facet>
+                <h:panelGroup rendered="#{not empty entry.change}">
+                    <span class="small font-monospace text-nowrap">#{entry.change}</span>
+                </h:panelGroup>
             </h:column>
+
+            <h:column>
+                <f:facet name="header">Detail</f:facet>
+                <div class="small">#{entry.summary}</div>
+                <h:panelGroup rendered="#{entry.refused and not empty entry.failureReason}">
+                    <div class="text-danger" style="font-size:.75rem;">
+                        <i class="bi bi-exclamation-triangle me-1"></i>#{entry.failureReason}
+                    </div>
+                </h:panelGroup>
+                <h:panelGroup rendered="#{not empty entry.details}">
+                    <div class="text-muted font-monospace" style="font-size:.72rem;">#{entry.details}</div>
+                </h:panelGroup>
+            </h:column>
+
             <h:column>
                 <f:facet name="header">Outcome</f:facet>
-                <h:outputText value="#{entry.outcome}" styleClass="badge #{entry.outcome eq 'SUCCEEDED' ? 'text-bg-success': (entry.outcome eq 'DENIED'? 'text-bg-warning' : 'text-bg-danger')}" />
+                <h:outputText value="#{entry.outcome}"
+                    styleClass="badge #{entry.outcome eq 'SUCCEEDED' ? 'text-bg-success' : (entry.outcome eq 'DENIED' ? 'text-bg-warning' : 'text-bg-danger')}" />
+            </h:column>
+
+            <h:column>
+                <f:facet name="header">Action group</f:facet>
+                <span class="text-muted font-monospace" style="font-size:.72rem;"
+                      title="Correlation id — rows sharing this value came from one user action">
+                    #{entry.shortCorrelation}<h:panelGroup rendered="#{entry.sequenceInAction gt 1}">.#{entry.sequenceInAction}</h:panelGroup>
+                </span>
             </h:column>
         </h:dataTable>
-        <ats:pagination currentPage="#{activityLogBean.currentPage}" totalPages="#{activityLogBean.totalPages}" url="/activity/log" />
+        </div>
+
+        <ats:pagination currentPage="#{activityLogBean.currentPage}" totalPages="#{activityLogBean.totalPages}"
+                        url="/activity/log" extraParams="#{activityLogBean.extraParams}" />
     </ui:define>
-            
+
 </ui:composition>

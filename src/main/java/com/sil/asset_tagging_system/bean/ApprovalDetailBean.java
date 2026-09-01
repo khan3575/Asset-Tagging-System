@@ -8,12 +8,12 @@ import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sil.asset_tagging_system.dto.Actor;
 import com.sil.asset_tagging_system.dto.ApprovalRow;
 import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.enums.ApprovalActionType;
 import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.ApprovalService;
-import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -56,10 +56,8 @@ public class ApprovalDetailBean implements Serializable {
     public String reject() { return act(ApprovalActionType.REJECTED); }
 
     private String act(ApprovalActionType action) {
-        Long actorUserId = SecurityUtil.currentUserId();
         try {
-            approvalService.recordAction(id, actorUserId, action, notes,
-                    SecurityUtil.primaryRole(), WebUtil.getRemoteAddress());
+            approvalService.recordAction(id, Actor.current(), action, notes);
         } catch (BusinessRuleException e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));

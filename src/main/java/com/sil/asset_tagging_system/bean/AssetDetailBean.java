@@ -12,16 +12,15 @@ import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sil.asset_tagging_system.dto.Actor;
 import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
 import com.sil.asset_tagging_system.model.enums.RoleName;
-import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.ApprovalService;
 import com.sil.asset_tagging_system.service.AssetService;
 import com.sil.asset_tagging_system.service.UserService;
-import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -93,14 +92,12 @@ public class AssetDetailBean implements Serializable {
     }
     public String transfer()
     {
-        Long actorUserId = SecurityUtil.currentUserId();
-        String primaryRole = SecurityUtil.primaryRole();
+        Actor actor = Actor.current();
         Long previousHolderId = currentHolder != null ? currentHolder.getId() : null;
 
         try{
-            log.info("AssetDetailBean.transfer initiated transfer {}, {}, {}", asset.getId(), actorUserId, selectedHolderId);
-            approvalService.initiateTransfer(asset.getId(), actorUserId, selectedHolderId, previousHolderId,
-                    primaryRole, WebUtil.getRemoteAddress());
+            log.info("AssetDetailBean.transfer initiated transfer {}, {}, {}", asset.getId(), actor.userId(), selectedHolderId);
+            approvalService.initiateTransfer(asset.getId(), actor, selectedHolderId, previousHolderId);
         }
         catch(BusinessRuleException e)
         {
@@ -114,13 +111,11 @@ public class AssetDetailBean implements Serializable {
 
     public String changeCondition()
     {
-        Long actorUserId = SecurityUtil.currentUserId();
-        String primaryRole = SecurityUtil.primaryRole();
-        String ipAddress = WebUtil.getRemoteAddress();
+        Actor actor = Actor.current();
 
         try{
-            log.info("AssetDetailBean.changeCondition initiated condition change {}, {}, {}", asset.getId(), actorUserId, conditionStatus);
-            assetService.updateCondition(asset.getId(), actorUserId, ipAddress, primaryRole, LocalDateTime.now(), conditionStatus);
+            log.info("AssetDetailBean.changeCondition initiated condition change {}, {}, {}", asset.getId(), actor.userId(), conditionStatus);
+            assetService.updateCondition(asset.getId(), actor, LocalDateTime.now(), conditionStatus);
         }
         catch(IllegalArgumentException e)
         {

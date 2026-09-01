@@ -6,6 +6,7 @@ public enum ActivityAction {
     LOGIN_SUCCEEDED,
     LOGIN_FAILED,
     LOGOUT,
+    ACCESS_DENIED,
 
     // assets
     ASSET_REGISTERED,

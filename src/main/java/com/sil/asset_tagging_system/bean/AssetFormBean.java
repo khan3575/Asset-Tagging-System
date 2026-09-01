@@ -9,10 +9,9 @@ import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sil.asset_tagging_system.dto.Actor;
 import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
-import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.AssetService;
-import com.sil.asset_tagging_system.util.WebUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +26,6 @@ public class AssetFormBean {
 
     private final AssetService assetService;
 
-    // form fields, bound from add-asset.xhtml
     private String assetTag;
     private String name;
     private Long categoryId;
@@ -39,13 +37,11 @@ public class AssetFormBean {
     {
         this.assetService = assetService;
     }
-
     public String save()
     {
         try
         {
-            assetService.register(assetTag, name, categoryId, purchaseDate, value,
-                    SecurityUtil.currentUserId(), SecurityUtil.primaryRole(), WebUtil.getRemoteAddress());
+            assetService.register(assetTag, name, categoryId, purchaseDate, value, Actor.current());
         }
         catch (DuplicateAssetTagException e)
         {
@@ -55,6 +51,4 @@ public class AssetFormBean {
         }
         return "/asset/list?faces-redirect=true";
     }
-
-
 }

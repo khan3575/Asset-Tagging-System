@@ -7,15 +7,12 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sil.asset_tagging_system.dao.ActivityLogDao;
 import com.sil.asset_tagging_system.dao.UserDao;
-import com.sil.asset_tagging_system.model.ActivityLog;
+import com.sil.asset_tagging_system.dto.Actor;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.ActivityAction;
 import com.sil.asset_tagging_system.model.enums.ActivityEntityType;
-import com.sil.asset_tagging_system.model.enums.ActivityOutcome;
 import com.sil.asset_tagging_system.model.enums.RoleName;
-import com.sil.asset_tagging_system.security.CorrelationFilter;
 import com.sil.asset_tagging_system.util.OptionalUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -25,28 +22,41 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
     private final UserDao userDao;
-    private final ActivityLogDao activityLogDao;
+    private final AuditTrail auditTrail;
 
     @Transactional
     public void updateUser(Long id, String firstName, String lastName, Long departmentId, Boolean enabled, Set<RoleName> roles,
-                            Long actorUserId, String actorRole, String ipAddress)
+                            Actor actor)
     {
+        Boolean wasEnabled = userDao.findById(id).map(User::getEnabled).orElse(null);
+        boolean beingDisabled = Boolean.TRUE.equals(wasEnabled) && Boolean.FALSE.equals(enabled);
+
         userDao.updateUser(id, firstName, lastName, departmentId, enabled);
         userDao.replaceRoles(id,roles);
 
-        ActivityLog act = ActivityLog.builder()
-                .correlationId(CorrelationFilter.getCurrentCorrelationId())
-                .sequenceInAction((short) 1)
-                .actorUserId(actorUserId)
-                .entityType(ActivityEntityType.USER)
-                .action(ActivityAction.USER_UPDATED)
-                .outcome(ActivityOutcome.SUCCEEDED)
-                .subjectUserId(id)
-                .summary("Updated user " + firstName + " " + lastName)
-                .ipAddress(ipAddress)
-                .actorRoles((actorRole == null) ? null : RoleName.valueOf(actorRole))
-                .build();
-        activityLogDao.log(act);
+        auditTrail.record(beingDisabled ? ActivityAction.USER_DISABLED : ActivityAction.USER_UPDATED, ActivityEntityType.USER)
+                .by(actor)
+                .subject(id)
+                .summary(beingDisabled ? "Disabled user " + firstName + " " + lastName : "Updated user " + firstName + " " + lastName)
+                .details(rolesJson(roles))
+                .save();
+    }
+
+    private String rolesJson(Set<RoleName> roles)
+    {
+        if (roles == null || roles.isEmpty()) {
+            return null;
+        }
+        StringBuilder json = new StringBuilder("{\"roles\":[");
+        boolean first = true;
+        for (RoleName role : roles) {
+            if (!first) {
+                json.append(",");
+            }
+            json.append("\"").append(role.name()).append("\"");
+            first = false;
+        }
+        return json.append("]}").toString();
     }
     public User getUser(Long id)
     {
