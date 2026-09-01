@@ -22,23 +22,129 @@
     </ui:define>
 
     <ui:define name="content">
-        <h:form id="update-asset-view" styleClass="row g-3" style="max-width:600;">
+        <h:messages globalOnly="true" styleClass="mb-3" errorClass="alert alert-danger"/>
+
+        <h:form id="update-asset-view" styleClass="row g-3" style="max-width:720px;">
             <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
-            <div class="col-6">
-                <h:outputLabel for="assetTag" value="Asset Tag" styleClass="form-label mb-0" />
-                <h:inputText name="assetTag" id="assetTag" value="#{assetDetailBean.asset.assetTag}" styleClass="form-control" disabled="disabled" />
-            </div>
 
-            <div class="col-6">
-                <h:outputLabel for="name" value="Asset Name" styleClass="form-label mb-0" />
-                <h:inputText name="name" id="name" value="#{assetDetailBean.asset.name}" styleClass="form-control" disabled="disabled"/>
-            </div>
+            <ui:fragment rendered="#{!assetDetailBean.editing}">
+                <div class="col-6">
+                    <h:outputLabel for="assetTag" value="Asset Tag" styleClass="form-label mb-0" />
+                    <h:inputText id="assetTag" value="#{assetDetailBean.asset.assetTag}" styleClass="form-control" disabled="disabled" />
+                </div>
+                <div class="col-6">
+                    <h:outputLabel for="name" value="Asset Name" styleClass="form-label mb-0" />
+                    <h:inputText id="name" value="#{assetDetailBean.asset.name}" styleClass="form-control" disabled="disabled"/>
+                </div>
+                <div class="col-6">
+                    <h:outputLabel for="categoryName" value="Category" styleClass="form-label mb-0" />
+                    <h:inputText id="categoryName" value="#{assetDetailBean.asset.category.name}" styleClass="form-control" disabled="disabled" />
+                </div>
+                <div class="col-3">
+                    <h:outputLabel for="purchaseDateRead" value="Purchase Date" styleClass="form-label mb-0" />
+                    <h:inputText id="purchaseDateRead" value="#{assetDetailBean.asset.purchaseDate}" styleClass="form-control" disabled="disabled" />
+                </div>
+                <div class="col-3">
+                    <h:outputLabel for="purchaseValueRead" value="Value" styleClass="form-label mb-0" />
+                    <h:inputText id="purchaseValueRead" value="#{assetDetailBean.asset.purchaseValue}" styleClass="form-control" disabled="disabled" />
+                </div>
+                <div class="col-12">
+                    <h:commandButton value="Edit" action="#{assetDetailBean.edit}" styleClass="btn btn-outline-primary"
+                                     rendered="#{headerBean.role == 'ROLE_ADMIN'}"/>
+                </div>
+            </ui:fragment>
 
-            <div class="col-6">
-                <h:outputLabel for="categoryName" value="Category Name" styleClass="form-label mb-0" />
-                <h:inputText name="categoryName" id="categoryName" value="#{assetDetailBean.asset.category.name}" styleClass="form-control" disabled="disabled" />
-            </div>
+            <ui:fragment rendered="#{assetDetailBean.editing}">
+                <div class="col-6">
+                    <h:outputLabel for="editTag" value="Asset Tag" styleClass="form-label mb-0" />
+                    <h:inputText id="editTag" value="#{assetDetailBean.editorAssetTag}" styleClass="form-control" required="true"/>
+                </div>
+                <div class="col-6">
+                    <h:outputLabel for="editName" value="Asset Name" styleClass="form-label mb-0" />
+                    <h:inputText id="editName" value="#{assetDetailBean.editorName}" styleClass="form-control" required="true"/>
+                </div>
+                <div class="col-6">
+                    <h:outputLabel for="editCategory" value="Category" styleClass="form-label mb-0" />
+                    <h:selectOneMenu id="editCategory" value="#{assetDetailBean.editorCategoryId}" styleClass="form-select" required="true">
+                        <f:selectItems value="#{lookupBean.assetCategoryList}" var="category"
+                                       itemLabel="#{category.name}" itemValue="#{category.id}"/>
+                    </h:selectOneMenu>
+                </div>
+                <div class="col-3">
+                    <h:outputLabel for="editDate" value="Purchase Date" styleClass="form-label mb-0" />
+                    <h:inputText id="editDate" value="#{assetDetailBean.editorPurchaseDate}" styleClass="form-control">
+                        <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
+                    </h:inputText>
+                </div>
+                <div class="col-3">
+                    <h:outputLabel for="editValue" value="Value" styleClass="form-label mb-0" />
+                    <h:inputText id="editValue" value="#{assetDetailBean.editorPurchaseValue}" styleClass="form-control"/>
+                </div>
+                <div class="col-12">
+                    <h:commandButton value="Save" action="#{assetDetailBean.save}" styleClass="btn btn-primary me-2"
+                                     onclick="if(!confirm('Save changes to this asset?')) { return false; }"/>
+                    <h:commandButton value="Cancel" action="#{assetDetailBean.cancel}" immediate="true"
+                                     styleClass="btn btn-outline-secondary"/>
+                </div>
+            </ui:fragment>
         </h:form>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <i class="bi bi-paperclip me-2"></i>Documents
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h6 class="small text-muted">Photograph</h6>
+                        <ui:fragment rendered="#{assetDetailBean.hasImage}">
+                            <a href="#{request.contextPath}/asset/document/#{assetDetailBean.id}/image" target="_blank">
+                                <img src="#{request.contextPath}/asset/document/#{assetDetailBean.id}/image"
+                                     alt="Asset photograph" class="img-thumbnail mb-2" style="max-height:160px;"/>
+                            </a>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{!assetDetailBean.hasImage}">
+                            <p class="text-muted small">No photograph uploaded.</p>
+                        </ui:fragment>
+
+                        <h:form id="image-form" enctype="multipart/form-data"
+                                rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}"/>
+                            <h:inputFile id="imageUpload" value="#{assetDetailBean.imageUpload}"
+                                         styleClass="form-control form-control-sm mb-2" accept="image/*"/>
+                            <h:commandButton value="Upload Photograph" action="#{assetDetailBean.uploadImage}"
+                                             styleClass="btn btn-sm btn-outline-primary"/>
+                            <div class="form-text">PNG, JPEG, GIF or WebP, up to 5 MB.</div>
+                        </h:form>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="small text-muted">Purchase invoice</h6>
+                        <ui:fragment rendered="#{assetDetailBean.hasInvoice}">
+                            <p class="mb-2">
+                                <a href="#{request.contextPath}/asset/document/#{assetDetailBean.id}/invoice"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>Download invoice
+                                </a>
+                            </p>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{!assetDetailBean.hasInvoice}">
+                            <p class="text-muted small">No invoice uploaded.</p>
+                        </ui:fragment>
+
+                        <h:form id="invoice-form" enctype="multipart/form-data"
+                                rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}"/>
+                            <h:inputFile id="invoiceUpload" value="#{assetDetailBean.invoiceUpload}"
+                                         styleClass="form-control form-control-sm mb-2" accept="application/pdf"/>
+                            <h:commandButton value="Upload Invoice" action="#{assetDetailBean.uploadInvoice}"
+                                             styleClass="btn btn-sm btn-outline-primary"/>
+                            <div class="form-text">PDF, up to 10 MB.</div>
+                        </h:form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white">
