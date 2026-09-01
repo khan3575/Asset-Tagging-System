@@ -1,0 +1,83 @@
+<ui:composition template="/WEB-INF/templates/main.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets">
+
+    <f:metadata>
+        <f:viewAction action="#{settingsBean.load}"/>
+    </f:metadata>
+
+    <ui:define name="title">Settings</ui:define>
+    <ui:define name="pageTitle">Settings</ui:define>
+    <ui:define name="pageSubtitle">Your account</ui:define>
+
+    <ui:define name="content">
+
+        <h:messages globalOnly="true" styleClass="mb-3"
+                    infoClass="alert alert-success" errorClass="alert alert-danger"/>
+
+        <div class="card shadow-sm mb-3" style="max-width:640px;">
+            <div class="card-header bg-white">Profile</div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-4 text-muted small">Name</div>
+                    <div class="col-8">#{settingsBean.user.firstName} #{settingsBean.user.lastName}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted small">Email</div>
+                    <div class="col-8">#{settingsBean.user.email}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted small">Department</div>
+                    <div class="col-8">#{settingsBean.user.department.name}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted small">Roles</div>
+                    <div class="col-8">
+                        <ui:repeat value="#{settingsBean.user.roles.toArray()}" var="role">
+                            <span class="badge text-bg-light border me-1">#{role.name}</span>
+                        </ui:repeat>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4 text-muted small">Account</div>
+                    <div class="col-8">
+                        <h:outputText value="#{settingsBean.user.enabled ? 'Active' : 'Disabled'}"
+                            styleClass="badge #{settingsBean.user.enabled ? 'text-bg-success' : 'text-bg-secondary'}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h:form id="password-form" styleClass="card shadow-sm" style="max-width:640px;">
+            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}"/>
+            <div class="card-header bg-white">Change password</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h:outputLabel for="currentPassword" value="Current password" styleClass="form-label mb-0"/>
+                    <h:inputSecret id="currentPassword" value="#{settingsBean.currentPassword}"
+                                   styleClass="form-control" required="true"
+                                   requiredMessage="Current password is required."/>
+                </div>
+                <div class="mb-3">
+                    <h:outputLabel for="newPassword" value="New password" styleClass="form-label mb-0"/>
+                    <h:inputSecret id="newPassword" value="#{settingsBean.newPassword}"
+                                   styleClass="form-control" required="true"
+                                   requiredMessage="New password is required."/>
+                    <div class="form-text">At least 8 characters, and different from your current one.</div>
+                </div>
+                <div class="mb-3">
+                    <h:outputLabel for="confirmPassword" value="Confirm new password" styleClass="form-label mb-0"/>
+                    <h:inputSecret id="confirmPassword" value="#{settingsBean.confirmPassword}"
+                                   styleClass="form-control" required="true"
+                                   requiredMessage="Please confirm the new password."/>
+                </div>
+                <h:commandButton value="Change Password" action="#{settingsBean.changePassword}"
+                                 styleClass="btn btn-primary"
+                                 onclick="if(!confirm('Change your password?')) { return false; }"/>
+            </div>
+        </h:form>
+
+    </ui:define>
+</ui:composition>
