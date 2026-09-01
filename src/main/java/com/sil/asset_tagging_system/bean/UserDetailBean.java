@@ -1,13 +1,17 @@
 package com.sil.asset_tagging_system.bean;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sil.asset_tagging_system.dto.Actor;
+import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.service.UserService;
@@ -18,8 +22,10 @@ import lombok.Setter;
 @Getter
 @Named
 @ViewScoped
-public class UserDetailBean {
-    private final UserService userService;
+public class UserDetailBean implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private final transient UserService userService;
     @Setter
     private Long id;
     private User user;
@@ -72,7 +78,14 @@ public class UserDetailBean {
         {
             roles.add(RoleName.ROLE_EMPLOYEE);
         }
-        update(id, user.getFirstName() , user.getLastName(), editorDepartmentId, user.getEnabled(), roles);
+        try {
+            update(id, user.getFirstName() , user.getLastName(), editorDepartmentId, user.getEnabled(), roles);
+        }
+        catch (BusinessRuleException e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            return;
+        }
         load();
         editing = false;
     }
