@@ -263,11 +263,9 @@ public class UserDao {
                 LEFT JOIN roles r ON r.id = ur.role_id
                 WHERE 1=1
                 """);
-
         appendUserFilters(sql, roleName, search, departmentId, enabled);
 
         Query query = entityManager.createNativeQuery(sql.toString());
-
         bindUserFilters(query, roleName, search, departmentId, enabled);
 
         return ((Number) query.getSingleResult()).longValue();
@@ -287,10 +285,8 @@ public class UserDao {
                 JOIN user_role ur ON ur.role_id = r.id
                 WHERE ur.user_id IN (:userIds)
                 """;
-
         List<Object[]> resultList = entityManager.createNativeQuery(sql)
                 .setParameter("userIds", userList).getResultList();
-
 
         Map<Long, Set<Role> > roleMap = new HashMap<>();
         for(Object[] row : resultList)
@@ -298,7 +294,6 @@ public class UserDao {
             Long userId = ((Number)row[0]).longValue();
             Role role = Role.builder().id(((Number)row[1]).longValue())
                     .name(RoleName.valueOf((String)row[2])).build();
-
             roleMap.computeIfAbsent(userId,k-> new HashSet<>()).add(role);
         }
 
@@ -318,7 +313,6 @@ public class UserDao {
 
         List<Object[]> rowList = entityManager.createNativeQuery(sql)
                 .setParameter("id", id).getResultList();
-
         if(rowList.isEmpty())
         {
             return Optional.empty();
@@ -326,10 +320,8 @@ public class UserDao {
 
         Object[] row = rowList.getFirst();
         Long userId = ((Number)row[0]).longValue();
-
         Department dept = Department.builder().id(((Number)row[7])
                 .longValue()).name((String)row[8]).closedAt((LocalDateTime)row[9]).build();
-
 
         User user = User.builder().id(userId)
                 .firstName((String)row[1])
