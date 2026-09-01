@@ -46,8 +46,9 @@ public class SecurityConfig {
                                     
                                     .requestMatchers("/**/*.xhtml", "/*.xhtml").denyAll()
                                     .requestMatchers("/resources/**").denyAll()
-                                    .requestMatchers("/login", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
+                                    .requestMatchers("/login", "/forgot-password", "/css/**", "/js/**", "/jakarta.faces.resource/**").permitAll()
                                     .requestMatchers("/user/form").hasRole("ADMIN")
+                                    .requestMatchers("/asset/form").hasRole("ADMIN")
                                     .requestMatchers("/activity/**").hasRole("ADMIN")
                                     .requestMatchers("/approval/**").hasRole("ADMIN")
                                     .anyRequest().authenticated()

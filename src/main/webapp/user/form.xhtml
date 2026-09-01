@@ -1,0 +1,52 @@
+<ui:composition template="/WEB-INF/templates/main.xhtml"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ats="jakarta.faces.composite/ats"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core">
+
+    <ui:define name="title">Add User</ui:define>
+    <ui:define name="pageTitle">User Management</ui:define>
+    <ui:define name="pageSubtitle">Register a new employee</ui:define>
+
+    <ui:define name="content">
+
+        <h:messages globalOnly="true" styleClass="mb-3" errorClass="alert alert-danger"/>
+
+        <h:form id="add-user-form" styleClass="row g-3" style="max-width:640px;">
+            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+
+            <ats:field label="First Name" fieldId="firstName">
+                <h:inputText id="firstName" value="#{userFormBean.firstName}" styleClass="form-control" required="true"/>
+            </ats:field>
+            <ats:field label="Last Name" fieldId="lastName">
+                <h:inputText id="lastName" value="#{userFormBean.lastName}" styleClass="form-control" required="true"/>
+            </ats:field>
+            <ats:field label="Email" fieldId="email">
+                <h:inputText id="email" value="#{userFormBean.email}" styleClass="form-control" required="true"/>
+            </ats:field>
+            <ats:field label="Department" fieldId="departmentId">
+                <h:selectOneMenu id="departmentId" value="#{userFormBean.departmentId}" styleClass="form-select" required="true">
+                    <f:selectItem itemLabel="-- Select department --" itemValue="#{null}"/>
+                    <f:selectItems value="#{lookupBean.departmentList}" var="dept"
+                                   itemLabel="#{dept.name}" itemValue="#{dept.id}"/>
+                </h:selectOneMenu>
+            </ats:field>
+            <ats:field label="Initial Password" fieldId="password">
+                <h:inputSecret id="password" value="#{userFormBean.password}" styleClass="form-control" required="true"/>
+            </ats:field>
+
+            <div class="col-12">
+                <div class="alert alert-light border small mb-3">
+                    The account is created as <strong>ROLE_EMPLOYEE</strong>. Promote it from the
+                    user's detail page if they need administrator rights. Ask them to change the
+                    initial password from Settings once they have signed in.
+                </div>
+                <h:commandButton value="Create User" action="#{userFormBean.save}" styleClass="btn btn-primary"
+                                 onclick="if(!confirm('Create this user?')) { return false; }"/>
+                <h:link outcome="/user/list" value="Cancel" styleClass="btn btn-outline-secondary ms-2"/>
+            </div>
+        </h:form>
+
+    </ui:define>
+</ui:composition>
