@@ -275,9 +275,13 @@ fail together; a refused action and its log entry must not.
 | Custody assignment and release | Implemented — transfer, force-release on any out-of-service condition, and `RETURN` (release with no replacement holder). `custody_end` is set by the database rather than passed from Java, so it shares a clock with the `custody_start` column default |
 | Holder visibility | Admin-only. An employee sees whether an asset is available, assigned, or held by them, never who else holds it |
 | Asset registration validation | Server-side in `AssetService`: required tag, name and category, purchase value above zero, purchase date not in the future. Violations recorded as `DENIED` rows |
-| Dashboard | Placeholder view |
+| Asset editing | Implemented — tag, name, category, purchase date and value, admin-only, with the same validation as registration plus a duplicate-tag check excluding itself. Changed fields recorded as `details` JSON on an `ASSET_UPDATED` row. Condition is excluded and keeps its own form |
+| User creation | Implemented at `/user/form`, admin-only. Always `ROLE_EMPLOYEE`; promotion is a separate act on the user detail page |
+| Account withdrawal | Soft only. Accounts are never deleted, because `activity_log` and custody history reference the id; `enabled` is cleared to withdraw access and set to restore it, audited as `USER_DISABLED`/`USER_ENABLED`. A disabled account is refused at sign-in by Spring Security's `isEnabled()` check and recorded as `LOGIN_FAILED` with reason `User is disabled` |
+| Dashboard | Implemented, role-differentiated — administrators see estate counts, condition breakdown and recent activity; employees see only what they hold and their own requests |
+| Account settings | Implemented at `/settings` — own profile plus a self-service password change, verified server-side and audited as `PASSWORD_CHANGED` |
 | Role-based authorisation | Partial; no method-level rules |
-| Document upload | Out of scope |
+| Document upload | Implemented — photograph and purchase invoice per asset, stored as `LONGBLOB` in `asset_documents`, admin-only upload with type allow-list and size caps, audited as `ASSET_DOCUMENT_UPLOADED`. Served by `AssetDocumentController`, the single Spring MVC controller, because expression language cannot render a binary stream |
 | Composite components (`resources/ats/`) | Implemented — `pagination`, `badge`, `field`, `filterSelect` |
 | Query-string parameter handling | `f:viewParam`/`f:viewAction` on all list/detail pages; `FacesUtil` deleted |
 

@@ -36,6 +36,8 @@ Related: [docs/DESIGN.md](DESIGN.md) for why the schema has the shape it has, [d
 
 **`ApprovalActionType` vs `ApprovalStatus`** — three values overlap by name and must not be conflated. `ApprovalActionType` records what one actor did, on one row of `approval_actions`. `ApprovalStatus` records where the request as a whole stands. A request with two `APPROVED` actions out of three required is itself still `PARTIALLY_APPROVED`.
 
+**`USER_DISABLED` and `USER_ENABLED`** — an account is never deleted, since the log and custody history reference its id. These two record the withdrawal and restoration of access, and are distinguished from `USER_UPDATED` by comparing the `enabled` flag against its prior value inside the same transaction.
+
 **`ActivityOutcome.DENIED`** — an authenticated actor refused an action they were not permitted to take. Distinct from `FAILED`, which is an action that did not complete. Recording refusals is a deliberate feature of the log design (see [docs/DESIGN.md](DESIGN.md) §7.1); a rejected self-approval attempt is exactly the kind of event the audit panel exists to surface.
 
 ## 3. `ActivityAction`, and why it has no CHECK constraint
@@ -48,17 +50,17 @@ Current values, grouped by area:
 
 | Area | Values |
 |---|---|
-| Authentication | `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, `LOGOUT`, `ACCESS_DENIED` |
-| Assets | `ASSET_REGISTERED`, `ASSET_UPDATED`, `ASSET_CONDITION_CHANGED` |
+| Authentication | `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, `LOGOUT`, `ACCESS_DENIED`, `PASSWORD_CHANGED` |
+| Assets | `ASSET_REGISTERED`, `ASSET_UPDATED`, `ASSET_CONDITION_CHANGED`, `ASSET_DOCUMENT_UPLOADED` |
 | Custody | `CUSTODY_ASSIGNED`, `CUSTODY_TRANSFERRED`, `CUSTODY_RELEASED` |
 | Approvals | `REQUEST_SUBMITTED`, `REQUEST_APPROVED`, `REQUEST_REJECTED`, `REQUEST_CANCELLED` |
-| Users and departments | `USER_CREATED`, `USER_UPDATED`, `USER_DISABLED`, `DEPARTMENT_CREATED`, `DEPARTMENT_CLOSED` |
+| Users and departments | `USER_CREATED`, `USER_UPDATED`, `USER_DISABLED`, `USER_ENABLED`, `PASSWORD_CHANGED`, `DEPARTMENT_CREATED`, `DEPARTMENT_CLOSED` |
 
 Adding a value requires only a new constant. Two constraints apply: the name must fit within 40 characters, and an existing name must never be changed, because rows already written carry the old spelling and the log is a historical record.
 
-As of 2026-08-31 every value is written by application code except `ASSET_UPDATED`, `USER_CREATED`, `DEPARTMENT_CREATED` and `DEPARTMENT_CLOSED`, whose workflows do not exist yet; the set continues to anticipate the workflows described in [docs/development-plan.md](development-plan.md). Values that appear in `db/seed/V1000__dev_seed_data.sql` are included so that seeded rows and application-written rows use one vocabulary.
+As of 2026-09-01 every value is written by application code except `CUSTODY_ASSIGNED`, `DEPARTMENT_CREATED` and `DEPARTMENT_CLOSED`, whose workflows do not exist yet (`CUSTODY_ASSIGNED` is covered in practice by `CUSTODY_TRANSFERRED`, which records the assignment half of a move); the set continues to anticipate the workflows described in [docs/development-plan.md](development-plan.md). Values that appear in `db/seed/V1000__dev_seed_data.sql` are included so that seeded rows and application-written rows use one vocabulary.
 
-`ACCESS_DENIED` was added on 2026-08-31 for authorisation failures reaching `BrowserAccessDeniedHandler`. It required no migration, which is the concrete payoff of the no-`CHECK` decision described above.
+`ACCESS_DENIED` was added on 2026-08-31 for authorisation failures reaching `BrowserAccessDeniedHandler`, and `PASSWORD_CHANGED` on 2026-09-01 for self-service password changes — recorded on failure as well as success, since a rejected attempt with a wrong current password is precisely the event worth keeping. Neither required a migration, which is the concrete payoff of the no-`CHECK` decision described above.
 
 ## 4. The 2026-08-19 refactor
 

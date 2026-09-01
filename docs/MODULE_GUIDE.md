@@ -307,6 +307,11 @@ The atomicity check is worth performing deliberately: temporarily break the acti
 SQL and confirm that **no** approval action is recorded. If one is, the transaction
 boundary is in the wrong place.
 
+These two checks are now also encoded as tests (`AuditInvariantsTest`, `AuditAtomicityTest`)
+and should be extended rather than re-performed by hand for each new mutation. When adding
+one, verify it can fail: break the rule in the production code deliberately and confirm the
+test goes red. A test that cannot fail is worse than no test, because it reads like cover.
+
 The refusal check is its mirror image and is just as easy to get wrong in the opposite
 direction: trigger the refusal, then confirm both that the `DENIED` row exists and that the
 mutation did not happen. A `DENIED` row that never appears means the write joined the
