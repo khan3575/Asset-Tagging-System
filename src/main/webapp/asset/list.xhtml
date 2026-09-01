@@ -17,7 +17,8 @@
 
     <ui:define name="pageActions">
         <ats:badge text="Total records : #{assetBean.totalRecords}"/>
-        <h:link outcome="/asset/form" styleClass="btn btn-primary" value="Add Asset"/>
+        <h:link outcome="/asset/form" styleClass="btn btn-primary" value="Add Asset"
+                rendered="#{headerBean.role == 'ROLE_ADMIN'}"/>
     </ui:define>
     
     <ui:define name="content">
