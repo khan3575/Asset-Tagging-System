@@ -1,12 +1,178 @@
 <ui:composition template="/WEB-INF/templates/main.xhtml"
                 xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ats="jakarta.faces.composite/ats"
                 xmlns:ui="jakarta.faces.facelets">
+
+    <f:metadata>
+        <f:viewAction action="#{dashboardBean.load}"/>
+    </f:metadata>
 
     <ui:define name="title">Dashboard</ui:define>
     <ui:define name="pageTitle">Dashboard</ui:define>
-    <ui:define name="pageSubtitle">Welcome welcome</ui:define>
+    <ui:define name="pageSubtitle">Welcome back, #{headerBean.firstName}</ui:define>
 
     <ui:define name="content">
-        <p>Dashboard is defined later.</p>
+
+        <ui:fragment rendered="#{dashboardBean.admin}">
+
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">Total assets</div>
+                            <div class="h3 mb-0">#{dashboardBean.totalAssets}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">In service</div>
+                            <div class="h3 mb-0 text-success">#{dashboardBean.inServiceCount}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">Awaiting approval</div>
+                            <div class="h3 mb-0 #{dashboardBean.openApprovals gt 0 ? 'text-warning' : ''}">#{dashboardBean.openApprovals}</div>
+                            <h:link outcome="/approval/list" value="Open the queue"
+                                    styleClass="small stretched-link text-decoration-none"
+                                    rendered="#{dashboardBean.openApprovals gt 0}"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">Users</div>
+                            <div class="h3 mb-0">#{dashboardBean.totalUsers}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white">Assets by condition</div>
+                        <div class="card-body">
+                            <ui:repeat value="#{dashboardBean.assetsByCondition.entrySet().toArray()}" var="entry">
+                                <div class="d-flex justify-content-between border-bottom py-1">
+                                    <span class="font-monospace small">#{entry.key}</span>
+                                    <strong>#{entry.value}</strong>
+                                </div>
+                            </ui:repeat>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <span>Recent activity</span>
+                            <h:link outcome="/activity/log" value="View all" styleClass="small text-decoration-none"/>
+                        </div>
+                        <div class="card-body p-0">
+                            <h:dataTable value="#{dashboardBean.recentActivity}" var="entry"
+                                         styleClass="table table-sm mb-0 align-middle"
+                                         rendered="#{not empty dashboardBean.recentActivity}">
+                                <h:column>
+                                    <f:facet name="header">When</f:facet>
+                                    <h:outputText value="#{entry.occurredAt}" styleClass="small text-nowrap">
+                                        <f:convertDateTime type="localDateTime" pattern="dd MMM, HH:mm"/>
+                                    </h:outputText>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Actor</f:facet>
+                                    <span class="small">#{entry.actorLabel}</span>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Action</f:facet>
+                                    <span class="font-monospace" style="font-size:.72rem;">#{entry.action}</span>
+                                </h:column>
+                                <h:column>
+                                    <f:facet name="header">Outcome</f:facet>
+                                    <h:outputText value="#{entry.outcome}"
+                                        styleClass="badge #{entry.outcome eq 'SUCCEEDED' ? 'text-bg-success' : (entry.outcome eq 'DENIED' ? 'text-bg-warning' : 'text-bg-danger')}"/>
+                                </h:column>
+                            </h:dataTable>
+                            <h:panelGroup layout="block" styleClass="p-3 text-muted small"
+                                          rendered="#{empty dashboardBean.recentActivity}">
+                                Nothing recorded yet.
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ui:fragment>
+
+        <ui:fragment rendered="#{!dashboardBean.admin}">
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-white">Assets you hold</div>
+                <div class="card-body p-0">
+                    <h:dataTable value="#{dashboardBean.myAssets}" var="row"
+                                 styleClass="table table-sm table-hover mb-0 align-middle"
+                                 rendered="#{not empty dashboardBean.myAssets}">
+                        <h:column>
+                            <f:facet name="header">Asset</f:facet>
+                            <h:link outcome="/asset/detail">
+                                <f:param name="id" value="#{row.id}"/>
+                                #{row.assetTag}
+                            </h:link>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Name</f:facet>
+                            #{row.name}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Category</f:facet>
+                            #{row.categoryName}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Condition</f:facet>
+                            <span class="font-monospace small">#{row.conditionStatus}</span>
+                        </h:column>
+                    </h:dataTable>
+                    <h:panelGroup layout="block" styleClass="p-3 text-muted small"
+                                  rendered="#{empty dashboardBean.myAssets}">
+                        You are not holding any assets.
+                    </h:panelGroup>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">Your open requests</div>
+                <div class="card-body p-0">
+                    <h:dataTable value="#{dashboardBean.myRequests}" var="req"
+                                 styleClass="table table-sm mb-0 align-middle"
+                                 rendered="#{not empty dashboardBean.myRequests}">
+                        <h:column>
+                            <f:facet name="header">Asset</f:facet>
+                            #{req.assetTag} - #{req.assetName}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Requested</f:facet>
+                            <h:outputText value="#{req.requestedAt}" styleClass="small text-nowrap">
+                                <f:convertDateTime type="localDateTime" pattern="dd MMM yyyy, HH:mm"/>
+                            </h:outputText>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Status</f:facet>
+                            <ats:badge text="#{req.status}"/>
+                        </h:column>
+                    </h:dataTable>
+                    <h:panelGroup layout="block" styleClass="p-3 text-muted small"
+                                  rendered="#{empty dashboardBean.myRequests}">
+                        You have no requests awaiting a decision.
+                    </h:panelGroup>
+                </div>
+            </div>
+        </ui:fragment>
+
     </ui:define>
 </ui:composition>

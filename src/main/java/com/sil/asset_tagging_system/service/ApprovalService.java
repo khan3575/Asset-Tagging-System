@@ -1,5 +1,6 @@
 package com.sil.asset_tagging_system.service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -28,6 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ApprovalService {
 
+    private static final int FIRST_ROW = 1;
+    private static final int SECOND_ROW = 2;
+
     private static final int ONE_SIGNATURE = 1;
     private static final int TWO_SIGNATURES = 2;
 
@@ -49,7 +53,7 @@ public class ApprovalService {
                 "Transfer requested for asset " + assetId + " to user " + requesterId);
 
         if (RoleName.ROLE_ADMIN.name().equals(initiator.role()) && !Objects.equals(initiator.userId(), requesterId)) {
-            recordAction(approvalId, initiator, ApprovalActionType.APPROVED, "Auto-approved on initiation");
+            recordAction(approvalId, initiator, ApprovalActionType.APPROVED, "Auto-approved on initiation", SECOND_ROW);
         }
         return approvalId;
     }
@@ -98,18 +102,24 @@ public class ApprovalService {
 
     @Transactional
     public void recordAction(long approvalId, Actor actor, ApprovalActionType action, String notes) {
+        recordAction(approvalId, actor, action, notes, FIRST_ROW);
+    }
+
+    @Transactional
+    public void recordAction(long approvalId, Actor actor, ApprovalActionType action, String notes,
+                             int startingSequence) {
 
         ApprovalRow current = getApprovalDetail(approvalId);
         if (!ApprovalStatus.PENDING.name().equals(current.status())
                 && !ApprovalStatus.PARTIALLY_APPROVED.name().equals(current.status())) {
-            refuse(actor, action, approvalId, current, "This approval has already been closed");
+            refuse(actor, action, approvalId, current, "This approval has already been closed", startingSequence);
             throw new BusinessRuleException("This approval has already been closed");
         }
 
         if (action == ApprovalActionType.APPROVED
                 && current.requesterId() != null
                 && current.requesterId().equals(actor.userId())) {
-            refuse(actor, action, approvalId, current, "You may not approve your own request");
+            refuse(actor, action, approvalId, current, "You may not approve your own request", startingSequence);
             throw new BusinessRuleException("You may not approve your own request");
         }
 
@@ -123,6 +133,7 @@ public class ApprovalService {
                                     : ActivityAction.REQUEST_CANCELLED,
                               ActivityEntityType.APPROVAL)
                     .by(actor)
+                    .sequence(startingSequence)
                     .approval(approvalId)
                     .asset(assetIdOf(approvalId))
                     .summary("Request " + approvalId + " closed as " + closingStatus + " for asset " + current.assetTag())
@@ -142,6 +153,7 @@ public class ApprovalService {
 
             auditTrail.record(ActivityAction.REQUEST_APPROVED, ActivityEntityType.APPROVAL)
                     .by(actor)
+                    .sequence(startingSequence)
                     .approval(approvalId)
                     .asset(snapshot.assetId())
                     .summary("Signature " + approvedCount + " of " + snapshot.requiredApprovalCount()
@@ -157,6 +169,7 @@ public class ApprovalService {
 
         auditTrail.record(ActivityAction.REQUEST_APPROVED, ActivityEntityType.APPROVAL)
                 .by(actor)
+                .sequence(startingSequence)
                 .approval(approvalId)
                 .asset(snapshot.assetId())
                 .holder(snapshot.previousHolderId(), snapshot.requesterId())
@@ -171,7 +184,7 @@ public class ApprovalService {
         auditTrail.record(isReturn ? ActivityAction.CUSTODY_RELEASED : ActivityAction.CUSTODY_TRANSFERRED,
                           ActivityEntityType.ASSET)
                 .by(actor)
-                .sequence(2)
+                .sequence(startingSequence + 1)
                 .approval(approvalId)
                 .asset(snapshot.assetId())
                 .holder(snapshot.previousHolderId(), snapshot.requesterId())
@@ -199,9 +212,14 @@ public class ApprovalService {
         return approvalDao.hasActorRecordedAction(approvalId, actorUserId);
     }
 
-    public java.util.List<ApprovalRow> findOpenApprovals(int limit, int offset)
+    public List<ApprovalRow> findOpenApprovals(int limit, int offset)
     {
         return approvalDao.findOpenApprovals(limit , offset);
+    }
+
+    public List<ApprovalRow> findOpenRequestsFor(Long userId)
+    {
+        return approvalDao.findOpenRequestsFor(userId);
     }
 
     public long countOpenApprovals()
@@ -209,9 +227,11 @@ public class ApprovalService {
        return approvalDao.countOpenApprovals();
     }
 
-    private void refuse(Actor actor, ApprovalActionType action, Long approvalId, ApprovalRow current, String reason) {
+    private void refuse(Actor actor, ApprovalActionType action, Long approvalId, ApprovalRow current,
+                        String reason, int sequence) {
         auditTrail.record(action == ApprovalActionType.REJECTED ? ActivityAction.REQUEST_REJECTED : ActivityAction.REQUEST_APPROVED, ActivityEntityType.APPROVAL)
                 .by(actor)
+                .sequence(sequence)
                 .approval(approvalId)
                 .refused(reason)
                 .summary("Refused " + action + " on request " + approvalId + " for asset " + current.assetTag())

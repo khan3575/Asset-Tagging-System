@@ -1,11 +1,14 @@
 package com.sil.asset_tagging_system.dao;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Repository;
 
+import com.sil.asset_tagging_system.dto.AssetRow;
 import com.sil.asset_tagging_system.model.enums.CustodyStatus;
 
 @Repository
@@ -63,5 +66,28 @@ public class AssetCustodyDao {
         if (newCustodianId != null) {
             initiateNewCustody(assetId, newCustodianId, approvalId, assignedByUserId);
         }
+    }
+
+    public List<AssetRow> findAssetsHeldBy(Long custodianId)
+    {
+        String sql = """
+                SELECT a.id, a.asset_tag, a.name, c.name AS category_name
+                     , a.purchase_date, a.purchase_value, a.condition_status
+                FROM asset_custody ac
+                JOIN assets a ON ac.asset_id = a.id
+                JOIN asset_categories c ON a.category_id = c.id
+                WHERE ac.custodian_id = :custodianId AND ac.status = :status
+                ORDER BY a.asset_tag
+                """;
+        List<Object[]> rows = entityManager.createNativeQuery(sql)
+                .setParameter("custodianId", custodianId)
+                .setParameter("status", CustodyStatus.ACTIVE.name())
+                .getResultList();
+
+        List<AssetRow> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            result.add(AssetRow.fromRow(row));
+        }
+        return result;
     }
 }
