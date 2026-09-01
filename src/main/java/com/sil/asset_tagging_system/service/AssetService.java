@@ -2,7 +2,6 @@ package com.sil.asset_tagging_system.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import com.sil.asset_tagging_system.dao.AssetCustodyDao;
 import com.sil.asset_tagging_system.dao.AssetDao;
 import com.sil.asset_tagging_system.dto.Actor;
 import com.sil.asset_tagging_system.dto.AssetRow;
+import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.enums.ActivityAction;
@@ -35,11 +35,20 @@ public class AssetService {
     public Long register(String assetTag, String name, Long categoryId,
                          LocalDate purchaseDate, BigDecimal value, Actor actor) {
 
+        String violation = validateForRegistration(assetTag, name, categoryId, purchaseDate, value);
+        if (violation != null) {
+            log.warn("AssetService.register -> rejected '{}': {}", assetTag, violation);
+            auditTrail.record(ActivityAction.ASSET_REGISTERED, ActivityEntityType.ASSET)
+                    .by(actor)
+                    .refused(violation)
+                    .summary("Registration refused -- " + violation)
+                    .save();
+            throw new BusinessRuleException(violation);
+        }
+
         if (assetDao.existsByAssetTagIgnoreCase(assetTag)) {
             log.warn("AssetService.register -> duplicate asset tag '{}' rejected (actor {})",
                     assetTag, actor.userId());
-            // refused(...) also routes this through the REQUIRES_NEW path, so the row
-            // survives the rollback the throw below triggers.
             auditTrail.record(ActivityAction.ASSET_REGISTERED, ActivityEntityType.ASSET)
                     .by(actor)
                     .refused("Asset tag already exists: " + assetTag)
@@ -61,6 +70,28 @@ public class AssetService {
         return newAssetId;
     }
 
+    /** Returns the first rule broken, or null when the input is acceptable. */
+    private String validateForRegistration(String assetTag, String name, Long categoryId,
+                                           LocalDate purchaseDate, BigDecimal value)
+    {
+        if (assetTag == null || assetTag.isBlank()) {
+            return "Asset tag is required";
+        }
+        if (name == null || name.isBlank()) {
+            return "Asset name is required";
+        }
+        if (categoryId == null) {
+            return "Category is required";
+        }
+        if (value != null && value.compareTo(BigDecimal.ZERO) <= 0) {
+            return "Purchase value must be greater than zero";
+        }
+        if (purchaseDate != null && purchaseDate.isAfter(LocalDate.now())) {
+            return "Purchase date cannot be in the future";
+        }
+        return null;
+    }
+
     public Asset getAsset(Long id)
     {
         return OptionalUtils.orThrowDbFetch(assetDao.findById(id), "Asset");
@@ -76,7 +107,7 @@ public class AssetService {
     }
 
     @Transactional
-    public void updateCondition(Long assetId, Actor actor, LocalDateTime endTime, AssetCondition assetCondition)
+    public void updateCondition(Long assetId, Actor actor, AssetCondition assetCondition)
         {
             
             if(assetCondition == null)
@@ -86,14 +117,17 @@ public class AssetService {
             }
             Asset asset = getAsset(assetId);
             AssetCondition previousCondition = asset.getConditionStatus();
-
-            boolean forcesRelease = assetCondition == AssetCondition.DAMAGED || assetCondition == AssetCondition.UNDER_MAINTENANCE;
+            
+            boolean forcesRelease = assetCondition == AssetCondition.DAMAGED
+                    || assetCondition == AssetCondition.UNDER_MAINTENANCE
+                    || assetCondition == AssetCondition.BEYOND_REPAIR
+                    || assetCondition == AssetCondition.RETIRED;
             Long releasedHolderId = null;
             if(forcesRelease)
             {
                 log.info("Asset is damaged or under maintenance force release executed");
                 releasedHolderId = assetCustodyDao.findActiveCustodianId(assetId).orElse(null);
-                assetCustodyDao.releaseActiveCustody(assetId, endTime);
+                assetCustodyDao.releaseActiveCustody(assetId);
             }
             log.info("AssetService.updateCondition -> executing update ");
             assetDao.updateCondition(assetId, assetCondition);

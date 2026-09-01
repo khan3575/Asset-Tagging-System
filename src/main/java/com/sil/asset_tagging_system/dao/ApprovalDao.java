@@ -22,35 +22,36 @@ public class ApprovalDao {
     public ApprovalDao(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
-
-    public boolean existsOpenTransferRequest(Long assetId) {
+        
+    public boolean existsOpenRequest(Long assetId) {
         String sql = """
                 SELECT COUNT(*)
                 FROM approvals
                 WHERE asset_id = :assetId
-                AND request_type = :requestType
                 AND status IN (:openStatuses)
                 """;
         return DaoUtils.exists(entityManager, sql, Map.of(
                 "assetId", assetId,
-                "requestType", RequestType.TRANSFER.name(),
                 "openStatuses", List.of(ApprovalStatus.PENDING.name(), ApprovalStatus.PARTIALLY_APPROVED.name())
         ));
     }
 
-    // previousHolderId may be null if the asset has no current custodian yet
-    public Long createTransferRequest(Long assetId, Long initiatedByUserId, Long requesterId, Long previousHolderId) {
+    public Long createRequest(Long assetId, Long initiatedByUserId, Long requesterId, Long previousHolderId,
+                              RequestType requestType, int requiredApprovalCount) {
         String sql = """
-                INSERT INTO approvals (asset_id, initiated_by_user_id, requester_id, previous_holder_id, request_type, status)
-                VALUES (:assetId, :initiatedByUserId, :requesterId, :previousHolderId, :requestType, :status)
+                INSERT INTO approvals (asset_id, initiated_by_user_id, requester_id, previous_holder_id
+                        , request_type, status, required_approval_count)
+                VALUES (:assetId, :initiatedByUserId, :requesterId, :previousHolderId
+                        , :requestType, :status, :requiredApprovalCount)
                 """;
         entityManager.createNativeQuery(sql)
                 .setParameter("assetId", assetId)
                 .setParameter("initiatedByUserId", initiatedByUserId)
                 .setParameter("requesterId", requesterId)
                 .setParameter("previousHolderId", previousHolderId)
-                .setParameter("requestType", RequestType.TRANSFER.name())
+                .setParameter("requestType", requestType.name())
                 .setParameter("status", ApprovalStatus.PENDING.name())
+                .setParameter("requiredApprovalCount", requiredApprovalCount)
                 .executeUpdate();
 
         return DaoUtils.getLastInsertId(entityManager);
@@ -108,9 +109,6 @@ public class ApprovalDao {
                 .setParameter("approvalId", approvalId)
                 .getSingleResult();
 
-        // requester_id is legitimately NULL for a RETURN request -- see the same
-        // null guard on findApprovalDetail. previous_holder_id is NULL when the asset
-        // had no custodian when the request was raised.
         return new ApprovalSnapshot(
                 ((Number) row[0]).longValue(),
                 row[1] != null ? ((Number) row[1]).longValue() : null,
@@ -150,9 +148,6 @@ public class ApprovalDao {
     @SuppressWarnings("unchecked")
     public Optional<ApprovalRow> findApprovalDetail(Long approvalId)
     {
-        // LEFT JOIN on users -- a RETURN request has no incoming holder, so
-        // requester_id is legitimately NULL (see DESIGN.md SS4). An inner join here
-        // would silently drop those rows instead of returning them with a null requester.
         String sql = """
             SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
             , u.last_name, a.status, a.required_approval_count, a.requested_at

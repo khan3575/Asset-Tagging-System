@@ -1,6 +1,5 @@
 package com.sil.asset_tagging_system.service;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -17,6 +16,7 @@ import com.sil.asset_tagging_system.model.enums.ActivityAction;
 import com.sil.asset_tagging_system.model.enums.ActivityEntityType;
 import com.sil.asset_tagging_system.model.enums.ApprovalActionType;
 import com.sil.asset_tagging_system.model.enums.ApprovalStatus;
+import com.sil.asset_tagging_system.model.enums.RequestType;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.util.OptionalUtils;
 
@@ -27,12 +27,16 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class ApprovalService {
+
+    private static final int ONE_SIGNATURE = 1;
+    private static final int TWO_SIGNATURES = 2;
+
     private final AssetCustodyDao assetCustodyDao;
     private final ApprovalDao approvalDao;
     private final AuditTrail auditTrail;
 
-    public boolean hasOpenTransferRequest(Long assetId) {
-        return approvalDao.existsOpenTransferRequest(assetId);
+    public boolean hasOpenRequest(Long assetId) {
+        return approvalDao.existsOpenRequest(assetId);
     }
     public Optional<Long> findActiveCustodianId(Long assetId) {
         return assetCustodyDao.findActiveCustodianId(assetId);
@@ -40,29 +44,55 @@ public class ApprovalService {
 
     @Transactional
     public Long initiateTransfer(Long assetId, Actor initiator, Long requesterId, Long previousHolderId) {
-        if (approvalDao.existsOpenTransferRequest(assetId)) {
+        Long approvalId = createRequest(assetId, initiator, requesterId, previousHolderId,
+                RequestType.TRANSFER, TWO_SIGNATURES,
+                "Transfer requested for asset " + assetId + " to user " + requesterId);
+
+        if (RoleName.ROLE_ADMIN.name().equals(initiator.role()) && !Objects.equals(initiator.userId(), requesterId)) {
+            recordAction(approvalId, initiator, ApprovalActionType.APPROVED, "Auto-approved on initiation");
+        }
+        return approvalId;
+    }
+
+    @Transactional
+    public Long requestForSelf(Long assetId, Actor requester, Long previousHolderId) {
+        return createRequest(assetId, requester, requester.userId(), previousHolderId,
+                RequestType.ASSIGNMENT, TWO_SIGNATURES,
+                "Asset " + assetId + " requested by user " + requester.userId());
+    }
+
+    @Transactional
+    public Long requestReturn(Long assetId, Actor holder) {
+        return createRequest(assetId, holder, null, holder.userId(),
+                RequestType.RETURN, ONE_SIGNATURE,
+                "Return of asset " + assetId + " requested by user " + holder.userId());
+    }
+
+    private Long createRequest(Long assetId, Actor initiator, Long requesterId, Long previousHolderId,
+                               RequestType requestType, int requiredApprovalCount, String summary) {
+        if (approvalDao.existsOpenRequest(assetId)) {
+            String reason = "A request is already pending for this asset";
             auditTrail.record(ActivityAction.REQUEST_SUBMITTED, ActivityEntityType.APPROVAL)
                     .by(initiator)
                     .asset(assetId)
-                    .holder(null, requesterId)
-                    .refused("A transfer is already pending for this asset")
-                    .summary("Transfer request refused -- one is already pending for asset " + assetId)
+                    .holder(previousHolderId, requesterId)
+                    .refused(reason)
+                    .summary("Request refused -- one is already pending for asset " + assetId)
                     .save();
-            throw new BusinessRuleException("A transfer is already pending for this asset");
+            throw new BusinessRuleException(reason);
         }
-        Long approvalId = approvalDao.createTransferRequest(assetId, initiator.userId(), requesterId, previousHolderId);
+
+        Long approvalId = approvalDao.createRequest(assetId, initiator.userId(), requesterId,
+                previousHolderId, requestType, requiredApprovalCount);
 
         auditTrail.record(ActivityAction.REQUEST_SUBMITTED, ActivityEntityType.APPROVAL)
                 .by(initiator)
                 .asset(assetId)
                 .approval(approvalId)
                 .holder(previousHolderId, requesterId)
-                .summary("Transfer requested for asset " + assetId + " to user " + requesterId)
+                .summary(summary)
                 .save();
 
-        if (RoleName.ROLE_ADMIN.name().equals(initiator.role()) && !Objects.equals(initiator.userId(), requesterId)) {
-            recordAction(approvalId, initiator, ApprovalActionType.APPROVED, "Auto-approved on initiation");
-        }
         return approvalId;
     }
 
@@ -135,7 +165,7 @@ public class ApprovalService {
                 .details(notesJson(notes))
                 .save();
 
-        assetCustodyDao.transferCustody(snapshot.assetId(), snapshot.requesterId(), approvalId, actor.userId(), LocalDateTime.now());
+        assetCustodyDao.transferCustody(snapshot.assetId(), snapshot.requesterId(), approvalId, actor.userId());
 
         boolean isReturn = snapshot.requesterId() == null;
         auditTrail.record(isReturn ? ActivityAction.CUSTODY_RELEASED : ActivityAction.CUSTODY_TRANSFERRED,

@@ -271,8 +271,10 @@ fail together; a refused action and its log entry must not.
 | Activity log — business actions | Implemented across every mutation path: asset registration and condition change, user edit and disable, transfer request, each approval signature, rejection and cancellation, and custody transfer and release |
 | Activity log — refusals | Implemented — duplicate asset tag, pending-transfer conflict, self-approval, closed-approval, and authorisation failure are all recorded as `DENIED` rows through the `REQUIRES_NEW` path described in §8 |
 | Service layer | `AssetService`, `UserService`, `ApprovalService` implemented; `@Transactional` boundary on all three |
-| Approval workflow | Implemented — admin-initiated transfer, `/approval/list` queue, `/approval/detail` decide page, self-approval blocked structurally and in the UI, every step audited. Employee self-request and `RETURN`-request creation still have no UI. |
-| Custody assignment and release | Implemented — transfer, force-release on condition change, and `RETURN` (release with no replacement holder). **Known defect:** `custody_start` is written by the MySQL column default in server-local time while `custody_end` is written from Java through a `serverTimezone=UTC` connection, so releasing custody that began less than six hours earlier violates `chk_custody_dates`. See the 2026-08-31 entry in [docs/development-plan.md](development-plan.md). |
+| Approval workflow | Implemented — admin-initiated transfer, employee self-request (`ASSIGNMENT`), holder-initiated `RETURN`, `/approval/list` queue, `/approval/detail` decide page, self-approval blocked structurally and in the UI, every step audited. A `RETURN` requires one signature; the other types require two |
+| Custody assignment and release | Implemented — transfer, force-release on any out-of-service condition, and `RETURN` (release with no replacement holder). `custody_end` is set by the database rather than passed from Java, so it shares a clock with the `custody_start` column default |
+| Holder visibility | Admin-only. An employee sees whether an asset is available, assigned, or held by them, never who else holds it |
+| Asset registration validation | Server-side in `AssetService`: required tag, name and category, purchase value above zero, purchase date not in the future. Violations recorded as `DENIED` rows |
 | Dashboard | Placeholder view |
 | Role-based authorisation | Partial; no method-level rules |
 | Document upload | Out of scope |

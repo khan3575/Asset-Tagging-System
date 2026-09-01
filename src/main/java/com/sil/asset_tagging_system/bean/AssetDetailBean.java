@@ -2,7 +2,6 @@ package com.sil.asset_tagging_system.bean;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +17,7 @@ import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
 import com.sil.asset_tagging_system.model.enums.RoleName;
+import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.ApprovalService;
 import com.sil.asset_tagging_system.service.AssetService;
 import com.sil.asset_tagging_system.service.UserService;
@@ -44,6 +44,7 @@ public class AssetDetailBean implements Serializable {
     private BigDecimal purchaseValue;
     private User currentHolder;
     private boolean transferPending;
+    private boolean heldByCurrentUser;
     private List<User> availableHolders;
     private List<AssetCondition> conditionStatusList;
     @Setter
@@ -81,7 +82,9 @@ public class AssetDetailBean implements Serializable {
                     .filter(user -> !user.getId().equals(currentHolder.getId()))
                     .collect(Collectors.toList());
 
-        transferPending = approvalService.hasOpenTransferRequest(id);
+        transferPending = approvalService.hasOpenRequest(id);
+        heldByCurrentUser = currentHolder != null
+                && currentHolder.getId().equals(SecurityUtil.currentUserId());
 
         conditionStatusList = List.of(AssetCondition.values());
 
@@ -109,13 +112,46 @@ public class AssetDetailBean implements Serializable {
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
     }
 
+    // an employee asking for this asset for themselves
+    public String requestForSelf()
+    {
+        Actor actor = Actor.current();
+        Long previousHolderId = currentHolder != null ? currentHolder.getId() : null;
+        try {
+            approvalService.requestForSelf(asset.getId(), actor, previousHolderId);
+        }
+        catch (BusinessRuleException e) {
+            log.warn("requestForSelf error", e);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            return null;
+        }
+        return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
+    }
+
+    // the current holder handing this asset back
+    public String requestReturn()
+    {
+        Actor actor = Actor.current();
+        try {
+            approvalService.requestReturn(asset.getId(), actor);
+        }
+        catch (BusinessRuleException e) {
+            log.warn("requestReturn error", e);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            return null;
+        }
+        return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
+    }
+
     public String changeCondition()
     {
         Actor actor = Actor.current();
 
         try{
             log.info("AssetDetailBean.changeCondition initiated condition change {}, {}, {}", asset.getId(), actor.userId(), conditionStatus);
-            assetService.updateCondition(asset.getId(), actor, LocalDateTime.now(), conditionStatus);
+            assetService.updateCondition(asset.getId(), actor, conditionStatus);
         }
         catch(IllegalArgumentException e)
         {

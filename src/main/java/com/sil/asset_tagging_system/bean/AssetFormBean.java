@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sil.asset_tagging_system.dto.Actor;
+import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.service.AssetService;
 
@@ -47,6 +48,12 @@ public class AssetFormBean {
         {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Asset tag already exists", null));
+            return null;
+        }
+        catch (BusinessRuleException e)
+        {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
             return null;
         }
         return "/asset/list?faces-redirect=true";

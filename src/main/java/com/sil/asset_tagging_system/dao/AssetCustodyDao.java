@@ -1,6 +1,5 @@
 package com.sil.asset_tagging_system.dao;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
@@ -12,11 +11,9 @@ import com.sil.asset_tagging_system.model.enums.CustodyStatus;
 @Repository
 public class AssetCustodyDao {
     private final EntityManager entityManager;
-
     public AssetCustodyDao(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
-
 
     @SuppressWarnings("unchecked")
     public Optional<Long> findActiveCustodianId(Long assetId) {
@@ -33,19 +30,15 @@ public class AssetCustodyDao {
                 .map(row -> ((Number) row).longValue())
                 .findFirst();
     }
-
-
-    public void releaseActiveCustody(Long assetId, LocalDateTime endTime)
+    public void releaseActiveCustody(Long assetId)
     {
         String sql = """
                 UPDATE asset_custody
-                SET custody_end = :endTime, status = 'RELEASED'
+                SET custody_end = CURRENT_TIMESTAMP, status = 'RELEASED'
                 WHERE  asset_id = :assetId AND status = 'ACTIVE'
                 """;
-
         entityManager.createNativeQuery(sql)
             .setParameter("assetId", assetId)
-            .setParameter("endTime", endTime)
             .executeUpdate();
     }
 
@@ -64,11 +57,9 @@ public class AssetCustodyDao {
             .executeUpdate();
     }
     
-    // newCustodianId is null for a RETURN request -- the asset goes back to
-    // unassigned, so custody is released without a replacement row being created.
-    public void transferCustody(long assetId, Long newCustodianId, long approvalId, long assignedByUserId, LocalDateTime endTime)
+    public void transferCustody(long assetId, Long newCustodianId, long approvalId, long assignedByUserId)
     {
-        releaseActiveCustody(assetId, endTime);
+        releaseActiveCustody(assetId);
         if (newCustodianId != null) {
             initiateNewCustody(assetId, newCustodianId, approvalId, assignedByUserId);
         }

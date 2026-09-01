@@ -45,17 +45,47 @@
                 <i class="bi bi-person-check me-2"></i>Custody
             </div>
             <div class="card-body">
-                <p class="mb-2">
-                    <strong>Current Holder:</strong>
-                    <ui:fragment rendered="#{assetDetailBean.currentHolder != null}">
-                        #{assetDetailBean.currentHolder.firstName} #{assetDetailBean.currentHolder.lastName}
-                    </ui:fragment>
-                    <ui:fragment rendered="#{assetDetailBean.currentHolder == null}">
-                        Unassigned
-                    </ui:fragment>
-                </p>
+                <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                    <p class="mb-2">
+                        <strong>Current Holder:</strong>
+                        <ui:fragment rendered="#{assetDetailBean.currentHolder != null}">
+                            #{assetDetailBean.currentHolder.firstName} #{assetDetailBean.currentHolder.lastName}
+                        </ui:fragment>
+                        <ui:fragment rendered="#{assetDetailBean.currentHolder == null}">
+                            Unassigned
+                        </ui:fragment>
+                    </p>
+                </ui:fragment>
 
-                <ats:badge text="Transfer Pending" rendered="#{assetDetailBean.transferPending}"/>
+                <ui:fragment rendered="#{headerBean.role != 'ROLE_ADMIN'}">
+                    <p class="mb-2">
+                        <strong>Status:</strong>
+                        <ui:fragment rendered="#{assetDetailBean.heldByCurrentUser}">
+                            Held by you
+                        </ui:fragment>
+                        <ui:fragment rendered="#{!assetDetailBean.heldByCurrentUser and assetDetailBean.currentHolder != null}">
+                            Currently assigned
+                        </ui:fragment>
+                        <ui:fragment rendered="#{assetDetailBean.currentHolder == null}">
+                            Available
+                        </ui:fragment>
+                    </p>
+                </ui:fragment>
+
+                <ats:badge text="Request Pending" rendered="#{assetDetailBean.transferPending}"/>
+
+                <h:form id="request-form" styleClass="mt-2"
+                        rendered="#{headerBean.role != 'ROLE_ADMIN' and !assetDetailBean.transferPending and !assetDetailBean.heldByCurrentUser}">
+                    <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+                    <h:commandButton value="Request This Asset" action="#{assetDetailBean.requestForSelf}" styleClass="btn btn-primary"
+                        onclick="if(!confirm('Request this asset for yourself?')) { return false; }"/>
+                </h:form>
+                <h:form id="return-form" styleClass="mt-2"
+                        rendered="#{assetDetailBean.heldByCurrentUser and !assetDetailBean.transferPending}">
+                    <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+                    <h:commandButton value="Return This Asset" action="#{assetDetailBean.requestReturn}" styleClass="btn btn-outline-secondary"
+                        onclick="if(!confirm('Return this asset?')) { return false; }"/>
+                </h:form>
 
                 <h:form id="transfer-form" styleClass="row g-3 mt-2"
                         rendered="#{headerBean.role == 'ROLE_ADMIN' and !assetDetailBean.transferPending}">
