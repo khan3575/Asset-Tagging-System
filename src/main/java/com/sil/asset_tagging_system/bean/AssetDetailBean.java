@@ -1,7 +1,10 @@
 package com.sil.asset_tagging_system.bean;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,15 +13,18 @@ import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.servlet.http.Part;
 
 import com.sil.asset_tagging_system.dto.Actor;
 import com.sil.asset_tagging_system.exception.BusinessRuleException;
+import com.sil.asset_tagging_system.exception.DuplicateAssetTagException;
 import com.sil.asset_tagging_system.model.Asset;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.AssetCondition;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.security.SecurityUtil;
 import com.sil.asset_tagging_system.service.ApprovalService;
+import com.sil.asset_tagging_system.service.AssetDocumentService;
 import com.sil.asset_tagging_system.service.AssetService;
 import com.sil.asset_tagging_system.service.UserService;
 
@@ -36,6 +42,7 @@ public class AssetDetailBean implements Serializable {
     private final transient AssetService assetService;
     private final transient UserService userService;
     private final transient ApprovalService approvalService;
+    private final transient AssetDocumentService assetDocumentService;
 
     private Long id;
     private Asset asset;
@@ -45,6 +52,25 @@ public class AssetDetailBean implements Serializable {
     private User currentHolder;
     private boolean transferPending;
     private boolean heldByCurrentUser;
+
+    private boolean hasImage;
+    private boolean hasInvoice;
+    @Setter
+    private Part imageUpload;
+    @Setter
+    private Part invoiceUpload;
+
+    private boolean editing;
+    @Setter
+    private String editorAssetTag;
+    @Setter
+    private String editorName;
+    @Setter
+    private Long editorCategoryId;
+    @Setter
+    private LocalDate editorPurchaseDate;
+    @Setter
+    private BigDecimal editorPurchaseValue;
     private List<User> availableHolders;
     private List<AssetCondition> conditionStatusList;
     @Setter
@@ -54,11 +80,13 @@ public class AssetDetailBean implements Serializable {
     public AssetDetailBean(AssetService assetService
         , UserService userService
         , ApprovalService approvalService
+        , AssetDocumentService assetDocumentService
     )
     {
         this.assetService = assetService;
         this.userService = userService;
         this.approvalService = approvalService;
+        this.assetDocumentService = assetDocumentService;
     }
 
     public void load()
@@ -86,6 +114,9 @@ public class AssetDetailBean implements Serializable {
         heldByCurrentUser = currentHolder != null
                 && currentHolder.getId().equals(SecurityUtil.currentUserId());
 
+        hasImage = assetDocumentService.hasImage(id);
+        hasInvoice = assetDocumentService.hasInvoice(id);
+
         conditionStatusList = List.of(AssetCondition.values());
 
     }
@@ -112,7 +143,78 @@ public class AssetDetailBean implements Serializable {
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
     }
 
-    // an employee asking for this asset for themselves
+    public String uploadImage()
+    {
+        return upload(imageUpload, true);
+    }
+
+    public String uploadInvoice()
+    {
+        return upload(invoiceUpload, false);
+    }
+
+    private String upload(Part part, boolean isImage)
+    {
+        if (part == null) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "No file was selected", null));
+            return null;
+        }
+        try (InputStream in = part.getInputStream()) {
+            byte[] content = in.readAllBytes();
+            String fileName = part.getSubmittedFileName();
+            if (isImage) {
+                assetDocumentService.storeImage(asset.getId(), content, part.getContentType(), fileName, Actor.current());
+            } else {
+                assetDocumentService.storeInvoice(asset.getId(), content, part.getContentType(), fileName, Actor.current());
+            }
+        }
+        catch (BusinessRuleException e) {
+            log.warn("document upload refused: {}", e.getMessage());
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            return null;
+        }
+        catch (IOException e) {
+            log.error("failed to read uploaded file", e);
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "The file could not be read", null));
+            return null;
+        }
+        return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
+    }
+
+    public void edit()
+    {
+        editorAssetTag = asset.getAssetTag();
+        editorName = asset.getName();
+        editorCategoryId = asset.getCategory() == null ? null : asset.getCategory().getId();
+        editorPurchaseDate = asset.getPurchaseDate();
+        editorPurchaseValue = asset.getPurchaseValue();
+        editing = true;
+    }
+
+    public void cancel()
+    {
+        editing = false;
+    }
+
+    public String save()
+    {
+        try {
+            assetService.updateAsset(asset.getId(), editorAssetTag, editorName, editorCategoryId,
+                    editorPurchaseDate, editorPurchaseValue, Actor.current());
+        }
+        catch (BusinessRuleException | DuplicateAssetTagException e) {
+            log.warn("asset update refused: {}", e.getMessage());
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            return null;
+        }
+        editing = false;
+        return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
+    }
+
     public String requestForSelf()
     {
         Actor actor = Actor.current();
@@ -129,7 +231,6 @@ public class AssetDetailBean implements Serializable {
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
     }
 
-    // the current holder handing this asset back
     public String requestReturn()
     {
         Actor actor = Actor.current();
