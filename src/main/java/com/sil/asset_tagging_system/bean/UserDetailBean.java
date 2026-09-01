@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -15,6 +13,7 @@ import com.sil.asset_tagging_system.exception.BusinessRuleException;
 import com.sil.asset_tagging_system.model.User;
 import com.sil.asset_tagging_system.model.enums.RoleName;
 import com.sil.asset_tagging_system.service.UserService;
+import com.sil.asset_tagging_system.util.FacesMessages;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -82,8 +81,7 @@ public class UserDetailBean implements Serializable {
             update(id, user.getFirstName() , user.getLastName(), editorDepartmentId, user.getEnabled(), roles);
         }
         catch (BusinessRuleException e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return;
         }
         load();

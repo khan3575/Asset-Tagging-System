@@ -90,16 +90,7 @@ public class AssetDao {
         List<AssetRow> result = new ArrayList<>();
         for(Object[] row : rows)
         {
-            result.add(new AssetRow(
-                    ((Number) row[0]).longValue(),
-                    (String) row[1],
-                    (String) row[2],
-                    (String) row[3],
-                    (LocalDate) row[4],
-                    (BigDecimal) row[5],
-                   AssetCondition.valueOf((String)row[6])
-                )
-            );
+            result.add(AssetRow.fromRow(row));
         }
         return result;
     }

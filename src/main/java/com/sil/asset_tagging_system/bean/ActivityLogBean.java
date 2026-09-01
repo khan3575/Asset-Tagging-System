@@ -63,7 +63,7 @@ public class ActivityLogBean {
         offset = PageParams.offset(currentPage, pageSize);
 
         totalRecords = activityLogService.countPage(entityType, action, outcome, search, from, to);
-        totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        totalPages = PageParams.totalPages(totalRecords, pageSize);
 
         entries = activityLogService.findPage(entityType, action, outcome, search, from, to, pageSize, offset);
         log.info("ActivityLogBean init -- page {} of {}, {} entries total", currentPage, totalPages, totalRecords);

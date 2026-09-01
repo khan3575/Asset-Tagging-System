@@ -61,7 +61,7 @@ public class UserListBean {
        users = userService.findUsers(roleName, search, departmentId, enabled, pageSize, offset);
        totalRecords = userService.countUsers(roleName, search, departmentId, enabled);
 
-       totalPages = (int) Math.ceil( (double) totalRecords / pageSize);
+       totalPages = PageParams.totalPages(totalRecords, pageSize);
     }
 
     public RoleName[] getRoleOptions()

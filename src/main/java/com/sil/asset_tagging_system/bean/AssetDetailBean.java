@@ -8,8 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -27,6 +25,7 @@ import com.sil.asset_tagging_system.service.ApprovalService;
 import com.sil.asset_tagging_system.service.AssetDocumentService;
 import com.sil.asset_tagging_system.service.AssetService;
 import com.sil.asset_tagging_system.service.UserService;
+import com.sil.asset_tagging_system.util.FacesMessages;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -136,8 +135,7 @@ public class AssetDetailBean implements Serializable {
         catch(BusinessRuleException e)
         {
             log.warn("transfer error", e);
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return null;
         }
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
@@ -156,8 +154,7 @@ public class AssetDetailBean implements Serializable {
     private String upload(Part part, boolean isImage)
     {
         if (part == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "No file was selected", null));
+            FacesMessages.error("No file was selected");
             return null;
         }
         try (InputStream in = part.getInputStream()) {
@@ -171,14 +168,12 @@ public class AssetDetailBean implements Serializable {
         }
         catch (BusinessRuleException e) {
             log.warn("document upload refused: {}", e.getMessage());
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return null;
         }
         catch (IOException e) {
             log.error("failed to read uploaded file", e);
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "The file could not be read", null));
+            FacesMessages.error("The file could not be read");
             return null;
         }
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
@@ -207,8 +202,7 @@ public class AssetDetailBean implements Serializable {
         }
         catch (BusinessRuleException | DuplicateAssetTagException e) {
             log.warn("asset update refused: {}", e.getMessage());
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return null;
         }
         editing = false;
@@ -224,8 +218,7 @@ public class AssetDetailBean implements Serializable {
         }
         catch (BusinessRuleException e) {
             log.warn("requestForSelf error", e);
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return null;
         }
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
@@ -239,8 +232,7 @@ public class AssetDetailBean implements Serializable {
         }
         catch (BusinessRuleException e) {
             log.warn("requestReturn error", e);
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return null;
         }
         return "/asset/detail?id="+id+"&faces-redirect=true&includeViewParams=true";
@@ -257,7 +249,7 @@ public class AssetDetailBean implements Serializable {
         catch(IllegalArgumentException e)
         {
             log.warn("changeCondition error", e);
-            FacesContext.getCurrentInstance().addMessage(null,new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+            FacesMessages.error(e.getMessage());
             return null;
         }
 

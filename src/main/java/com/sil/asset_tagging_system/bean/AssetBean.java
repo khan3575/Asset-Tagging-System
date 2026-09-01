@@ -54,7 +54,7 @@ public class AssetBean {
         
         assetList = assetService.findPage(search, pageSize, offset);
         totalRecords = (int) assetService.countAssets(search);
-        totalPages = (int) Math.ceil((double)totalRecords / pageSize);
+        totalPages = PageParams.totalPages(totalRecords, pageSize);
     }
 
     public String search()

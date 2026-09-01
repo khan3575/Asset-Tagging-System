@@ -45,7 +45,7 @@ public class ApprovalListBean {
         approvalList = approvalService.findOpenApprovals(pageSize, offset);
 
         totalRecords = (int) approvalService.countOpenApprovals();
-        totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        totalPages = PageParams.totalPages(totalRecords, pageSize);
 
         log.info("ApprovalListBean init -- page {} of {}, {} open approvals total", currentPage, totalPages, totalRecords);
     }

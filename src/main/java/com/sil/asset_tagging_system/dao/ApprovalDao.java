@@ -145,6 +145,21 @@ public class ApprovalDao {
 
     public record ApprovalSnapshot(Long assetId, Long requesterId, byte requiredApprovalCount, Long previousHolderId) {}
 
+    private static ApprovalRow mapApprovalRow(Object[] row)
+    {
+        return new ApprovalRow(
+            ((Number) row[0]).longValue(),
+            (String) row[1],
+            (String) row[2],
+            row[3] != null ? ((Number) row[3]).longValue() : null,
+            (String) row[4],
+            (String) row[5],
+            (String) row[6],
+            ((Number) row[7]).byteValue(),
+            ((LocalDateTime) row[8])
+        );
+    }
+
     @SuppressWarnings("unchecked")
     public Optional<ApprovalRow> findApprovalDetail(Long approvalId)
     {
@@ -161,20 +176,7 @@ public class ApprovalDao {
             .setParameter("approvalId", approvalId)
             .getResultStream()
             .findFirst()
-            .map(result -> {
-                Object[] row = (Object[]) result;
-                return new ApprovalRow(
-                    ((Number) row[0]).longValue(),
-                    (String) row[1],
-                    (String) row[2],
-                    row[3] != null ? ((Number) row[3]).longValue() : null,
-                    (String) row[4],
-                    (String) row[5],
-                    (String) row[6],
-                    ((Number) row[7]).byteValue(),
-                    ((LocalDateTime)row[8])
-                );
-            });
+            .map(result -> mapApprovalRow((Object[]) result));
     }
 
     public Boolean hasActorRecordedAction(long approvalId, long actorUserId)
@@ -208,20 +210,7 @@ public class ApprovalDao {
                 .setParameter("limit", limit)
                 .setParameter("offset", offset)
                 .getResultStream() // Returns Stream<Object>
-                 .map(result -> {
-                        Object[] row = (Object[]) result;
-                        return new ApprovalRow(
-                                ((Number) row[0]).longValue(),
-                                (String) row[1],
-                                (String) row[2],
-                                row[3] != null ? ((Number) row[3]).longValue() : null,
-                                (String) row[4],
-                                (String) row[5],
-                                (String) row[6],
-                                ((Number) row[7]).byteValue(),
-                                ((java.time.LocalDateTime) row[8])
-                        );
-                        })
+                 .map(result -> mapApprovalRow((Object[]) result))
                         .collect(Collectors.toList());
         return results;
     }
@@ -242,19 +231,7 @@ public class ApprovalDao {
         return (List<ApprovalRow>) entityManager.createNativeQuery(sql)
                 .setParameter("userId", userId)
                 .getResultStream()
-                .map(result -> {
-                    Object[] row = (Object[]) result;
-                    return new ApprovalRow(
-                            ((Number) row[0]).longValue(),
-                            (String) row[1],
-                            (String) row[2],
-                            row[3] != null ? ((Number) row[3]).longValue() : null,
-                            (String) row[4],
-                            (String) row[5],
-                            (String) row[6],
-                            ((Number) row[7]).byteValue(),
-                            ((LocalDateTime) row[8]));
-                })
+                .map(result -> mapApprovalRow((Object[]) result))
                 .collect(Collectors.toList());
     }
 

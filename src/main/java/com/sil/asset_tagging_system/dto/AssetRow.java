@@ -13,4 +13,17 @@ public record AssetRow(
     LocalDate purchaseDate,
     BigDecimal purchaseValue,
     AssetCondition conditionStatus
-){}
+){
+    public static AssetRow fromRow(Object[] row)
+    {
+        return new AssetRow(
+                ((Number) row[0]).longValue(),
+                (String) row[1],
+                (String) row[2],
+                (String) row[3],
+                (LocalDate) row[4],
+                (BigDecimal) row[5],
+                AssetCondition.valueOf((String) row[6])
+        );
+    }
+}
