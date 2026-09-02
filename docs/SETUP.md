@@ -82,9 +82,10 @@ during development; `joinfaces.faces.project-stage=Development` disables Facelet
 
 ## 5. Development Accounts
 
-Provided by `src/main/resources/db/seed/V1000__dev_seed_data.sql`, under the `local`
-profile only. All three accounts share the password `Password123!`, which is valid solely
-within this seeded dataset and must never be reused elsewhere.
+Provided by `src/main/resources/db/seed/V1000__dev_seed_data.sql`, applied locally under the
+`local` profile and also to the public demo deployment (see `compose.yaml`). All three
+accounts share the password `DemoOnly2026!`, which is valid solely within this seeded
+dataset and must never be reused elsewhere.
 
 | Email | Role | Department |
 |---|---|---|

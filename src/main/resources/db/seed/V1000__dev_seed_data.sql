@@ -2,10 +2,15 @@
 -- V1000: development seed data.
 --
 -- Lives in db/seed, NOT db/migration -- a separate Flyway location that is
--- only added to spring.flyway.locations under the local profile. It must
--- never run against production: the passwords below are public knowledge in
--- this file, and no production database should contain a made-up user called
--- Mehedi with a known password.
+-- not part of the base application.properties, and only added to
+-- spring.flyway.locations locally (the `local` profile) or via an explicit
+-- SPRING_FLYWAY_LOCATIONS override (the public demo deployment -- see
+-- compose.yaml). It must never run against a real company's real asset
+-- inventory: the passwords below are public knowledge in this file, and no
+-- real deployment should contain a made-up user called Mehedi with a known
+-- password. The public demo is a deliberate, narrow exception to that rule,
+-- not a contradiction of it -- everything in the demo database is fictional
+-- to begin with.
 --
 -- Versioned as V1000 (not V2) so it always sorts after every real schema
 -- migration, however many exist. It is still an ordinary versioned migration
@@ -14,8 +19,10 @@
 -- it, drop and recreate your local database rather than editing in place.
 --
 -- password_hash for every user below is the BCrypt hash (cost 10) of the
--- plaintext "Password123!", verified with bcrypt.checkpw before being written
--- here. Development/test data only -- never reuse this hash for a real account.
+-- plaintext "DemoOnly2026!", verified with bcrypt.checkpw before being written
+-- here. This file is also applied to the public demo deployment (see
+-- compose.yaml), so this plaintext is intentionally public -- it is not, and
+-- must never become, a real account's password.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -41,9 +48,9 @@ INSERT INTO asset_categories (id, name, depreciation_rate_percentage) VALUES
 -- Users -- Sakib (employee), Mehedi and Fahim (admins)
 -- -----------------------------------------------------------------------------
 INSERT INTO users (id, first_name, last_name, email, password_hash, dept_id, enabled) VALUES
-    (1, 'Sakib',  'Khan',   'sakib@gmail.com',  '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 1, 1),
-    (2, 'Mehedi', 'Hasan',  'mehedi@gmail.com', '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 4, 1),
-    (3, 'Fahim',  'Ahmad',  'fahim@gmail.com',  '$2a$10$sU5t9uqsAEij84Wdmvu6S.q6CWvW2uw1o2zX2Vyf3KS1.OXoZOHFq', 3, 1);
+    (1, 'Sakib',  'Khan',   'sakib@gmail.com',  '$2a$10$FXPscHxt5dSwAMnOpr2Sie24ZZ8/1/PqxN1if9PaIBExuZx6gIMvO', 1, 1),
+    (2, 'Mehedi', 'Hasan',  'mehedi@gmail.com', '$2a$10$FXPscHxt5dSwAMnOpr2Sie24ZZ8/1/PqxN1if9PaIBExuZx6gIMvO', 4, 1),
+    (3, 'Fahim',  'Ahmad',  'fahim@gmail.com',  '$2a$10$FXPscHxt5dSwAMnOpr2Sie24ZZ8/1/PqxN1if9PaIBExuZx6gIMvO', 3, 1);
 
 INSERT INTO user_role (user_id, role_id) VALUES
     (1, 1),  -- Sakib  -> ROLE_EMPLOYEE
