@@ -1,6 +1,6 @@
 # Enum Reference
 
-**Created 2026-08-19.** This document is the authority on every enumerated value in the system: which Java enum backs which database column, which values are legal, and where each set is enforced. It exists because enum values are the one kind of data that is duplicated by necessity — the constant in Java and the string in the database must agree exactly, and nothing in the build checks that they do.
+This document is the authority on every enumerated value in the system: which Java enum backs which database column, which values are legal, and where each set is enforced. It exists because enum values are the one kind of data that is duplicated by necessity — the constant in Java and the string in the database must agree exactly, and nothing in the build checks that they do.
 
 Related: [docs/DESIGN.md](DESIGN.md) for why the schema has the shape it has, [docs/ARCHITECTURE.md](ARCHITECTURE.md) for how these columns are read and written.
 
@@ -9,7 +9,7 @@ Related: [docs/DESIGN.md](DESIGN.md) for why the schema has the shape it has, [d
 1. **The database stores the constant name, verbatim.** Every enum-typed column is a `VARCHAR` holding text such as `IN_SERVICE`, never a numeric code.
 2. **Every enum-typed entity field requires `@Enumerated(EnumType.STRING)`.** JPA's default is `ORDINAL`, which stores the constant's declaration position as a number. Against a `VARCHAR` column that default produces a schema validation failure at startup, or silently meaningless data if validation is disabled. The annotation belongs on the *field*, not on the enum declaration — `@Enumerated` targets methods and fields only, and placing it on the type is a compile error.
 3. **Native queries must bind `.name()`, not the enum object.** Queries are issued through `EntityManager.createNativeQuery`, which binds plain JDBC values and does not consult the entity's `@Enumerated` mapping. Passing an enum instance directly leaves the binding strategy to the driver; passing `value.name()` does not.
-4. **Renaming a constant is a schema change.** The value appears in `CHECK` constraints, in generated-column expressions, and in already-stored rows. All must move together — see Section 4.
+4. **Renaming a constant is a schema change.** The value appears in `CHECK` constraints, in generated-column expressions, and in already-stored rows. A rename must move the Java enum, the constraint, any generated-column expression, the dev seed data, and calling code together in one change — never partially.
 5. **Values already written to `activity_log` are historical record and must never be renamed.** Every other table holds current state and can be migrated; the log holds what was true at the time.
 
 ## 2. The enums
@@ -58,25 +58,6 @@ Current values, grouped by area:
 
 Adding a value requires only a new constant. Two constraints apply: the name must fit within 40 characters, and an existing name must never be changed, because rows already written carry the old spelling and the log is a historical record.
 
-As of 2026-09-01 every value is written by application code except `CUSTODY_ASSIGNED`, `DEPARTMENT_CREATED` and `DEPARTMENT_CLOSED`, whose workflows do not exist yet (`CUSTODY_ASSIGNED` is covered in practice by `CUSTODY_TRANSFERRED`, which records the assignment half of a move); the set continues to anticipate the workflows described in [docs/development-plan.md](development-plan.md). Values that appear in `db/seed/V1000__dev_seed_data.sql` are included so that seeded rows and application-written rows use one vocabulary.
+`CUSTODY_ASSIGNED`, `DEPARTMENT_CREATED` and `DEPARTMENT_CLOSED` are reserved for workflows that do not exist yet — department management is not implemented, and `CUSTODY_ASSIGNED` is covered in practice by `CUSTODY_TRANSFERRED`, which records the assignment half of a move. Every other value is written by application code. Values that appear in `db/seed/V1000__dev_seed_data.sql` are included so that seeded rows and application-written rows use one vocabulary.
 
-`ACCESS_DENIED` was added on 2026-08-31 for authorisation failures reaching `BrowserAccessDeniedHandler`, and `PASSWORD_CHANGED` on 2026-09-01 for self-service password changes — recorded on failure as well as success, since a rejected attempt with a wrong current password is precisely the event worth keeping. Neither required a migration, which is the concrete payoff of the no-`CHECK` decision described above.
-
-## 4. The 2026-08-19 refactor
-
-Four constants were renamed. Each rename was applied simultaneously to the Java enum, the `CHECK` constraint in `V1__baseline_schema.sql`, any generated-column expression referencing it, the dev seed data, and calling code.
-
-| Before | After | Reason |
-|---|---|---|
-| `ApprovalStatus.FIRST_APPROVED` | `PARTIALLY_APPROVED` | Named for the removed design in which exactly two fixed approvers signed off in order. The current schema supports 1–5 sign-offs recorded as rows, so "first" describes nothing. |
-| `RequestType.ASSET_REQUEST` | `ASSIGNMENT` | The `_REQUEST` suffix restated the enum's own name, reading as `RequestType.ASSET_REQUEST` on a field named `requestType`. `ASSIGNMENT` also states what the request does rather than merely that it is one. |
-| `RequestType.TRANSFER_REQUEST` | `TRANSFER` | As above. |
-| `RequestType.RETURN_REQUEST` | `RETURN` | As above. |
-| `AssetCondition.MAINTENANCE` | `UNDER_MAINTENANCE` | The column records a state. `MAINTENANCE` names an activity; the adjacent constants (`IN_SERVICE`, `DAMAGED`) name states. |
-| `AssetCondition.UNUSABLE` | `BEYOND_REPAIR` | `UNUSABLE` and `DAMAGED` did not draw a clear line between them. `BEYOND_REPAIR` states the distinction: damaged is repairable, beyond repair is not. |
-
-One enum was renamed: `EntityType` to `ActivityEntityType`. The former was a broad name for a set that describes `activity_log` rows only, and the new name groups it with `ActivityAction` and `ActivityOutcome` as the three enums belonging to that table. No stored value changed.
-
-Two enums were added: `ApprovalActionType`, which had no Java representation despite `chk_aa_action` constraining the column since the schema redesign, and `ActivityAction`, previously a bare `String`.
-
-**Applying the rename to an existing local database.** The renames edit `V1__baseline_schema.sql` in place rather than adding a migration, on the grounds that the baseline is not yet deployed anywhere and no production data exists. Flyway records a checksum for every applied migration and will refuse to start against a database whose recorded checksum no longer matches the file. Recreate the local database as described in [docs/SETUP.md](SETUP.md) §2; the seed data is reapplied automatically on the next start under the `local` profile.
+`ACCESS_DENIED` and `PASSWORD_CHANGED` were both added after the initial set, for authorisation failures reaching `BrowserAccessDeniedHandler` and self-service password changes respectively — `PASSWORD_CHANGED` is recorded on failure as well as success, since a rejected attempt with a wrong current password is precisely the event worth keeping. Neither required a migration, which is the concrete payoff of the no-`CHECK` decision described above: adding a new `ActivityAction` value going forward is always this cheap.

@@ -1,7 +1,7 @@
 # Setup Guide
 
 Environment setup, configuration, and the commands for running, testing and building the
-Asset Tagging System. Verified against a clean run on 2026-08-20.
+Asset Tagging System.
 
 ## 1. Prerequisites
 
@@ -132,6 +132,11 @@ Never edit a migration that has already run against any database. Never run
 shared configuration guards against this, and is deliberately overridden only in the local
 profile.
 
+MySQL DDL statements auto-commit individually — a migration that fails partway through
+leaves everything before the failure permanently applied, with no transactional rollback the
+way a JPQL/Hibernate operation would get. Keep each migration to one logical change so a
+failure is easy to reason about and undo by hand.
+
 ## 9. Troubleshooting
 
 | Symptom | Cause |
@@ -140,5 +145,6 @@ profile.
 | `Access denied for user` | `DB_USER` / `DB_PASS` in `application-local.properties` are wrong, or the account lacks privileges |
 | `Unknown database` | The database in Section 2 has not been created |
 | No seed accounts exist | `db/seed` is missing from `spring.flyway.locations`, or the `local` profile is not active |
+| Seed data looks wrong or out of date | The local database can hold different rows than `db/seed/V1000__dev_seed_data.sql` currently describes — Flyway does not re-run an already-applied versioned migration just because the file changed. Recreate the local database (Section 2) after editing the seed file |
 | Flyway reports a checksum mismatch | An already-applied migration was edited. Restore it; add a new migration instead |
 | Views render without styling | A view is using plain `<head>` instead of `h:head`, so declared resources were dropped |

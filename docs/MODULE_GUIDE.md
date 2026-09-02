@@ -288,7 +288,14 @@ One rule per route. The `.xhtml` form of the URL does not exist, so it needs no 
 matcher.
 
 Rules that depend on data rather than URL — an administrator may not approve a request they
-raised themselves — belong on the service method as `@PreAuthorize`, as shown in Step 4.
+raised themselves — are enforced as an explicit check inside the service method, not
+`@PreAuthorize`: see `ApprovalService.recordAction` for the real example. Back it with a
+database constraint where one is possible (here, `approval_actions`' `UNIQUE(approval_id,
+actor_user_id)`), so the rule holds even if the application-level check is ever bypassed or
+mistakenly removed. `@PreAuthorize` with a SpEL expression over the method's arguments is a
+reasonable declarative alternative once this kind of check appears in several places, but
+introduce it deliberately rather than by habit — it moves the rule out of the method body and
+into an annotation, which is harder to unit test in isolation.
 
 ## 9. Verify
 
@@ -341,7 +348,7 @@ selects the `REQUIRES_NEW` path.
 | Data returned to views | DTO records; never JPA entities |
 | SQL | Native SQL in DAOs only, one statement per method |
 | Pagination | `LIMIT`/`OFFSET` in SQL, with a matching `COUNT(*)` |
-| Pagination bean fields | `currentPage`, `totalPages`, `totalRecords`, `pageSize`, `offset` — standardized project-wide 2026-08-31; not `page`/`totalPageCount`/`totalCount` (those read as near-duplicates at a glance) |
+| Pagination bean fields | `currentPage`, `totalPages`, `totalRecords`, `pageSize`, `offset` — standardized project-wide; not `page`/`totalPageCount`/`totalCount` (those read as near-duplicates at a glance) |
 | `jakarta.faces` imports | Permitted in `bean/` only |
 | Document tags | Always `h:head` and `h:body`, never plain `<head>`/`<body>` |
 
@@ -360,3 +367,42 @@ selects the `REQUIRES_NEW` path.
 | Building an `ActivityLog` by hand at a call site | Every site then re-decides `log` vs `logRefusal`; getting it backwards loses the row silently | `AuditTrail` |
 | A service calling `Actor.current()` or `SecurityUtil` | Binds the service to a live web request, so it can no longer run from a job, a test, or an event listener | The bean resolves the `Actor` and passes it in |
 | `==` between two boxed `Long` ids | Compares references. It appears to work below 128, where the `Long` cache returns one instance, then fails silently above it | `.equals(...)`, or `Objects.equals(...)` when either side may be null |
+
+## 12. Known Pitfalls
+
+Specific, non-obvious failures encountered while building this project, kept here so they
+are not rediscovered at the same cost. Each is real: hit once, understood, and fixed.
+
+### Rendering and Facelets
+
+| Pitfall | What actually happens | Fix |
+|---|---|---|
+| `rendered` on a plain HTML element, e.g. `<li rendered="#{...}">` | Does nothing. The browser ignores an unrecognized attribute and always shows the element — the page renders without error, the EL is even evaluated, and the output contains a literal `rendered="false"` on an element that is plainly visible | Wrap the element in `<ui:fragment rendered="...">`, or use an `h:` component that actually supports the attribute. Grep the rendered HTML for `rendered="false"` to catch a slip — if it appears in the output, it didn't work |
+| HTML5's `selected`/`disabled`/`checked` on a plain (non-`h:`) element | These are presence-based, not value-based. `selected="#{someBoolean}"` renders the literal text `selected="false"` when false, which the browser still treats as selected because the attribute is present at all | Make the EL expression return the string `'selected'` or `null` instead of a boolean; Facelets omits a `null`-valued attribute on a plain element |
+| An EL expression on a plain element's attribute that evaluates to an empty string | Facelets omits the attribute entirely, not just when the result is `null`. A `value=""` sentinel (e.g. a "no filter" `<option>`) silently loses its `value` attribute, and the browser falls back to submitting the option's visible text instead | If an attribute genuinely needs to render as `""`, write it as a literal (non-EL) attribute rather than one that happens to evaluate to empty |
+| `h:` component tags vs. plain HTML tags on the same page | `h:` components use `styleClass`; plain HTML tags (a CDN `<link>`/`<script>`, for instance) use ordinary `class` | Both exist side by side on some pages — know which kind of tag you're styling |
+| Firefox vs. Chrome on a malformed tag | Firefox parses JSF pages as strict XML — a malformed tag anywhere produces a raw XML parser error. Chrome degrades to a normal, if broken-looking, render | If a page looks fine in Chrome but dumps a parse error in Firefox, the page has a real markup bug — fix the tag, it is not a browser quirk |
+| A CDN `<script>`/`<link>` with an `integrity`/`crossorigin` (SRI) attribute that doesn't match the served file | The whole resource silently fails to load. No visible network error — just a Console warning — and the page renders unstyled | Only pin an SRI hash verified against the exact file being served, or drop the attribute |
+| A Java-side redirect or hand-built URL pointing at a Facelets page | Needs the real `.xhtml` extension — there is no JSP-style clean-URL forwarding for Facelets from Java code | Prefer `h:link outcome=`/a `faces-redirect=true` navigation string over a hand-built URL in the first place |
+| The page-view URL and the form-submission target | Two separate things. Making a URL render a page does not make that page's form submit back to the same URL | Update the form's target deliberately when a view's URL changes — it does not follow automatically |
+
+### Composite components (`webapp/resources/ats/`)
+
+| Pitfall | What actually happens | Fix |
+|---|---|---|
+| A composite component's own root `<ui:component>` tag with no `xmlns:ui` on itself | Fails to parse — "the prefix 'ui' ... is not bound" — even if nothing else in the file uses another `ui:` tag | Declare `xmlns:ui="jakarta.faces.facelets"` on the root element itself; the prefix used there needs its own binding |
+| `for` as a `cc:attribute` name | Fails to parse as `#{cc.attrs.for}` — `for` is a reserved word in Java/EL's tokenizer | Avoid Java keywords as composite-component attribute names generally (this project uses `fieldId` instead) |
+| `f:param`/`<option>` elements generated inside `ui:repeat` | Land as children of `ui:repeat` itself, not of the surrounding `h:outputLink`/`select` — and those renderers only scan their own direct children when building output | Use `xmlns:c="jakarta.tags.core"`'s `c:forEach` instead, as `pagination.xhtml` and `filterSelect.xhtml` do. It is Facelets' own build-time-only tag, bundled in Mojarra — no JSTL/JSP dependency, and no exception to the project's JSP+JSTL deferral beyond this one "must produce literal direct children" case. Don't reach for it elsewhere |
+
+### Data access
+
+| Pitfall | What actually happens | Fix |
+|---|---|---|
+| A native-query SQL string written as a `"""` text block, with a trailing `;` | A SQL syntax error — Hibernate sends the string through JDBC as a single statement | Omit the trailing semicolon inside a text-block query |
+| Manually mapping a native query's `Object[]` row into a Java object | A nullable column throws or silently corrupts if cast without a check; the JDBC driver's actual runtime type for a numeric column also isn't guaranteed | `row[i] == null ? null : ((Number) row[i]).longValue()` — check null and cast via `Number`, never a direct `(Long)` |
+
+### Transactions
+
+| Pitfall | What actually happens | Fix |
+|---|---|---|
+| `jakarta.transaction.Transactional` vs. `org.springframework.transaction.annotation.Transactional` | Only the Spring one does anything here — this application has no JTA transaction manager (its own boot log states `WELD-000101: Transactional services not available`), so the `jakarta.transaction` version on a `@Service` method is very likely a silent no-op. An IDE auto-import can pick the wrong one with no compile error | Import the Spring annotation explicitly. Don't trust a multi-statement method's atomicity until it has been proven by fault injection — break one statement deliberately and confirm the others roll back too |

@@ -3,11 +3,8 @@
 This document describes how the Asset Tagging System is built: its layers, request
 processing, dependency-injection model, security architecture, and audit mechanism.
 [docs/DESIGN.md](DESIGN.md) explains the reasoning behind the data model the application
-is built on; this document describes the application itself.
-
-Rewritten 2026-08-20 following a full architecture audit. All statements about current
-behaviour in Section 9 were verified by building and running the application, not
-inferred.
+is built on; this document describes the application itself. Section 9's implementation
+status is verified against the running application, not inferred from intent.
 
 ## 1. Technology Stack
 
@@ -73,8 +70,7 @@ leaves an asset that no audit trail records.
 
 ## 3. Request Processing
 
-**Current as of 2026-08-27 (Refactoring Roadmap Stage 8, complete).** There is no
-controller layer. `FacesServlet` answers every view URL directly:
+There is no controller layer. `FacesServlet` answers every view URL directly:
 
 - `joinfaces.faces.automatic-extensionless-mapping=true` makes `FacesServlet` register an
   exact servlet-path mapping for every physical `.xhtml` file it discovers, under the
@@ -92,15 +88,14 @@ controller layer. `FacesServlet` answers every view URL directly:
   behavior still needed — redirecting `GET /` to `/dashboard` — moved to
   `config/WebConfig.java`'s `addViewControllers(...)`.
 - §7.1 covers the security rule this depends on: `.xhtml` and `/resources/**` are sealed at
-  the `SecurityConfig` layer, first in the filter chain, in the same change that enabled
-  the two properties above (Constraint C1 in the roadmap — splitting them across two
-  changes means `.xhtml` templates serve as raw static source in between).
+  the `SecurityConfig` layer, first in the filter chain. That rule and the two properties
+  above must be enabled together — enabling the properties without the rule first would let
+  `.xhtml` templates serve as raw static source in the interval between the two changes.
 
 Values arriving in the URL are declared with `f:viewParam` inside `f:metadata`, never
 parsed from the request parameter map by hand. `f:viewParam` performs type conversion and
 validation; `f:viewAction` then runs after binding is complete, unlike `@PostConstruct`,
-which runs before it. (`FacesUtil.getRequestParams()`, the old hand-parsing helper, has
-been deleted — every list/detail page uses `f:viewParam`/`f:viewAction` now.)
+which runs before it.
 
 ## 4. Dependency Injection
 
@@ -160,11 +155,18 @@ Authentication is form-based against the `users` table, with BCrypt password has
 `CustomUserDetailsService` loads a user by email address; `CustomUserDetails` exposes the
 user id and given name alongside the standard `UserDetails` contract.
 
-Authorisation operates at two levels:
+**URL rules** in `SecurityConfig` (`requestMatchers(...).hasRole(...)`) govern navigation to
+admin-only pages — `/activity/**`, `/approval/**`, `/user/form`, `/asset/form`. A refused
+request is handled by `BrowserAccessDeniedHandler`, which records it as an `ACCESS_DENIED`
+row before redirecting, rather than by Spring Security's default response.
 
-- **URL rules** in `SecurityConfig` govern navigation.
-- **Method rules** (`@PreAuthorize`) govern decisions that depend on data, such as
-  preventing an administrator from approving a request they raised themselves.
+Authorisation decisions that depend on data rather than role — preventing an administrator
+from approving a request they raised themselves — are not expressed as `@PreAuthorize`
+today. `ApprovalService.recordAction` enforces the rule directly (a `BusinessRuleException`
+check, backed structurally by `approval_actions`' `UNIQUE(approval_id, actor_user_id)`
+constraint), which [docs/MODULE_GUIDE.md](MODULE_GUIDE.md) §4 documents as the pattern a new
+service method should follow. Moving that class of check to a declarative `@PreAuthorize`
+rule is a reasonable future refinement, not a current guarantee.
 
 ### 7.1 Denying direct template access
 
@@ -285,9 +287,9 @@ fail together; a refused action and its log entry must not.
 | Composite components (`resources/ats/`) | Implemented — `pagination`, `badge`, `field`, `filterSelect` |
 | Query-string parameter handling | `f:viewParam`/`f:viewAction` on all list/detail pages; `FacesUtil` deleted |
 
-The codebase is being brought to the architecture described above incrementally. Sections
-2 through 8 describe the standard that new work must meet;
-[docs/MODULE_GUIDE.md](MODULE_GUIDE.md) is the procedure for meeting it.
+Sections 2 through 8 describe the standard every component above meets, except where a row
+states otherwise. [docs/MODULE_GUIDE.md](MODULE_GUIDE.md) is the procedure for adding a new
+one to that same standard.
 
 ## 10. Project Structure
 
