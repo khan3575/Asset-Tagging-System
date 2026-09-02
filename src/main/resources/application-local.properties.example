@@ -2,6 +2,7 @@ DB_NAME=enterDatabaseName
 DB_USER=enterUsername
 DB_PASS=enterPassword
 
+logging.file.name=logs/app.log
 # save the name as  application-local.properties file
 # select the 'local' Spring profile in IntelliJ's run configuration
 

@@ -1,0 +1,36 @@
+# The Dockerfile has no build stage -- it only ever needs target/*.war.
+# Everything below is excluded from the build context so `docker build`
+# doesn't ship the whole repo (source, docs, screenshots, git history) to
+# the daemon just to copy one file out of it.
+
+.git
+.gitignore
+.dockerignore
+
+src/
+docs/
+*.md
+
+.idea
+.vscode
+*.iml
+.DS_Store
+
+mvnw
+mvnw.cmd
+.mvn/
+
+Dockerfile
+compose.yaml
+.env
+.env.example
+
+# Keep the WAR, drop everything else Maven left in target/
+target/classes/
+target/test-classes/
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/
+target/surefire-reports/
+target/*.original

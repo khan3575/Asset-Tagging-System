@@ -42,3 +42,6 @@ application-prod.properties
 ##generated logs (2.7)##
 logs/
 
+##deployment##
+.env
+

@@ -1,0 +1,61 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    mem_limit: 384m
+    volumes:
+      - mysqldata:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    command:
+      - --innodb-buffer-pool-size=64M
+      - --innodb-buffer-pool-instances=1
+      - --performance-schema=OFF
+      - --max-connections=25
+      - --table-open-cache=64
+    healthcheck:
+      # References the db container's own MYSQL_ROOT_PASSWORD (set above) via
+      # $$ shell-escaping, rather than re-substituting ${DB_ROOT_PASS} a
+      # second time from compose -- one place holds the secret, not two.
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  app:
+    image: ats:latest
+    restart: unless-stopped
+    mem_limit: 768m
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8086:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?useSSL=false&connectionTimeZone=SERVER&allowPublicKeyRetrieval=true
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      JOINFACES_FACES_PROJECT_STAGE: Production
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/seed
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "5"
+      SERVER_SERVLET_SESSION_TIMEOUT: 15m
+      SPRING_JPA_SHOW_SQL: "false"
+      LOGGING_LEVEL_ROOT: WARN
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mysqldata:
