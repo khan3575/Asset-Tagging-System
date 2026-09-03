@@ -25,70 +25,77 @@
     <ui:define name="content">
         <h:messages styleClass="mb-3" errorClass="alert alert-danger"/>
 
-        <h:form id="update-asset-view" styleClass="row g-3" style="max-width:720px;">
-            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <i class="bi bi-info-circle me-2"></i>Asset details
+            </div>
+            <div class="card-body">
+                <h:form id="update-asset-view" styleClass="row g-3">
+                    <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
 
-            <ui:fragment rendered="#{!assetDetailBean.editing}">
-                <div class="col-6">
-                    <h:outputLabel for="assetTag" value="Asset Tag" styleClass="form-label mb-0" />
-                    <h:inputText id="assetTag" value="#{assetDetailBean.asset.assetTag}" styleClass="form-control" disabled="disabled" />
-                </div>
-                <div class="col-6">
-                    <h:outputLabel for="name" value="Asset Name" styleClass="form-label mb-0" />
-                    <h:inputText id="name" value="#{assetDetailBean.asset.name}" styleClass="form-control" disabled="disabled"/>
-                </div>
-                <div class="col-6">
-                    <h:outputLabel for="categoryName" value="Category" styleClass="form-label mb-0" />
-                    <h:inputText id="categoryName" value="#{assetDetailBean.asset.category.name}" styleClass="form-control" disabled="disabled" />
-                </div>
-                <div class="col-3">
-                    <h:outputLabel for="purchaseDateRead" value="Purchase Date" styleClass="form-label mb-0" />
-                    <h:inputText id="purchaseDateRead" value="#{assetDetailBean.asset.purchaseDate}" styleClass="form-control" disabled="disabled" />
-                </div>
-                <div class="col-3">
-                    <h:outputLabel for="purchaseValueRead" value="Value" styleClass="form-label mb-0" />
-                    <h:inputText id="purchaseValueRead" value="#{assetDetailBean.asset.purchaseValue}" styleClass="form-control" disabled="disabled" />
-                </div>
-                <div class="col-12">
-                    <h:commandButton value="Edit" action="#{assetDetailBean.edit}" styleClass="btn btn-outline-primary"
-                                     rendered="#{headerBean.role == 'ROLE_ADMIN'}"/>
-                </div>
-            </ui:fragment>
+                    <ui:fragment rendered="#{!assetDetailBean.editing}">
+                        <div class="col-12 col-md-6">
+                            <h:outputLabel for="assetTag" value="Asset Tag" styleClass="form-label mb-0" />
+                            <h:inputText id="assetTag" value="#{assetDetailBean.asset.assetTag}" styleClass="form-control" disabled="disabled" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <h:outputLabel for="name" value="Asset Name" styleClass="form-label mb-0" />
+                            <h:inputText id="name" value="#{assetDetailBean.asset.name}" styleClass="form-control" disabled="disabled"/>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <h:outputLabel for="categoryName" value="Category" styleClass="form-label mb-0" />
+                            <h:inputText id="categoryName" value="#{assetDetailBean.asset.category.name}" styleClass="form-control" disabled="disabled" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h:outputLabel for="purchaseDateRead" value="Purchase Date" styleClass="form-label mb-0" />
+                            <h:inputText id="purchaseDateRead" value="#{assetDetailBean.asset.purchaseDate}" styleClass="form-control" disabled="disabled" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h:outputLabel for="purchaseValueRead" value="Value" styleClass="form-label mb-0" />
+                            <h:inputText id="purchaseValueRead" value="#{assetDetailBean.asset.purchaseValue}" styleClass="form-control" disabled="disabled" />
+                        </div>
+                        <div class="col-12">
+                            <h:commandButton value="Edit" action="#{assetDetailBean.edit}" styleClass="btn btn-outline-primary"
+                                             rendered="#{headerBean.role == 'ROLE_ADMIN'}"/>
+                        </div>
+                    </ui:fragment>
 
-            <ui:fragment rendered="#{assetDetailBean.editing}">
-                <div class="col-6">
-                    <h:outputLabel for="editTag" value="Asset Tag" styleClass="form-label mb-0" />
-                    <h:inputText id="editTag" value="#{assetDetailBean.editorAssetTag}" styleClass="form-control" required="true"/>
-                </div>
-                <div class="col-6">
-                    <h:outputLabel for="editName" value="Asset Name" styleClass="form-label mb-0" />
-                    <h:inputText id="editName" value="#{assetDetailBean.editorName}" styleClass="form-control" required="true"/>
-                </div>
-                <div class="col-6">
-                    <h:outputLabel for="editCategory" value="Category" styleClass="form-label mb-0" />
-                    <h:selectOneMenu id="editCategory" value="#{assetDetailBean.editorCategoryId}" styleClass="form-select" required="true">
-                        <f:selectItems value="#{lookupBean.assetCategoryList}" var="category"
-                                       itemLabel="#{category.name}" itemValue="#{category.id}"/>
-                    </h:selectOneMenu>
-                </div>
-                <div class="col-3">
-                    <h:outputLabel for="editDate" value="Purchase Date" styleClass="form-label mb-0" />
-                    <h:inputText id="editDate" value="#{assetDetailBean.editorPurchaseDate}" styleClass="form-control">
-                        <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
-                    </h:inputText>
-                </div>
-                <div class="col-3">
-                    <h:outputLabel for="editValue" value="Value" styleClass="form-label mb-0" />
-                    <h:inputText id="editValue" value="#{assetDetailBean.editorPurchaseValue}" styleClass="form-control"/>
-                </div>
-                <div class="col-12">
-                    <h:commandButton value="Save" action="#{assetDetailBean.save}" styleClass="btn btn-primary me-2"
-                                     onclick="if(!confirm('Save changes to this asset?')) { return false; }"/>
-                    <h:commandButton value="Cancel" action="#{assetDetailBean.cancel}" immediate="true"
-                                     styleClass="btn btn-outline-secondary"/>
-                </div>
-            </ui:fragment>
-        </h:form>
+                    <ui:fragment rendered="#{assetDetailBean.editing}">
+                        <div class="col-12 col-md-6">
+                            <h:outputLabel for="editTag" value="Asset Tag" styleClass="form-label mb-0" />
+                            <h:inputText id="editTag" value="#{assetDetailBean.editorAssetTag}" styleClass="form-control" required="true"/>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <h:outputLabel for="editName" value="Asset Name" styleClass="form-label mb-0" />
+                            <h:inputText id="editName" value="#{assetDetailBean.editorName}" styleClass="form-control" required="true"/>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <h:outputLabel for="editCategory" value="Category" styleClass="form-label mb-0" />
+                            <h:selectOneMenu id="editCategory" value="#{assetDetailBean.editorCategoryId}" styleClass="form-select" required="true">
+                                <f:selectItems value="#{lookupBean.assetCategoryList}" var="category"
+                                               itemLabel="#{category.name}" itemValue="#{category.id}"/>
+                            </h:selectOneMenu>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h:outputLabel for="editDate" value="Purchase Date" styleClass="form-label mb-0" />
+                            <h:inputText id="editDate" value="#{assetDetailBean.editorPurchaseDate}" styleClass="form-control">
+                                <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
+                            </h:inputText>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h:outputLabel for="editValue" value="Value" styleClass="form-label mb-0" />
+                            <h:inputText id="editValue" value="#{assetDetailBean.editorPurchaseValue}" styleClass="form-control"/>
+                        </div>
+                        <div class="col-12 d-flex gap-2">
+                            <h:commandButton value="Save" action="#{assetDetailBean.save}" styleClass="btn btn-primary"
+                                             onclick="if(!confirm('Save changes to this asset?')) { return false; }"/>
+                            <h:commandButton value="Cancel" action="#{assetDetailBean.cancel}" immediate="true"
+                                             styleClass="btn btn-outline-secondary"/>
+                        </div>
+                    </ui:fragment>
+                </h:form>
+            </div>
+        </div>
 
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white">
