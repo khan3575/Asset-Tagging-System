@@ -2,7 +2,7 @@
                 xmlns:h="jakarta.faces.html"
                 xmlns:ui="jakarta.faces.facelets">
 
-    <header class="d-flex justify-content-between align-items-center p-3 mb-3">
+    <header class="ats-glass-bar d-flex justify-content-between align-items-center p-3 mb-3 mt-3">
         <button class="btn btn-outline-secondary d-md-none" type="button" 
             data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas"
             aria-label="Toggle navigation">
@@ -10,12 +10,12 @@
         </button>
         
         <h:link outcome="/dashboard"
-                styleClass="nav-brand h2 fw-bold text-primary text-decoration-none pt-3"
+                styleClass="nav-brand h2 fw-bold ats-brand text-decoration-none mb-0"
                 value="Asset Tagging System"/>
 
-        <div class="d-flex align-items-center gap-3">
-            <span>Logged in as : <strong>#{headerBean.role}</strong></span>
-            <h:link outcome="/settings" styleClass="btn btn-primary gap-1 text-white">
+        <div class="d-flex align-items-center gap-2">
+            <span class="ats-user-chip d-none d-sm-inline">#{headerBean.role.replace('ROLE_', '')}</span>
+            <h:link outcome="/settings" styleClass="btn btn-primary gap-1">
                 <i class="bi bi-person"></i>
                 #{headerBean.firstName}
             </h:link>

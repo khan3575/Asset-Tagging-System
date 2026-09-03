@@ -36,18 +36,28 @@
         </div>
 
         <h:form id="approval-action-form"
-        rendered="#{headerBean.role == 'ROLE_ADMIN' and !approvalDetailBean.alreadyActed and !approvalDetailBean.requestedBySelf and (approvalDetailBean.detail.status == 'PENDING' or approvalDetailBean.detail.status == 'PARTIALLY_APPROVED')}"
-         styleClass="row g-3 card" style="max-width:600px;">
+                rendered="#{headerBean.role == 'ROLE_ADMIN' and !approvalDetailBean.alreadyActed and !approvalDetailBean.requestedBySelf and (approvalDetailBean.detail.status == 'PENDING' or approvalDetailBean.detail.status == 'PARTIALLY_APPROVED')}"
+                styleClass="card shadow-sm" style="max-width:600px;">
 
-            <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+            <div class="card-header bg-white">
+                <i class="bi bi-check2-square me-2"></i>Record your decision
+            </div>
 
-            <h:outputLabel for="notes" value="Notes (Optional)" styleClass="form-label mb-0" />
-            <h:inputTextarea id="notes" value="#{approvalDetailBean.notes}" styleClass="form-control" />
+            <div class="card-body">
+                <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
 
-            <h:commandButton value="Approve" action="#{approvalDetailBean.approve}" styleClass="btn btn-success mt-2 me-2"
-                onclick="if(!confirm('Are you sure you want to approve this request?')) { this.form.reset(); return false; }" />
-            <h:commandButton value="Reject" action="#{approvalDetailBean.reject}" styleClass="btn btn-outline-danger mt-2"
-                onclick="if(!confirm('Are you sure you want to reject this request?')) { this.form.reset(); return false; }" />
+                <div class="mb-3">
+                    <h:outputLabel for="notes" value="Notes (optional)" styleClass="form-label" />
+                    <h:inputTextarea id="notes" value="#{approvalDetailBean.notes}" styleClass="form-control" rows="3" />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <h:commandButton value="Approve" action="#{approvalDetailBean.approve}" styleClass="btn btn-success"
+                        onclick="if(!confirm('Are you sure you want to approve this request?')) { this.form.reset(); return false; }" />
+                    <h:commandButton value="Reject" action="#{approvalDetailBean.reject}" styleClass="btn btn-outline-danger"
+                        onclick="if(!confirm('Are you sure you want to reject this request?')) { this.form.reset(); return false; }" />
+                </div>
+            </div>
         </h:form>
     </ui:define>
 

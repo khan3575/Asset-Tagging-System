@@ -13,7 +13,12 @@
         <ui:define name="content">
             <h:messages globalOnly="true" styleClass="mb-3" layout="table"
                         errorClass="alert alert-danger" warnClass="alert alert-warning"/>
-            <h:form id="add-asset-form" styleClass="row g-3" style="max-width: 600px;" enctype="multipart/form-data">
+            <div class="card shadow-sm" style="max-width: 720px;">
+                <div class="card-header bg-white">
+                    <i class="bi bi-box-seam me-2"></i>Asset details
+                </div>
+                <div class="card-body">
+            <h:form id="add-asset-form" styleClass="row g-3" enctype="multipart/form-data">
 
                 <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
                 
@@ -56,10 +61,12 @@
                     <div class="form-text">PDF, up to 10 MB.</div>
                 </ats:field>
 
-                <div class="col-12">
+                <div class="col-12 d-flex gap-2">
                     <h:commandButton value="Save" action="#{assetFormBean.save}" styleClass="btn btn-primary"/>
                     <h:link outcome="/asset/list" styleClass="btn btn-outline-secondary" value="Cancel"/>
                 </div>
-            </h:form>         
-        </ui:define>         
+            </h:form>
+                </div>
+            </div>
+        </ui:define>
 </ui:composition>
