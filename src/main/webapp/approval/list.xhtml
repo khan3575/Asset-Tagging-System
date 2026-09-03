@@ -28,8 +28,17 @@
                 </h:link>
             </h:column>
             <h:column>
-                <f:facet name="header">Requester</f:facet>
-                #{row.requesterFirstName} #{row.requesterLastName}
+                <f:facet name="header">Type</f:facet>
+                <ats:badge text="#{row.requestType}"/>
+            </h:column>
+            <h:column>
+                <f:facet name="header">Requested / returned by</f:facet>
+                <ui:fragment rendered="#{row.requestType eq 'RETURN'}">
+                    #{row.previousHolderFirstName} #{row.previousHolderLastName}
+                </ui:fragment>
+                <ui:fragment rendered="#{row.requestType ne 'RETURN'}">
+                    #{row.requesterFirstName} #{row.requesterLastName}
+                </ui:fragment>
             </h:column>
             <h:column>
                 <f:facet name="header">Status</f:facet>

@@ -145,6 +145,17 @@ public class ApprovalDao {
 
     public record ApprovalSnapshot(Long assetId, Long requesterId, byte requiredApprovalCount, Long previousHolderId) {}
 
+    private static final String APPROVAL_ROW_SELECT = """
+            SELECT a.id, ast.asset_tag, ast.name
+            , u.id, u.first_name, u.last_name
+            , ph.id, ph.first_name, ph.last_name
+            , a.request_type, a.status, a.required_approval_count, a.requested_at
+            FROM approvals a
+            JOIN assets ast ON a.asset_id = ast.id
+            LEFT JOIN users u ON a.requester_id = u.id
+            LEFT JOIN users ph ON a.previous_holder_id = ph.id
+            """;
+
     private static ApprovalRow mapApprovalRow(Object[] row)
     {
         return new ApprovalRow(
@@ -154,21 +165,20 @@ public class ApprovalDao {
             row[3] != null ? ((Number) row[3]).longValue() : null,
             (String) row[4],
             (String) row[5],
-            (String) row[6],
-            ((Number) row[7]).byteValue(),
-            ((LocalDateTime) row[8])
+            row[6] != null ? ((Number) row[6]).longValue() : null,
+            (String) row[7],
+            (String) row[8],
+            (String) row[9],
+            (String) row[10],
+            ((Number) row[11]).byteValue(),
+            ((LocalDateTime) row[12])
         );
     }
 
     @SuppressWarnings("unchecked")
     public Optional<ApprovalRow> findApprovalDetail(Long approvalId)
     {
-        String sql = """
-            SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
-            , u.last_name, a.status, a.required_approval_count, a.requested_at
-            FROM approvals a
-            JOIN assets ast ON a.asset_id = ast.id
-            LEFT JOIN users u ON a.requester_id = u.id
+        String sql = APPROVAL_ROW_SELECT + """
             WHERE a.id = :approvalId
             """;
 
@@ -196,12 +206,7 @@ public class ApprovalDao {
     @SuppressWarnings("unchecked")
     public List<ApprovalRow> findOpenApprovals(int limit,int offset)
     {
-        String sql = """
-            SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
-            , u.last_name, a.status, a.required_approval_count, a.requested_at
-            FROM approvals a
-            JOIN assets ast ON a.asset_id = ast.id
-            LEFT JOIN users u ON a.requester_id = u.id
+        String sql = APPROVAL_ROW_SELECT + """
             WHERE a.status IN ('PENDING', 'PARTIALLY_APPROVED')
             ORDER BY a.requested_at ASC
             LIMIT :limit OFFSET :offset
@@ -217,12 +222,7 @@ public class ApprovalDao {
         @SuppressWarnings("unchecked")
     public List<ApprovalRow> findOpenRequestsFor(Long userId)
     {
-        String sql = """
-            SELECT a.id, ast.asset_tag, ast.name, u.id, u.first_name
-            , u.last_name, a.status, a.required_approval_count, a.requested_at
-            FROM approvals a
-            JOIN assets ast ON a.asset_id = ast.id
-            LEFT JOIN users u ON a.requester_id = u.id
+        String sql = APPROVAL_ROW_SELECT + """
             WHERE a.status IN ('PENDING', 'PARTIALLY_APPROVED')
             AND (a.requester_id = :userId OR a.initiated_by_user_id = :userId)
             ORDER BY a.requested_at DESC

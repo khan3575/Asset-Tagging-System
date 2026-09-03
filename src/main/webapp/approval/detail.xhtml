@@ -21,7 +21,15 @@
         <div class="card shadow-sm mb-3">
             <div class="card-body">
                 <p><strong>Asset:</strong> #{approvalDetailBean.detail.assetTag} - #{approvalDetailBean.detail.assetName}</p>
-                <p><strong>Requester:</strong> #{approvalDetailBean.detail.requesterFirstName} #{approvalDetailBean.detail.requesterLastName}</p>
+                <p><strong>Request type:</strong> #{approvalDetailBean.detail.requestType}</p>
+
+                <ui:fragment rendered="#{approvalDetailBean.detail.requestType eq 'RETURN'}">
+                    <p><strong>Returned by:</strong> #{approvalDetailBean.detail.previousHolderFirstName} #{approvalDetailBean.detail.previousHolderLastName}</p>
+                </ui:fragment>
+                <ui:fragment rendered="#{approvalDetailBean.detail.requestType ne 'RETURN'}">
+                    <p><strong>Requested by:</strong> #{approvalDetailBean.detail.requesterFirstName} #{approvalDetailBean.detail.requesterLastName}</p>
+                </ui:fragment>
+
                 <p><strong>Status:</strong> #{approvalDetailBean.detail.status}</p>
                 <ats:badge text="#{approvalDetailBean.approvedCount} of #{approvalDetailBean.detail.requiredApprovalCount} approved"/>
             </div>
