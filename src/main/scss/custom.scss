@@ -4,3 +4,16 @@ $primary: #0084BF;
 $danger: #C0392B;
 
 @import "bootstrap/scss/bootstrap";
+
+.auth-background{
+    min-height: 100vh;
+    background: linear-gradient(135deg, $primary, #00405C);
+}
+
+.glass-card{
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}

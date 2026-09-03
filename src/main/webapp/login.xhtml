@@ -5,18 +5,29 @@
     <ui:define name="title">Login to ATS</ui:define>
     
     <ui:define name="body">
-        <div class="container d-flex align-items-center justify-content-center min-vh-100 p-10">
-            <form class="card p-4 mb-3" style="width:24rem;" action="#{request.contextPath}/login" method="POST">
+        <div class="auth-background d-flex align-items-center justify-content-center min-vh-100">
+            <form class="card glass-card p-4 mb-3" style="width:24rem;" action="#{request.contextPath}/login" method="POST">
+                
                 <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+                <ui:fragment rendered="#{param.error != null}">
+                    <div class="alert alert-danger py-2" role="alert">
+                        Invalid email or password.
+                    </div>
+                </ui:fragment>
+                <ui:fragment rendered="#{param.logout != null}">
+                    <div class="alert alert-success py-2" role="alert">
+                        You have been signed out.
+                    </div>
+                </ui:fragment>
 
-                <label for="username" class="form-label">Email Address</label>
+                <label for="username" class="form-label text-secondary ms-2">Email Address</label>
                 <input class="form-control mb-3" type="text" placeholder="name@example.com"  id="username" name="username"></input>
 
-                <label for="password" class="form-label">Password</label>
+                <label for="password" class="form-label text-secondary ms-2">Password</label>
                 <input class="form-control mb-3" type="password" placeholder="Password" name="password" id="password"></input>
 
-                <a href="/forgot-password" class="text-reset text-decoration-none mb-2">Forgot Password?</a>
-                <button class="btn btn-primary" type="submit">Submit</button>
+                <a href="/forgot-password" class="text-black fw-semibold mb-2">Forgot Password?</a>
+                <button class="btn btn-primary text-white fw-semibold" type="submit">Sign In</button>
             </form>
         </div>
     </ui:define>
