@@ -78,7 +78,7 @@
                         </div>
                         <div class="card-body p-0">
                             <h:dataTable value="#{dashboardBean.recentActivity}" var="entry"
-                                         styleClass="table table-sm mb-0 align-middle"
+                                         styleClass="table-responsive mb-0 align-middle"
                                          rendered="#{not empty dashboardBean.recentActivity}">
                                 <h:column>
                                     <f:facet name="header">When</f:facet>
@@ -116,7 +116,7 @@
                 <div class="card-header bg-white">Assets you hold</div>
                 <div class="card-body p-0">
                     <h:dataTable value="#{dashboardBean.myAssets}" var="row"
-                                 styleClass="table table-sm table-hover mb-0 align-middle"
+                                 styleClass="table-responsive table-hover mb-0 align-middle"
                                  rendered="#{not empty dashboardBean.myAssets}">
                         <h:column>
                             <f:facet name="header">Asset</f:facet>
@@ -149,7 +149,7 @@
                 <div class="card-header bg-white">Your open requests</div>
                 <div class="card-body p-0">
                     <h:dataTable value="#{dashboardBean.myRequests}" var="req"
-                                 styleClass="table table-sm mb-0 align-middle"
+                                 styleClass="table-responsive mb-0 align-middle"
                                  rendered="#{not empty dashboardBean.myRequests}">
                         <h:column>
                             <f:facet name="header">Asset</f:facet>
