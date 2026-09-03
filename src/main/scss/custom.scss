@@ -34,12 +34,28 @@ body {
     background-attachment: fixed;
 }
 
+// Same composition as the workspace above -- a warm-side glow from the top
+// left, depth falling away to the bottom right, over a 135deg base -- but at
+// full saturation and dark. Sharing the recipe is what makes the two read as
+// one material at different volumes rather than two unrelated backgrounds;
+// previously this was a flat two-stop gradient with nothing in common with the
+// app behind it, so signing in felt like changing products.
 .auth-background {
     min-height: 100vh;
-    background: linear-gradient(135deg, $primary, #00405C);
+    background-color: #00405C;
+    background-image:
+        radial-gradient(1200px 600px at 8% -5%,  rgba(0, 149, 214, 0.85), transparent 60%),
+        radial-gradient(1000px 700px at 95% 105%, rgba(0,  30,  46, 0.85), transparent 60%),
+        linear-gradient(135deg, $primary 0%, #00405C 100%);
+    background-attachment: fixed;
 }
 
-.glass-card {
+// The auth pages mark their panel `card glass-card`. Both selectors are a
+// single class, so source order alone decides -- and `.card` below is defined
+// later, which silently won and dropped these back to the lighter workspace
+// fill. Qualifying with `.card` raises specificity so the strong fill sticks.
+.glass-card,
+.card.glass-card {
     @include glass(var(--ats-glass-bg-strong));
 }
 
