@@ -16,6 +16,8 @@
     <ui:define name="pageSubtitle">Review or act on this request</ui:define>
 
     <ui:define name="content">
+        <h:messages styleClass="mb-3" errorClass="alert alert-danger"/>
+
         <div class="card shadow-sm mb-3">
             <div class="card-body">
                 <p><strong>Asset:</strong> #{approvalDetailBean.detail.assetTag} - #{approvalDetailBean.detail.assetName}</p>
