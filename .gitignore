@@ -45,3 +45,7 @@ logs/
 ##deployment##
 .env
 
+#sass modules data
+/node/
+/node_modules/
+/src/main/webapp/resources/ats/vendor/

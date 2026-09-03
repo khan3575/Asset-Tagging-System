@@ -1,40 +1,47 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="jakarta.faces.facelets"
                 xmlns:h="jakarta.faces.html">
-    <aside class="col-md-3">
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li class="nav-item">
-                
-                <h:link styleClass="nav-link" outcome="/dashboard" value="Dashboard" />
-            </li>
-            <li class="nav-item">
-                <h:link styleClass="nav-link" outcome="/asset/list" value="Assets" />
-            </li>
-            <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+    <aside class="offcanvas-md offcanvas-start col-md-3" tabindex="-1" id="sidebarOffcanvas" >
+        
+        <div class="offcanvas-header d-md-none">
+            <h5 class="offcanvas-title">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+                data-bs-target="#sidebarOffcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <h:link styleClass="nav-link" outcome="/activity/log" value="Activity Log" />
+                    
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/dashboard') ? 'active' : ''}" outcome="/dashboard" value="Dashboard" />
                 </li>
-            </ui:fragment>
-            <li class="nav-item">
-                <h:link styleClass="nav-link" outcome="/user/list" value="Users" />
-            </li>
-            <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
                 <li class="nav-item">
-                    <h:link styleClass="nav-link" outcome="/approval/list" value="Approvals" />
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/asset/') ? 'active' : ''}" outcome="/asset/list" value="Assets" />
                 </li>
-            </ui:fragment>
-            <li class="nav-item">
-                <h:link styleClass="nav-link" outcome="/settings" value="Settings" />
-            </li>
-            <li class="nav-item">
-                <form action="#{request.contextPath}/logout" method="POST">
-                    <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
-                    <button type="submit" class="nav-link btn btn-link text-start w-100 border-0 p-2">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </button>
-                </form>
-            </li>
-        </ul>
-
+                <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                    <li class="nav-item">
+                        <h:link styleClass="nav-link #{view.viewId.startsWith('/activity/') ? 'active' : ''}" outcome="/activity/log" value="Activity Log" />
+                    </li>
+                </ui:fragment>
+                <li class="nav-item">
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/user/') ? 'active' : ''}" outcome="/user/list" value="Users" />
+                </li>
+                <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                    <li class="nav-item">
+                        <h:link styleClass="nav-link #{view.viewId.startsWith('/approval/') ? 'active' : ''}" outcome="/approval/list" value="Approvals" />
+                    </li>
+                </ui:fragment>
+                <li class="nav-item">
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/settings') ? 'active' : ''}" outcome="/settings" value="Settings" />
+                </li>
+                <li class="nav-item">
+                    <form action="#{request.contextPath}/logout" method="POST">
+                        <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
+                        <button type="submit" class="nav-link btn btn-link text-start w-100 border-0 p-2">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </aside>
 </ui:composition>

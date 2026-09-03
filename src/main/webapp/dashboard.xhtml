@@ -76,9 +76,9 @@
                             <span>Recent activity</span>
                             <h:link outcome="/activity/log" value="View all" styleClass="small text-decoration-none"/>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 table-responsive">
                             <h:dataTable value="#{dashboardBean.recentActivity}" var="entry"
-                                         styleClass="table table-sm mb-0 align-middle"
+                                         styleClass="table table-hover mb-0 align-middle"
                                          rendered="#{not empty dashboardBean.recentActivity}">
                                 <h:column>
                                     <f:facet name="header">When</f:facet>
@@ -112,11 +112,30 @@
 
         <ui:fragment rendered="#{!dashboardBean.admin}">
 
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">Assets you hold</div>
+                            <div class="h3 mb-0">#{empty dashboardBean.myAssets ? 0 : dashboardBean.myAssets.size()}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">Open requests</div>
+                            <div class="h3 mb-0 #{not empty dashboardBean.myRequests ? 'text-warning' : ''}">#{empty dashboardBean.myRequests ? 0 : dashboardBean.myRequests.size()}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-white">Assets you hold</div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 table-responsive">
                     <h:dataTable value="#{dashboardBean.myAssets}" var="row"
-                                 styleClass="table table-sm table-hover mb-0 align-middle"
+                                 styleClass="table table-hover mb-0 align-middle"
                                  rendered="#{not empty dashboardBean.myAssets}">
                         <h:column>
                             <f:facet name="header">Asset</f:facet>
@@ -147,9 +166,9 @@
 
             <div class="card shadow-sm">
                 <div class="card-header bg-white">Your open requests</div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 table-responsive">
                     <h:dataTable value="#{dashboardBean.myRequests}" var="req"
-                                 styleClass="table table-sm mb-0 align-middle"
+                                 styleClass="table table-hover mb-0 align-middle"
                                  rendered="#{not empty dashboardBean.myRequests}">
                         <h:column>
                             <f:facet name="header">Asset</f:facet>

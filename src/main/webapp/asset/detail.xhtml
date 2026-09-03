@@ -23,7 +23,7 @@
     </ui:define>
 
     <ui:define name="content">
-        <h:messages globalOnly="true" styleClass="mb-3" errorClass="alert alert-danger"/>
+        <h:messages styleClass="mb-3" errorClass="alert alert-danger"/>
 
         <h:form id="update-asset-view" styleClass="row g-3" style="max-width:720px;">
             <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />

@@ -48,7 +48,7 @@ public class ApprovalDetailBean implements Serializable {
         detail = approvalService.getApprovalDetail(id);
         approvedCount = approvalService.countApprovedActions(id);
         alreadyActed = approvalService.hasActorRecordedAction(id, SecurityUtil.currentUserId());
-        requestedBySelf = detail.requesterId() != null && detail.requesterId().equals(SecurityUtil.currentUserId());
+        requestedBySelf = detail.isSubject(SecurityUtil.currentUserId());
     }
 
     public String approve() { return act(ApprovalActionType.APPROVED); }

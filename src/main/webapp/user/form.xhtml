@@ -16,23 +16,27 @@
         <h:form id="add-user-form" styleClass="row g-3" style="max-width:640px;">
             <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
 
-            <ats:field label="First Name" fieldId="firstName">
+            <ats:field label="First Name" fieldId="firstName" required="true">
                 <h:inputText id="firstName" value="#{userFormBean.firstName}" styleClass="form-control" required="true"/>
             </ats:field>
-            <ats:field label="Last Name" fieldId="lastName">
+
+            <ats:field label="Last Name" fieldId="lastName" required="true">
                 <h:inputText id="lastName" value="#{userFormBean.lastName}" styleClass="form-control" required="true"/>
             </ats:field>
-            <ats:field label="Email" fieldId="email">
+
+            <ats:field label="Email" fieldId="email" required="true">
                 <h:inputText id="email" value="#{userFormBean.email}" styleClass="form-control" required="true"/>
             </ats:field>
-            <ats:field label="Department" fieldId="departmentId">
+
+            <ats:field label="Department" fieldId="departmentId" required="true">
                 <h:selectOneMenu id="departmentId" value="#{userFormBean.departmentId}" styleClass="form-select" required="true">
                     <f:selectItem itemLabel="-- Select department --" itemValue="#{null}"/>
                     <f:selectItems value="#{lookupBean.departmentList}" var="dept"
                                    itemLabel="#{dept.name}" itemValue="#{dept.id}"/>
                 </h:selectOneMenu>
             </ats:field>
-            <ats:field label="Initial Password" fieldId="password">
+
+            <ats:field label="Initial Password" fieldId="password" required="true">
                 <h:inputSecret id="password" value="#{userFormBean.password}" styleClass="form-control" required="true"/>
             </ats:field>
 

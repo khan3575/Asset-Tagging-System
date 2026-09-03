@@ -14,39 +14,48 @@
             <h:messages globalOnly="true" styleClass="mb-3" layout="table"
                         errorClass="alert alert-danger" warnClass="alert alert-warning"/>
             <h:form id="add-asset-form" styleClass="row g-3" style="max-width: 600px;" enctype="multipart/form-data">
+
                 <input type="hidden" name="#{requestScope._csrf.parameterName}" value="#{requestScope._csrf.token}" />
-                <ats:field label="Asset Tag" fieldId="assetTag">
+                
+                <ats:field label="Asset Tag" fieldId="assetTag" required="true">
                     <h:inputText id="assetTag" value="#{assetFormBean.assetTag}" styleClass="form-control" required="true"/>
                 </ats:field>
-                <ats:field label="Name" fieldId="name">
+
+                <ats:field label="Name" fieldId="name" required="true">
                     <h:inputText id="name" value="#{assetFormBean.name}" styleClass="form-control" required="true"/>
                 </ats:field>
-                <ats:field label="Category" fieldId="categoryId">
+
+                <ats:field label="Category" fieldId="categoryId" required="true">
                     <h:selectOneMenu id="categoryId" value="#{assetFormBean.categoryId}" styleClass="form-select" required="true">
                         <f:selectItem itemLabel="-- Select category --" itemValue="#{null}"/>
                         <f:selectItems value="#{lookupBean.assetCategoryList}" var="category"
                                         itemLabel="#{category.name}" itemValue="#{category.id}"/>
                     </h:selectOneMenu>
                 </ats:field>
-                <ats:field label="Purchase Date" fieldId="purchaseDate">
+
+                <ats:field label="Purchase Date" fieldId="purchaseDate" required="true">
                     <h:inputText id="purchaseDate" value="#{assetFormBean.purchaseDate}" styleClass="form-control"
                                 p:type="date" required="true">
                         <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
                     </h:inputText>
                 </ats:field>
-                <ats:field label="Value" fieldId="value">
+
+                <ats:field label="Value" fieldId="value" required="true">
                     <h:inputText id="value" value="#{assetFormBean.value}" styleClass="form-control" required="true"/>
                 </ats:field>
-                <ats:field label="Photograph (optional)" fieldId="imageUpload">
+
+                <ats:field label="Photograph (optional)" fieldId="imageUpload" >
                     <h:inputFile id="imageUpload" value="#{assetFormBean.imageUpload}"
                                  styleClass="form-control" accept="image/*"/>
                     <div class="form-text">PNG, JPEG, GIF or WebP, up to 5 MB.</div>
                 </ats:field>
+
                 <ats:field label="Purchase invoice (optional)" fieldId="invoiceUpload">
                     <h:inputFile id="invoiceUpload" value="#{assetFormBean.invoiceUpload}"
                                  styleClass="form-control" accept="application/pdf"/>
                     <div class="form-text">PDF, up to 10 MB.</div>
                 </ats:field>
+
                 <div class="col-12">
                     <h:commandButton value="Save" action="#{assetFormBean.save}" styleClass="btn btn-primary"/>
                     <h:link outcome="/asset/list" styleClass="btn btn-outline-secondary" value="Cancel"/>

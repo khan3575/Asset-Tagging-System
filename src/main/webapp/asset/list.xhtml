@@ -3,6 +3,7 @@
       xmlns:h="jakarta.faces.html"
       xmlns:ui="jakarta.faces.facelets"
       xmlns:ats="jakarta.faces.composite/ats"
+      xmlns:p="jakarta.faces.passthrough"
       xmlns:f="jakarta.faces.core">
 
     <f:metadata>
@@ -28,7 +29,8 @@
                 <div class="row">
                     <div class="col-10">
                         <h:outputLabel for="search" value="Search" styleClass="form-label mb-0 text-muted"/>
-                        <h:inputText id="search" value="#{assetBean.search}" styleClass="form-control mb-2"/>
+                        <h:inputText id="search" value="#{assetBean.search}" styleClass="form-control mb-2"
+                            p:placeholder="Search by asset tag, name or category"/>
                     </div>
                     <div class="col-2">
                         <h:commandButton value="Search" action="#{assetBean.search}" styleClass="btn btn-primary mt-4"/>

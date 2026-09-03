@@ -116,9 +116,7 @@ public class ApprovalService {
             throw new BusinessRuleException("This approval has already been closed");
         }
 
-        if (action == ApprovalActionType.APPROVED
-                && current.requesterId() != null
-                && current.requesterId().equals(actor.userId())) {
+        if (action == ApprovalActionType.APPROVED && current.isSubject(actor.userId())) {
             refuse(actor, action, approvalId, current, "You may not approve your own request", startingSequence);
             throw new BusinessRuleException("You may not approve your own request");
         }
