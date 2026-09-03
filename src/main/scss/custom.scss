@@ -1,19 +1,159 @@
 @import "bootstrap/scss/functions";
 
+// ---------------------------------------------------------------------------
+// Brand
+// ---------------------------------------------------------------------------
 $primary: #0084BF;
-$danger: #C0392B;
+$danger:  #C0392B;
+
+// Bootstrap chooses button and badge text colour at compile time with
+// color-contrast(), which only accepts white once it clears $min-contrast-ratio.
+// #0084BF scores 4.15:1 against white, so at the 4.5 default every .btn-primary
+// compiled to BLACK text. Lowering the bar to 4 makes white win consistently
+// across buttons, badges, alerts and active nav pills. Note this is a deliberate
+// trade: 4.15:1 is below the WCAG AA 4.5:1 minimum for normal-size text.
+$min-contrast-ratio: 4;
 
 @import "bootstrap/scss/bootstrap";
 
-.auth-background{
+// ---------------------------------------------------------------------------
+// Glass tokens -- every frosted surface reads from these, so the whole system
+// can be retuned from one place.
+// ---------------------------------------------------------------------------
+:root {
+    --ats-glass-bg:        rgba(255, 255, 255, 0.62);
+    --ats-glass-bg-strong: rgba(255, 255, 255, 0.78);
+    --ats-glass-border:    rgba(255, 255, 255, 0.75);
+    --ats-glass-shadow:    0 8px 32px rgba(0, 51, 77, 0.18);
+    --ats-blur:            blur(14px);
+    --ats-radius:          0.75rem;
+}
+
+@mixin glass($bg: var(--ats-glass-bg)) {
+    background: $bg;
+    backdrop-filter: var(--ats-blur);
+    -webkit-backdrop-filter: var(--ats-blur);
+    border: 1px solid var(--ats-glass-border);
+    box-shadow: var(--ats-glass-shadow);
+}
+
+// ---------------------------------------------------------------------------
+// Backdrop. Glass only reads as glass when there is something varied behind it
+// to refract, so the workspace gets a soft brand-tinted field rather than the
+// flat white body Bootstrap ships.
+// ---------------------------------------------------------------------------
+body {
+    min-height: 100vh;
+    background-color: #eaf3f8;
+    background-image:
+        radial-gradient(1200px 600px at 8% -5%,  rgba(0, 132, 191, 0.38), transparent 60%),
+        radial-gradient(1000px 700px at 95% 105%, rgba(0,  64,  92, 0.40), transparent 60%),
+        linear-gradient(135deg, #eaf3f8 0%, #cfe3ee 100%);
+    background-attachment: fixed;
+}
+
+// The three standalone auth pages keep the bolder full-brand gradient: they are
+// a single centred card with no data on them, so they can carry more colour.
+.auth-background {
     min-height: 100vh;
     background: linear-gradient(135deg, $primary, #00405C);
 }
 
-.glass-card{
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+// ---------------------------------------------------------------------------
+// Surfaces
+// ---------------------------------------------------------------------------
+.glass-card {
+    @include glass(var(--ats-glass-bg-strong));
+}
+
+.card {
+    @include glass;
+    border-radius: var(--ats-radius);
+}
+
+// Bootstrap background utilities carry !important, so bg-white / bg-light punch
+// opaque holes straight through a frosted card. Clear them where they sit on
+// glass; the card underneath already provides the surface.
+.card-header.bg-white,
+.card.bg-light,
+.card .bg-light {
+    background-color: transparent !important;
+}
+
+.card-header {
+    border-bottom-color: var(--ats-glass-border);
+}
+
+// Top app bar (header.xhtml) and the sidebar column.
+.ats-glass-bar {
+    @include glass;
+    border-radius: var(--ats-radius);
+}
+
+// Below md the sidebar is a real off-canvas drawer and Bootstrap supplies its
+// own solid background -- a translucent drawer over scrolling content is hard
+// to read. Only dress it as glass once it is a static column again.
+@media (min-width: 768px) {
+    #sidebarOffcanvas {
+        @include glass;
+        border-radius: var(--ats-radius);
+        padding: 0.5rem;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tables
+// ---------------------------------------------------------------------------
+// List pages render a bare <table> straight onto the page, so the table itself
+// becomes the surface. Slightly more opaque than a card: these carry dense text
+// and legibility beats translucency here.
+.table {
+    @include glass(var(--ats-glass-bg-strong));
+    border-radius: var(--ats-radius);
+    overflow: hidden;
+}
+
+// A table inside a card is already sitting on glass. Stacking a second
+// backdrop-filter blurs an already-blurred backdrop -- it looks muddy and pays
+// the paint cost twice -- so the inner surface stays transparent.
+.card .table {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Form controls -- fully opaque inputs look pasted onto a frosted panel, but
+// they still need to read clearly as editable fields, so they stay lighter than
+// the surface behind them. background-color only: the shorthand would drop
+// .form-select's caret image.
+// ---------------------------------------------------------------------------
+.form-control,
+.form-select {
+    background-color: rgba(255, 255, 255, 0.75);
+    border-color: rgba(255, 255, 255, 0.9);
+
+    &:focus {
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+}
+
+.page-link {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-color: var(--ats-glass-border);
+}
+
+// ---------------------------------------------------------------------------
+// Typography on the backdrop. The page heading sits directly on the gradient
+// rather than on a card, where the brand blue is too low-contrast to hold up.
+// ---------------------------------------------------------------------------
+.ats-page-title {
+    color: #00405C;
+}
+
+.ats-page-subtitle {
+    color: rgba(0, 64, 92, 0.72);
 }
