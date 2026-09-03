@@ -6,11 +6,14 @@
     <cc:interface>
         <cc:attribute name="label" type="java.lang.String" required="true"/>
         <cc:attribute name="fieldId" type="java.lang.String" required="true"/>
+        <cc:attribute name="required" type="java.lang.Boolean" default="false"/>
     </cc:interface>
 
     <cc:implementation>
         <div class="col-12">
-            <h:outputLabel for="#{cc.attrs.fieldId}" value="#{cc.attrs.label}" styleClass="form-label mb-0"/>
+            <h:outputLabel for="#{cc.attrs.fieldId}" styleClass="form-label mb-0">
+                #{cc.attrs.label} <ui:fragment rendered="#{cc.attrs.required}"><span class="text-danger">*</span></ui:fragment>
+            </h:outputLabel>
             <cc:insertChildren/>
             <h:message for="#{cc.attrs.fieldId}" styleClass="text-danger small d-block"/>
         </div>

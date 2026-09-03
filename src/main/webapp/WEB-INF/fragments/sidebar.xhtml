@@ -12,26 +12,26 @@
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
                     
-                    <h:link styleClass="nav-link" outcome="/dashboard" value="Dashboard" />
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/dashboard') ? 'active' : ''}" outcome="/dashboard" value="Dashboard" />
                 </li>
                 <li class="nav-item">
-                    <h:link styleClass="nav-link" outcome="/asset/list" value="Assets" />
-                </li>
-                <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
-                    <li class="nav-item">
-                        <h:link styleClass="nav-link" outcome="/activity/log" value="Activity Log" />
-                    </li>
-                </ui:fragment>
-                <li class="nav-item">
-                    <h:link styleClass="nav-link" outcome="/user/list" value="Users" />
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/asset/') ? 'active' : ''}" outcome="/asset/list" value="Assets" />
                 </li>
                 <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
                     <li class="nav-item">
-                        <h:link styleClass="nav-link" outcome="/approval/list" value="Approvals" />
+                        <h:link styleClass="nav-link #{view.viewId.startsWith('/activity/') ? 'active' : ''}" outcome="/activity/log" value="Activity Log" />
                     </li>
                 </ui:fragment>
                 <li class="nav-item">
-                    <h:link styleClass="nav-link" outcome="/settings" value="Settings" />
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/user/') ? 'active' : ''}" outcome="/user/list" value="Users" />
+                </li>
+                <ui:fragment rendered="#{headerBean.role == 'ROLE_ADMIN'}">
+                    <li class="nav-item">
+                        <h:link styleClass="nav-link #{view.viewId.startsWith('/approval/') ? 'active' : ''}" outcome="/approval/list" value="Approvals" />
+                    </li>
+                </ui:fragment>
+                <li class="nav-item">
+                    <h:link styleClass="nav-link #{view.viewId.startsWith('/settings') ? 'active' : ''}" outcome="/settings" value="Settings" />
                 </li>
                 <li class="nav-item">
                     <form action="#{request.contextPath}/logout" method="POST">
