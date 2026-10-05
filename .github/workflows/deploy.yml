@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - dev
+# pull request ar ta pore setup dekhbo
+
+concurrency: deploy-prod
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Install java 25 with maven
+              uses: actions/setup-java@v5
+              with:
+                  distribution: 'temurin'
+                  java-version: '25'
+                  cache: maven
+
+            - name: Cache the node and frontend
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      node
+                      node_modules
+                  key: node-${{ hashFiles('**/package-lock.json') }}
+
+            # build and compile the code
+            - name: Build and compile the code
+              run: ./mvnw -B verify
+
+            - name: Configure SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+                  ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+            # copy the war + docker file to the server
+            - name: Upload build
+              run: |
+                  ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /opt/asset-tagging-system/build/target"
+                  scp target/*.war ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/asset-tagging-system/build/target/app.war
+                  scp Dockerfile   ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/asset-tagging-system/build/Dockerfile
+
+            - name: Deploy
+              run: |
+                  ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+                    set -e
+                    cd /opt/asset-tagging-system
+                    docker build -t ats:${GITHUB_SHA::7} -t ats:latest build
+                    docker compose up -d app
+                    docker image prune -f
+                  "
